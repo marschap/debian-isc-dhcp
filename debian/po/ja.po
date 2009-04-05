@@ -1,0 +1,279 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dhcp3 3.1.0-2\n"
+"Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
+"POT-Creation-Date: 2009-04-05 12:17-0700\n"
+"PO-Revision-Date: 2008-01-27 21:26+0900\n"
+"Last-Translator: Hideki Yamane(Debian-JP) <henrich@debian.or.jp>\n"
+"Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:2001
+msgid "Servers the DHCP relay should forward requests to:"
+msgstr "DHCP リレー要求が転送されるサーバ:"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:2001
+msgid ""
+"Please enter the hostname or IP address of at least one DHCP server to which "
+"DHCP and BOOTP requests should be relayed."
+msgstr ""
+"DHCP または BOOTP リクエストがリレーされる DHCP サーバの少なくとも一つを、ホ"
+"スト名か IP アドレスで入力してください。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:2001
+msgid ""
+"You can specify multiple server names or IP addresses (in a space-separated "
+"list)."
+msgstr ""
+"サーバ名または IP アドレスの複数指定が可能です (リストを空白で区切ってくださ"
+"い)。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:3001
+msgid "Interfaces the DHCP relay should listen on:"
+msgstr "DHCP リレーエージェントが listen するネットワークインターフェイス:"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:3001
+msgid ""
+"Please specify which network interface(s) the DHCP relay should attempt to "
+"configure. Multiple interface names should be entered as a space-separated "
+"list."
+msgstr ""
+"DHCP リレーを設定するネットワークインターフェイスを指定してください。複数のイ"
+"ンターフェイス名は空白で区切ったリストとして入力する必要があります。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:3001
+msgid ""
+"Leave this field blank to allow for automatic detection and configuration of "
+"network interfaces by the DHCP relay, in which case only broadcast "
+"interfaces will be used (if possible)."
+msgstr ""
+"この値を入力しないと、DHCP リレーによる自動認識とネットワークインターフェイス"
+"の設定が行われます。その場合、(可能であれば) ブロードキャストインターフェイス"
+"名が使われます。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:4001
+msgid "Additional options for the DHCP relay daemon:"
+msgstr "DHCP リレーデーモンへの追加オプション:"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:4001
+msgid "Please specify any additional options for the DHCP relay daemon."
+msgstr "DHCP リレーデーモンへの追加オプションを指定してください。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-relay.templates:4001
+msgid "For example: '-m replace' or '-a -D'."
+msgstr "例: '-m replace' または '-a -D'"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:2001
+msgid "Manual configuration required after installation"
+msgstr "インストール後に手動での設定が必要です"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:2001
+#, fuzzy
+#| msgid ""
+#| "After the DHCP server is installed, you will need to manually configure "
+#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
+#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#| "environment."
+msgid ""
+"After the DHCP server is installed, you will need to manually configure it "
+"by editing the file /etc/dhcp3/dhcpd.conf. Please note that the dhcpd.conf "
+"supplied is just a sample, and must be adapted to the network environment."
+msgstr ""
+"DHCP サーバのインストール後、/etc/isc-dhcp/dhcpd.conf ファイルを編集して手動"
+"で設定を行う必要があります。提供されている dhcpd.conf は単なるサンプルであ"
+"り、ネットワーク環境に応じた修正が必要であることに注意してください。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:2001
+msgid "Please configure the DHCP server as soon as the installation finishes."
+msgstr "インストール完了後、すぐに DHCP サーバの設定を行ってください。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-server.templates:3001
+msgid "Network interfaces on which the DHCP server should listen:"
+msgstr "DHCP サーバが listen する必要のあるネットワークインターフェイス:"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-server.templates:3001
+msgid ""
+"Please specify on which network interface(s) the DHCP server should listen "
+"for DHCP requests. Multiple interface names should be entered as a space-"
+"separated list."
+msgstr ""
+"どのネットワークインターフェイスで DHCP サーバは DHCP リクエストを listen す"
+"るのかを指定してください。複数のインターフェイス名は空白で区切ったリストで入"
+"力する必要があります。"
+
+#. Type: string
+#. Description
+#: ../isc-dhcp-server.templates:3001
+msgid ""
+"The interfaces will be automatically detected if this field is left blank."
+msgstr "値が入力されなかった場合、インターフェイスは自動的に検出されます。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:4001
+msgid "Non-authoritative version of DHCP server"
+msgstr "non-authoritative 設定がされている DHCP サーバのバージョン"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:4001
+msgid "The version 3 DHCP server is non-authoritative by default."
+msgstr "DHCP サーババージョン 3 では、non-authoritative が標準となっています。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:4001
+msgid ""
+"This means that if a client requests an address that the server knows "
+"nothing about and the address is incorrect for that network segment, the "
+"server will _not_ send a DHCPNAK (which tells the client it should stop "
+"using the address). If you want to change this behavior, you must explicitly "
+"state in dhcpd.conf what network segments your server is authoritative for "
+"using the 'authoritative' statement."
+msgstr ""
+"これは、サーバが関知しないアドレスをクライアントが要求し、そのアドレスがネッ"
+"トワークセグメントに合っていない場合、サーバは (クライアントへそのアドレスを"
+"利用するのを止めるように伝える) DHCPNAK メッセージを「送信しない」ということ"
+"を意味します。この挙動を変更したい場合は、dhcpd.conf で 'authoritative' 文を"
+"使用して、あなたのサーバがどのネットワークセグメントの権威を持っているかを明"
+"示的に指定しなくてはなりません。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:5001
+msgid "Change in default behaviour of the next-server directive"
+msgstr "next-server 指示子のデフォルトでの挙動の変更に付いて"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-server.templates:5001
+#, fuzzy
+#| msgid ""
+#| "From version 3.0.3, the DHCP server's default value of the next-server "
+#| "directive has changed. If you are network booting clients, and your TFTP "
+#| "server is your DHCP server, you need to explicitly set a next-server "
+#| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
+#| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
+#| "information."
+msgid ""
+"From version 3.0.3, the DHCP server's default value of the next-server "
+"directive has changed. If you are network booting clients, and your TFTP "
+"server is your DHCP server, you need to explicitly set a next-server "
+"directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS.Debian."
+"gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more information."
+msgstr ""
+"バージョン 3.0.3 より、DHCP サーバの next-server 指示子のデフォルトの値が変更"
+"されました。あなたが network boot クライアントを利用しており、TFTP サーバが "
+"DHCP サーバでもある場合、next-server 指示子で明示的にこの状態を設定する必要が"
+"あります。詳細に付いては、/usr/share/doc/isc-dhcp-server/NEWS.Debian.gz と /"
+"usr/share/doc/isc-dhcp-common/RELNOTES.gz をご覧下さい。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:2001
+msgid "dhclient-script moved"
+msgstr "dhclient-script は移動しました"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:2001
+#, fuzzy
+#| msgid ""
+#| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#| "registered as a configuration file. /etc/isc-dhcp/dhclient-script appears "
+#| "to have been modified at some point, so it has not been removed. However "
+#| "it is no longer being used."
+msgid ""
+"As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+"registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
+"have been modified at some point, so it has not been removed. However it is "
+"no longer being used."
+msgstr ""
+"バージョン 3.0.4-2 から、dhclient-script は /sbin にインストールされ、設定"
+"ファイルとして登録されないようになっています。/etc/isc-dhcp/dhclient-script "
+"には何箇所か変更が加えられているようなので、削除はされていません。しかし、今"
+"後は使われることはありません。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:2001
+msgid ""
+"Please consider using the hook infrastructure (see dhclient-script(8) for "
+"more information) instead of modifying dhclient-script."
+msgstr ""
+"dhclient-script を編集するのではなく、フックスクリプトを使うことを検討してく"
+"ださい（詳細は dhclient-script(8) を参照してください）。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:3001
+msgid "dhclient needs restarting"
+msgstr "dhclient は再起動が必要です"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:3001
+msgid ""
+"As always, dhclient is not restarted on upgrade, so you are still running "
+"the previous version of dhclient. You can restart it by doing an ifdown and "
+"ifup on the interface(s) that are configured to use DHCP, or by explicitly "
+"killing and restarting dhclient."
+msgstr ""
+"いつものように、dhclient はアップグレード時には再起動しませんので、まだ以前の"
+"バージョンの dhclient が動作しています。DHCP を使うように設定してあるインター"
+"フェイスで ifdown と ifup を実行することで dhclient を再起動できます。"
+"dhclient を kill して再起動することでも可能です。"
+
+#. Type: note
+#. Description
+#: ../isc-dhcp-client.templates:3001
+msgid ""
+"Naturally, you should exercise caution if you are managing a remote server "
+"via an interface using DHCP."
+msgstr ""
+"当然の事ですが、DHCP を使っているインターフェイス経由でリモートサーバを管理し"
+"ている場合は注意を払うべきです。"

@@ -1,0 +1,15 @@
+#!/bin/sh -e
+#
+# $Id: dhcp3-relay.postrm,v 1.2 2004/05/26 17:08:00 peloy Exp $
+#
+
+if [ "$1" = "purge" ]; then
+    # Remove init.d configuration file
+    rm -f /etc/default/dhcp3-relay
+
+    update-rc.d dhcp3-relay remove >/dev/null
+fi
+
+#DEBHELPER#
+
+exit 0

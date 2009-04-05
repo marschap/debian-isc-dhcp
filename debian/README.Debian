@@ -1,0 +1,37 @@
+ISC DHCP for Debian
+-------------------
+
+This is the Debian-packaged version of the Internet Software Consortium
+(ISC) DHCP package.
+
+This release has full support for operation on multiple interfaces and needs
+a 2.2.x or later kernel; the 2.0.x kernels are _not_ supported.
+
+The sources of the ISC DHCP package produce the following Debian packages:
+
+dhcp3-common: Files used by all the dhcp packages.
+dhcp3-server: DHCP Server
+dhcp3-client: A DHCP Client
+dhcp3-client-udeb: Small DHCP client for debian-installer
+dhcp3-relay: A DHCP Relay
+dhcp3-dev: API for accessing and modifying the DHCP server and client state
+
+If you get the following error when trying to run dhclient, dhcpd or
+dhcrelay:
+
+   Can't install packet filter program: Protocol not available
+   exiting.
+
+then you need to edit your linux kernel .config file, set CONFIG_FILTER=y,
+and rebuild your kernel. See /usr/share/doc/dhcp3-server/README.gz for
+more information.
+
+PLEASE NOTE: Upon upgrading dhcp3-client, dhclient is NOT restarted. Therefore,
+after upgrading, the version of dhclient running will still be from the
+previous version of dhcp3-client that was installed.
+
+Eloy A. Paris <peloy@debian.org>
+Matt Zimmerman <mdz@debian.org>
+Andrew Pollock <apollock@debian.org>
+
+$Id: README.Debian,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $

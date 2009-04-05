@@ -1,0 +1,3 @@
+[type: gettext/rfc822deb] isc-dhcp-relay.templates
+[type: gettext/rfc822deb] isc-dhcp-server.templates
+[type: gettext/rfc822deb] isc-dhcp-client.templates
