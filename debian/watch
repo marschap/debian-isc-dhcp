@@ -1,0 +1,3 @@
+version=3
+
+ftp://ftp.isc.org/isc/dhcp/dhcp-(.*)\.tar\.gz debian uupdate
