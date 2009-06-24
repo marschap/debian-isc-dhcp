@@ -1,2 +1,0 @@
-dhcp3-client: no-debconf-config
-dhcp3-client: postinst-uses-db-input
