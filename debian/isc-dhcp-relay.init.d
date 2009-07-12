@@ -16,15 +16,15 @@
 ### END INIT INFO
 
 # It is not safe to start if we don't have a default configuration...
-if [ ! -f /etc/default/dhcp3-relay ]; then
-	echo "/etc/default/dhcp3-relay does not exist! - Aborting..."
+if [ ! -f /etc/default/isc-dhcp-relay ]; then
+	echo "/etc/default/isc-dhcp-relay does not exist! - Aborting..."
 	echo "Run 'dpkg-reconfigure dhcp3-relay' to fix the problem."
 	exit 1
 fi
 
 # Read init script configuration (interfaces the daemon should listen on
 # and the DHCP server we should forward requests to.)
-. /etc/default/dhcp3-relay
+[ -f /etc/default/isc-dhcp-relay ] && . /etc/default/isc-dhcp-relay
 
 # Build command line for interfaces (will be passed to dhrelay below.)
 IFCMD=""
@@ -39,7 +39,7 @@ DHCRELAYPID=/var/run/dhcrelay.pid
 case "$1" in
 	start)
 		start-stop-daemon --start --quiet --pidfile $DHCRELAYPID \
-			--exec /usr/sbin/dhcrelay3 -- -q $OPTIONS $IFCMD $SERVERS
+			--exec /usr/sbin/dhcrelay -- -q $OPTIONS $IFCMD $SERVERS
 		;;
 	stop)
 		start-stop-daemon --stop --quiet --pidfile $DHCRELAYPID
@@ -50,7 +50,7 @@ case "$1" in
 		$0 start
 		;;
 	*)
-		echo "Usage: /etc/init.d/dhcp3-relay {start|stop|restart|force-reload}"
+		echo "Usage: /etc/init.d/isc-dhcp-relay {start|stop|restart|force-reload}"
 		exit 1 
 esac
 

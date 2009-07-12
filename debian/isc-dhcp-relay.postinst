@@ -25,15 +25,15 @@ esac
 #	them to be readable only by root.
 umask 022
 
-INITCONFFILE=/etc/default/dhcp3-relay
+INITCONFFILE=/etc/default/isc-dhcp-relay
 
 # Generate configuration file if it does not exist, using default values.
 [ -r "${INITCONFFILE}" ] || {
 	echo Generating ${INITCONFFILE}... >&2
 	cat >${INITCONFFILE} <<'EOFMAGICNUMBER1234'
-# Defaults for dhcp3-relay initscript
-# sourced by /etc/init.d/dhcp3-relay
-# installed at /etc/default/dhcp3-relay by the maintainer scripts
+# Defaults for isc-dhcp-relay initscript
+# sourced by /etc/init.d/isc-dhcp-relay
+# installed at /etc/default/isc-dhcp-relay by the maintainer scripts
 
 #
 # This is a POSIX shell fragment
@@ -52,7 +52,7 @@ EOFMAGICNUMBER1234
 
 # ------------------------- Debconf questions start ---------------------
 
-db_get dhcp3-relay/interfaces || true
+db_get isc-dhcp-relay/interfaces || true
 INTERFACES="${RET}"
 
 TMPFILE=`mktemp -q /tmp/dhcp.config.XXXXXX`
@@ -61,7 +61,7 @@ sed -e "s/^[[:space:]]*INTERFACES[[:space:]]*=.*/INTERFACES=\"${INTERFACES}\"/" 
 cp ${TMPFILE} ${INITCONFFILE}
 rm ${TMPFILE}
 
-db_get dhcp3-relay/servers || true
+db_get isc-dhcp-relay/servers || true
 SERVERS="${RET}"
 
 TMPFILE=`mktemp -q /tmp/dhcp.config.XXXXXX`
@@ -70,7 +70,7 @@ sed -e "s/^[[:space:]]*SERVERS[[:space:]]*=.*/SERVERS=\"${SERVERS}\"/" \
 cp ${TMPFILE} ${INITCONFFILE}
 rm ${TMPFILE}
 
-db_get dhcp3-relay/options || true
+db_get isc-dhcp-relay/options || true
 OPTIONS="${RET}"
 
 TMPFILE=`mktemp -q /tmp/dhcp.config.XXXXXX`
@@ -81,9 +81,9 @@ rm ${TMPFILE}
 
 # ------------------------- Debconf questions end ---------------------
 
-update-rc.d dhcp3-relay defaults > /dev/null
+update-rc.d isc-dhcp-relay defaults > /dev/null
 
-invoke-rc.d dhcp3-relay start
+invoke-rc.d isc-dhcp-relay start
 
 db_stop
 

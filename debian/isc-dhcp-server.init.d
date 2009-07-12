@@ -17,10 +17,10 @@
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-test -f /usr/sbin/dhcpd3 || exit 0
+test -f /usr/sbin/dhcpd || exit 0
 
 # It is not safe to start if we don't have a default configuration...
-if [ ! -f /etc/default/dhcp3-server ]; then
+if [ ! -f /etc/default/isc-dhcp-server ]; then
 	echo "/etc/default/dhcp3-server does not exist! - Aborting..."
 	echo "Run 'dpkg-reconfigure dhcp3-server' to fix the problem."
 	exit 0
@@ -30,18 +30,18 @@ fi
 
 # Read init script configuration (so far only interfaces the daemon
 # should listen on.)
-. /etc/default/dhcp3-server
+[ -f /etc/default/isc-dhcp-server ] && . /etc/default/isc-dhcp-server
 
-NAME=dhcpd3
-DESC="DHCP server"
+NAME=dhcpd
+DESC="ISC DHCP server"
 DHCPDPID=/var/run/dhcpd.pid
 
 test_config()
 {
-	if ! /usr/sbin/dhcpd3 -t -q > /dev/null 2>&1; then
+	if ! /usr/sbin/dhcpd -t -q > /dev/null 2>&1; then
 		echo "dhcpd self-test failed. Please fix the config file."
 		echo "The error was: "
-		/usr/sbin/dhcpd3 -t
+		/usr/sbin/dhcpd -t
 		exit 1
 	fi
 }
@@ -67,7 +67,7 @@ case "$1" in
 		test_config
 		log_daemon_msg "Starting $DESC" "$NAME"
 		start-stop-daemon --start --quiet --pidfile $DHCPDPID \
-			--exec /usr/sbin/dhcpd3 -- -q $INTERFACES
+			--exec /usr/sbin/dhcpd -- -q $INTERFACES
 		sleep 2
 
 		if check_status -q; then

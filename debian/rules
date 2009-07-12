@@ -18,7 +18,7 @@ endif
 
 DESTDIR = `pwd`/debian/tmp
 
-PACKAGE = dhcp3
+PACKAGE = isc-dhcp
 
 include /usr/share/dpatch/dpatch.make
 
@@ -36,31 +36,17 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 INSTALL_PROGRAM += -s
 endif
 
-patched-ldap/build-stamp:
-	dh_testdir
-
-	./configure  --prefix=$(DESTDIR)/usr
-
-	for f in common $(MINIRES) dst omapip server; do \
-		cd work.ldapbuild/$$f;\
-		$(MAKE);\
-	done
-
-	mv work.ldapbuild patched-ldap
-
-	touch $@
-
-
 build: patch-stamp build-stamp
 
-#build-stamp: patched-ldap/build-stamp
 build-stamp: patch-stamp
-	#dpatch deapply-until dhcp-3.1.0-ldap-code
 	
-	./configure --prefix=$(DESTDIR)/usr --disable-dhcpv6
+	./configure \
+		--prefix=$(DESTDIR)/usr \
+		--disable-dhcpv6 
 	
 	$(MAKE)
 
+	#TODO: fix
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) client/scripts/debian
 
 	touch build-stamp
@@ -69,12 +55,11 @@ clean: unpatch
 	dh_testdir
 	rm -f build-stamp install-stamp
 
-	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) distclean
 
 	# Remove leftover junk...
+	# TODO: verify if still necessary
 	rm -Rf work.*/
-	rm -Rf patched-ldap
 	rm -f client/scripts/debian
 
 	debconf-updatepo
@@ -84,12 +69,11 @@ install: install-stamp
 install-stamp: build-stamp
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs -A
 
 	# Add here commands to install the package into debian/tmp.
 	$(MAKE) install
-
 
 	mkdir -p $(DESTDIR)/etc/dhcp
 
@@ -100,18 +84,12 @@ install-stamp: build-stamp
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
 
 	# install the udeb binary
-	$(INSTALL_PROGRAM) -m 755 $(DESTDIR)/usr/sbin/dhclient \
-		`pwd`/debian/isc-dhcp-client-udeb/sbin/
+	#$(INSTALL_PROGRAM) -m 755 $(DESTDIR)/usr/sbin/dhclient \
+	#	`pwd`/debian/isc-dhcp-client-udeb/sbin/
 
 	# udeb needs simplified dhclient script
 	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
 		`pwd`/debian/isc-dhcp-client-udeb/sbin/dhclient-script
-
-	# Rename man page so the have the same name as the binaries.
-	#for f in dhcpd dhcrelay dhclient; do \
-	#	mv $(DESTDIR)/usr/share/man/man8/$$f.8 \
-	#		$(DESTDIR)/usr/share/man/man8/$${f}3.8; \
-	#done
 
 	# Weird, weird Japanese manpages in weird, weird locations
 	# need to be special-cased...
@@ -127,18 +105,11 @@ install-stamp: build-stamp
 			$(DESTDIR)/usr/share/man/ja/man8; \
 	done
 
-	cp debian/debug-enter debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
-	cp debian/debug-exit debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
+	#cp debian/debug-enter debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
+	#cp debian/debug-exit debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
 	cp debian/rfc3442-classless-routes debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d
 
-	dh_movefiles
-	# Create symlink so we don't break ifupdown
-	dh_link -a
-
-	# Remove unwanted directories that dh_movefiles leaves around
-	rmdir $(DESTDIR)/sbin/
-	rmdir $(DESTDIR)/usr/lib/
-	rm -Rf $(DESTDIR)/usr/include/
+	dh_install
 
 	# Install Linux specific documentation
 ifeq ($(DEB_HOST_ARCH_OS), linux)
@@ -147,45 +118,26 @@ ifeq ($(DEB_HOST_ARCH_OS), linux)
 		install -m 644 `pwd`/debian/dhcp-on-linux.txt `pwd`/debian/$p/usr/share/doc; \
 	done
 endif
-	$(INSTALL_FILE) debian/isc-dhcp-client.lintian \
-		debian/isc-dhcp-client/usr/share/lintian/overrides/isc-dhcp-client
-	#$(INSTALL_FILE) debian/isc-dhcp-server-ldap.lintian \
-	#	debian/isc-dhcp-server-ldap/usr/share/lintian/overrides/isc-dhcp-server-ldap
+	dh_lintian
 
 	touch install-stamp
-
-UDEBPACKAGE=isc-dhcp-client-udeb
-VERSION=$(shell dpkg-parsechangelog | grep ^Version:.* | cut -d ' ' -f 2)
-ARCH=$(shell dpkg --print-architecture)
-#UDEBFILENAME=$(UDEBPACKAGE)_$(VERSION)_$(ARCH).udeb
-PRIORITY=$(shell grep ^Priority: debian/control | cut -d ' ' -f 2)
 
 # Build architecture-dependent files here (this package does not contain
 #	architecture-independent files).
 binary-arch: build install
-#	dh_testversion
 	dh_testdir
 	dh_testroot 
 	dh_installdebconf
 	dh_installdocs -A debian/README.Debian -X doc/ja_JP.eucJP
-	#dh_installdocs -p isc-dhcp-server-ldap contrib/dhcpd-conf-to-ldap.pl
 	dh_installexamples -a
-#	dh_installmenu -a
-#	dh_installemacsen -a
 	dh_installinit -a -n
-#	dh_installcron -a
-#	dh_installmanpages -a
-#	dh_undocumented
 	dh_installchangelogs
-	#dh_installchangelogs -p isc-dhcp-server-ldap Changelog-LDAP 
-	#dh_install -p isc-dhcp-server-ldap
 	dh_strip -a
 	dh_compress
 	dh_fixperms -a
 	dh_installdeb
 	dh_shlibdeps -a
 	dh_gencontrol
-#	dh_makeshlibs -a
 	dh_md5sums -a --no-package=isc-dhcp-client-udeb
 	dh_builddeb
 
