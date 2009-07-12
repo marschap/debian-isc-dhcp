@@ -100,7 +100,7 @@ install-stamp: build-stamp
 
 	dh_install
 
-	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin
+	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin/dhclient-script
 
 	# Install Linux specific documentation
 ifeq ($(DEB_HOST_ARCH_OS), linux)
