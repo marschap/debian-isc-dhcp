@@ -75,7 +75,6 @@ install-stamp: build-stamp
 	# Install dhcp-client's conffiles.
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
 
-	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin
 
 	# udeb needs simplified dhclient script
 	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
@@ -100,6 +99,8 @@ install-stamp: build-stamp
 	cp debian/rfc3442-classless-routes debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d
 
 	dh_install
+
+	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin
 
 	# Install Linux specific documentation
 ifeq ($(DEB_HOST_ARCH_OS), linux)
