@@ -25,15 +25,11 @@ include /usr/share/dpatch/dpatch.make
 CFLAGS = -Wall -g
 INSTALL = install
 INSTALL_FILE 	= $(INSTALL) -p -o root -g root -m 644
-INSTALL_PROGRAM = $(INSTALL) -p -o root -g root -m 755
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 CFLAGS += -O0
 else
 CFLAGS += -O2
-endif
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-INSTALL_PROGRAM += -s
 endif
 
 build: patch-stamp build-stamp
@@ -46,9 +42,6 @@ build-stamp: patch-stamp
 	
 	$(MAKE)
 
-	#TODO: fix
-	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) client/scripts/debian
-
 	touch build-stamp
 
 clean: unpatch
@@ -60,7 +53,6 @@ clean: unpatch
 	# Remove leftover junk...
 	# TODO: verify if still necessary
 	rm -Rf work.*/
-	rm -f client/scripts/debian
 
 	debconf-updatepo
 	dh_clean
@@ -82,6 +74,8 @@ install-stamp: build-stamp
 
 	# Install dhcp-client's conffiles.
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
+
+	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) $(DESTDIR)/debian/tmp/sbin
 
 	# udeb needs simplified dhclient script
 	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
