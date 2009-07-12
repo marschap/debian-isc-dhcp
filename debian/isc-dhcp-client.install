@@ -1,5 +1,4 @@
 usr/sbin/dhclient sbin
-usr/sbin/dhclient-script sbin
 etc/dhcp/dhclient.conf
 usr/share/man/man8/dhclient.8
 usr/share/man/man8/dhclient-script.8

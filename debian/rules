@@ -75,7 +75,7 @@ install-stamp: build-stamp
 	# Install dhcp-client's conffiles.
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
 
-	$(INSTALL_FILE) -m 755 debian/dhclient-script.$(DEB_HOST_ARCH_OS) $(DESTDIR)/usr/sbin
+	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin
 
 	# udeb needs simplified dhclient script
 	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
