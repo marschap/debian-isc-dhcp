@@ -83,10 +83,6 @@ install-stamp: build-stamp
 	# Install dhcp-client's conffiles.
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
 
-	# install the udeb binary
-	#$(INSTALL_PROGRAM) -m 755 $(DESTDIR)/usr/sbin/dhclient \
-	#	`pwd`/debian/isc-dhcp-client-udeb/sbin/
-
 	# udeb needs simplified dhclient script
 	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
 		`pwd`/debian/isc-dhcp-client-udeb/sbin/dhclient-script
@@ -105,8 +101,8 @@ install-stamp: build-stamp
 			$(DESTDIR)/usr/share/man/ja/man8; \
 	done
 
-	#cp debian/debug-enter debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
-	#cp debian/debug-exit debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
+	cp debian/debug-enter debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
+	cp debian/debug-exit debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
 	cp debian/rfc3442-classless-routes debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d
 
 	dh_install
