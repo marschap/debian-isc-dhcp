@@ -2,7 +2,9 @@ isc-dhcp (4.1.0-1) unstable; urgency=low
 
   * The "throw everything out and start over" release
   * New upstream release
-  * debian/control: drop 3 from the binary package names, adjust dependencies
+  * debian/control: drop 3 from the binary package names, adjust dependencies,
+    maintainer scripts, accordingly
+  * use debhelper more extensively, de-cruft debian/rules
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 05 Apr 2009 11:48:34 -0700
 
