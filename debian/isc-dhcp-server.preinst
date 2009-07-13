@@ -4,10 +4,6 @@ set -e
 
 case "$1" in
     install|upgrade)
-        if [ ! -e /etc/dhcp3/dhcpd.conf ] && [ -e /etc/dhcpd.conf ]; then
-            mkdir -p /etc/dhcp3
-            cp /etc/dhcpd.conf /etc/dhcp3/dhcpd.conf
-        fi
         ;;
 
     abort-upgrade)

@@ -8,11 +8,11 @@
 
 case "$1" in
     configure)
-        if [ ! -e /var/lib/dhcp3/dhclient.leases ]; then
-            if test -e /var/lib/dhcp/dhclient.leases; then
-                cp /var/lib/dhcp/dhclient.leases /var/lib/dhcp3/dhclient.leases
+        if [ ! -e /var/lib/dhcp/dhclient.leases ]; then
+            if test -e /var/lib/dhcp3/dhclient.leases; then
+                cp /var/lib/dhcp3/dhclient.leases /var/lib/dhcp/dhclient.leases
             else
-                touch /var/lib/dhcp3/dhclient.leases
+                touch /var/lib/dhcp/dhclient.leases
             fi
         fi
 
@@ -24,10 +24,6 @@ case "$1" in
 			db_input high dhcp3-client/dhclient-needs-restarting || true
 			db_go
 		fi
-	fi
-
-	if [ -e /etc/dhcp3/dhclient.conf.oldconfig ]; then
-		mv /etc/dhcp3/dhclient.conf.oldconfig /etc/dhcp3/dhclient.conf
 	fi
 
         ;;

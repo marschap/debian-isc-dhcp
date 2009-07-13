@@ -25,7 +25,7 @@ esac
 # Handle debconf
 . /usr/share/debconf/confmodule
 
-INITCONFFILE=/etc/default/dhcp3-server
+INITCONFFILE=/etc/default/isc-dhcp-server
 
 # We generate several files during the postinst, and we don't want
 #	them to be readable only by root.
@@ -37,7 +37,7 @@ umask 022
 	cat >${INITCONFFILE} <<'EOFMAGICNUMBER1234'
 # Defaults for dhcp initscript
 # sourced by /etc/init.d/dhcp
-# installed at /etc/default/dhcp3-server by the maintainer scripts
+# installed at /etc/default/isc-dhcp-server by the maintainer scripts
 
 #
 # This is a POSIX shell fragment
@@ -51,7 +51,7 @@ EOFMAGICNUMBER1234
 
 # ------------------------- Debconf questions start ---------------------
 
-db_get dhcp3-server/interfaces || true
+db_get isc-dhcp-server/interfaces || true
 INTERFACES="${RET}"
 
 TMPFILE=`mktemp -q ${INITCONFFILE}.new.XXXXXX`
@@ -62,15 +62,15 @@ rm ${TMPFILE}
 
 # ------------------------- Debconf questions end ---------------------
 
-if [ ! -e /var/lib/dhcp3/dhcpd.leases ]; then
-    if test -e /var/lib/dhcp/dhcpd.leases; then
-        cp /var/lib/dhcp/dhcpd.leases /var/lib/dhcp3/dhcpd.leases
+if [ ! -e /var/lib/dhcp/dhcpd.leases ]; then
+    if test -e /var/lib/dhcp3/dhcpd.leases; then
+        cp /var/lib/dhcp3/dhcpd.leases /var/lib/dhcp/dhcpd.leases
     else
-	touch /var/lib/dhcp3/dhcpd.leases
+	touch /var/lib/dhcp/dhcpd.leases
     fi
 fi
 
-[ -x /sbin/restorecon ] && restorecon /var/lib/dhcp3/dhcpd.leases
+[ -x /sbin/restorecon ] && restorecon /var/lib/dhcp/dhcpd.leases
 
 # If we're upgrading from something before 3.0.2-1 we need to move
 # the symlinks in /etc/rc?.d because we want to fix #292357 for existing
