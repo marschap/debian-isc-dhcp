@@ -38,6 +38,7 @@ build-stamp: patch-stamp
 	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
+		--sysconfdir=$(DESTDIR)/etc/dhcp \
 		--disable-dhcpv6 
 	
 	$(MAKE)
