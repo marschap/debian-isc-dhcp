@@ -69,12 +69,12 @@ exit_with_hooks() {
     exit_status=$1
 
     # Source the documented exit-hook script, if it exists
-    if ! run_hook /etc/dhcp3/dhclient-exit-hooks "$@"; then
+    if ! run_hook /etc/dhcp/dhclient-exit-hooks "$@"; then
         exit_status=$?
     fi
 
     # Now run scripts in the Debian-specific directory.
-    if ! run_hookdir /etc/dhcp3/dhclient-exit-hooks.d "$@"; then
+    if ! run_hookdir /etc/dhcp/dhclient-exit-hooks.d "$@"; then
         exit_status=$?
     fi
 
@@ -114,8 +114,8 @@ fi
 # The action starts here
 
 # Invoke the local dhcp client enter hooks, if they exist.
-run_hook /etc/dhcp3/dhclient-enter-hooks
-run_hookdir /etc/dhcp3/dhclient-enter-hooks.d
+run_hook /etc/dhcp/dhclient-enter-hooks
+run_hookdir /etc/dhcp/dhclient-enter-hooks.d
 
 # Execute the operation
 case "$reason" in
