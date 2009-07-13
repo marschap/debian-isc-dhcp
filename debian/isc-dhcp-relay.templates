@@ -7,7 +7,7 @@
 # Even minor modifications require translation updates and such
 # changes should be coordinated with translators and reviewers.
 
-Template: dhcp3-relay/servers
+Template: isc-dhcp-relay/servers
 Type: string
 _Description: Servers the DHCP relay should forward requests to:
  Please enter the hostname or IP address of at least one DHCP server
@@ -16,7 +16,7 @@ _Description: Servers the DHCP relay should forward requests to:
  You can specify multiple server names or IP addresses (in a
  space-separated list).
 
-Template: dhcp3-relay/interfaces
+Template: isc-dhcp-relay/interfaces
 Type: string
 _Description: Interfaces the DHCP relay should listen on:
  Please specify which network interface(s) the DHCP relay should
@@ -27,7 +27,7 @@ _Description: Interfaces the DHCP relay should listen on:
  configuration of network interfaces by the DHCP relay, in which case
  only broadcast interfaces will be used (if possible).
 
-Template: dhcp3-relay/options
+Template: isc-dhcp-relay/options
 Type: string
 _Description: Additional options for the DHCP relay daemon:
  Please specify any additional options for the DHCP relay daemon.
