@@ -32,11 +32,11 @@ else
 CFLAGS += -O2
 endif
 
-CFLAGS += -D_PATH_DHCPD_DB=/var/lib/dhcp/dhcpd.leases
-CFLAGS += -D_PATH_DHCLIENT_DB=/var/lib/dhcp/dhclient.leases
-CFLAGS += -D_PATH_DHCLIENT_SCRIPT=/sbin/dhclient-script
-CFLAGS += -D_PATH_DHCPD_CONF=/etc/dhcp/dhcpd.conf
-CFLAGS += -D_PATH_DHCLIENT_CONF=/etc/dhcp/dhclient.conf
+CFLAGS += -D_PATH_DHCPD_DB='"/var/lib/dhcp/dhcpd.leases"'
+CFLAGS += -D_PATH_DHCLIENT_DB='"/var/lib/dhcp/dhclient.leases"'
+CFLAGS += -D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
+CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
+CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 
 build: patch-stamp build-stamp
 
