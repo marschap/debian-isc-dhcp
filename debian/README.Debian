@@ -33,5 +33,3 @@ previous version of dhcp3-client that was installed.
 Eloy A. Paris <peloy@debian.org>
 Matt Zimmerman <mdz@debian.org>
 Andrew Pollock <apollock@debian.org>
-
-$Id: README.Debian,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $

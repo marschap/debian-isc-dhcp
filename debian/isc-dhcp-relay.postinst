@@ -1,6 +1,5 @@
 #!/bin/sh -e
 #
-# $Id: dhcp3-relay.postinst,v 1.4 2003/06/18 18:11:21 peloy Exp $
 #
 
 case "$1" in

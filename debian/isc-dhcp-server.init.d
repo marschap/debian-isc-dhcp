@@ -1,10 +1,9 @@
 #!/bin/sh
 #
-# $Id: dhcp3-server.init.d,v 1.4 2003/07/13 19:12:41 mdz Exp $
 #
 
 ### BEGIN INIT INFO
-# Provides:          dhcp3-server
+# Provides:          isc-dhcp-server
 # Required-Start:    $remote_fs $network $syslog
 # Required-Stop:     $remote_fs $network $syslog
 # Should-Start:      $local_fs slapd
@@ -21,8 +20,8 @@ test -f /usr/sbin/dhcpd || exit 0
 
 # It is not safe to start if we don't have a default configuration...
 if [ ! -f /etc/default/isc-dhcp-server ]; then
-	echo "/etc/default/dhcp3-server does not exist! - Aborting..."
-	echo "Run 'dpkg-reconfigure dhcp3-server' to fix the problem."
+	echo "/etc/default/isc-dhcp-server does not exist! - Aborting..."
+	echo "Run 'dpkg-reconfigure isc-dhcp-server' to fix the problem."
 	exit 0
 fi
 

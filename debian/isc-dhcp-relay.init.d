@@ -1,10 +1,9 @@
 #!/bin/sh
 #
-# $Id: dhcp3-relay.init.d,v 1.2 2003/06/18 18:11:21 peloy Exp $
 #
 
 ### BEGIN INIT INFO
-# Provides:          dhcp3-relay
+# Provides:          isc-dhcp-relay
 # Required-Start:    $remote_fs $network
 # Required-Stop:     $remote_fs $network
 # Should-Start:      $local_fs
@@ -18,7 +17,7 @@
 # It is not safe to start if we don't have a default configuration...
 if [ ! -f /etc/default/isc-dhcp-relay ]; then
 	echo "/etc/default/isc-dhcp-relay does not exist! - Aborting..."
-	echo "Run 'dpkg-reconfigure dhcp3-relay' to fix the problem."
+	echo "Run 'dpkg-reconfigure isc-dhcp-relay' to fix the problem."
 	exit 1
 fi
 

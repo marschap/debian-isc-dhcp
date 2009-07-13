@@ -1,6 +1,5 @@
 #!/bin/sh -e
 #
-# $Id: dhcp3-client.postinst,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $
 #
 
 # Source debconf library.
@@ -15,16 +14,6 @@ case "$1" in
                 touch /var/lib/dhcp/dhclient.leases
             fi
         fi
-
-	if dpkg --compare-versions "$2" lt-nl "3.0.4-2"; then
-		if [ -e /etc/dhcp3/dhclient-script ]; then
-			db_input high dhcp3-client/dhclient-script_moved || true
-			db_go
-		else
-			db_input high dhcp3-client/dhclient-needs-restarting || true
-			db_go
-		fi
-	fi
 
         ;;
 

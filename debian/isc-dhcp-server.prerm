@@ -1,9 +1,8 @@
 #!/bin/sh -e
 #
-# $Id: dhcp3-server.prerm,v 1.1.1.1 2002/05/21 00:07:44 peloy Exp $
 #
 
-invoke-rc.d dhcp3-server stop
+invoke-rc.d isc-dhcp-server stop
 
 #DEBHELPER#
 

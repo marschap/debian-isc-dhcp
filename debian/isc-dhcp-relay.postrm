@@ -1,6 +1,5 @@
 #!/bin/sh -e
 #
-# $Id: dhcp3-relay.postrm,v 1.2 2004/05/26 17:08:00 peloy Exp $
 #
 
 if [ "$1" = "purge" ]; then

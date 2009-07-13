@@ -1,6 +1,5 @@
 #!/bin/sh -e
 #
-# $Id: dhcp3-server.postrm,v 1.4 2004/05/26 17:08:00 peloy Exp $
 #
 
 case "$1" in

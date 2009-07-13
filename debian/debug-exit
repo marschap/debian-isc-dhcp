@@ -1,4 +1,3 @@
-# $Id: debug-exit,v 1.2 2003/06/18 18:11:21 peloy Exp $
 #
 # The purpose of this script is just to show the variables that are
 # available to all the scripts in this directory. All these scripts
