@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3_3.0.4-14\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2009-04-05 12:17-0700\n"
+"POT-Creation-Date: 2009-07-12 22:09-0700\n"
 "PO-Revision-Date: 2007-06-02 15:46+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -161,18 +161,12 @@ msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "Bỏ rỗng nên tự động phát hiện giao diện."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "Non-authoritative version of DHCP server"
-msgstr "Phiên bản trình phục vụ DHCP không có thẩm quyền"
+#~ msgid "Non-authoritative version of DHCP server"
+#~ msgstr "Phiên bản trình phục vụ DHCP không có thẩm quyền"
 
 # msgid "The version 3 DHCP server is now non-authoritative by default."
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "The version 3 DHCP server is non-authoritative by default."
-msgstr "Trình phục vụ DHCP phiên bản 3 có thẩm quyền theo mặc định."
+#~ msgid "The version 3 DHCP server is non-authoritative by default."
+#~ msgstr "Trình phục vụ DHCP phiên bản 3 có thẩm quyền theo mặc định."
 
 # msgid ""
 # This means that if a client requests an address that the server knows 
@@ -181,124 +175,98 @@ msgstr "Trình phục vụ DHCP phiên bản 3 có thẩm quyền theo mặc đ�
 # using the address.) If you want to change this behavior, you must 
 # explicitly state in dhcpd.conf what network segments your server is 
 # authoritative for using the 'authoritative' statement.
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid ""
-"This means that if a client requests an address that the server knows "
-"nothing about and the address is incorrect for that network segment, the "
-"server will _not_ send a DHCPNAK (which tells the client it should stop "
-"using the address). If you want to change this behavior, you must explicitly "
-"state in dhcpd.conf what network segments your server is authoritative for "
-"using the 'authoritative' statement."
-msgstr ""
-"Có nghĩa là nếu trình khách yêu cầu một địa chỉ la, địa chỉ cũng không đúng "
-"cho đoạn mạng này, trình phục vụ DHCP sẽ _không_ gởi DHCPNAK (mà báo trình "
-"khách thôi dùng địa chỉ đó). Muốn thay đổi ứng xử này thì phải ghi dứt khoát "
-"vào tập tin <dhcpd.conf> những đoạn mạng cho chúng trình phục vụ của bạn có "
-"thẩm quyền, bằng cách sử dụng câu lệnh « authoratitive »."
+#~ msgid ""
+#~ "This means that if a client requests an address that the server knows "
+#~ "nothing about and the address is incorrect for that network segment, the "
+#~ "server will _not_ send a DHCPNAK (which tells the client it should stop "
+#~ "using the address). If you want to change this behavior, you must "
+#~ "explicitly state in dhcpd.conf what network segments your server is "
+#~ "authoritative for using the 'authoritative' statement."
+#~ msgstr ""
+#~ "Có nghĩa là nếu trình khách yêu cầu một địa chỉ la, địa chỉ cũng không "
+#~ "đúng cho đoạn mạng này, trình phục vụ DHCP sẽ _không_ gởi DHCPNAK (mà báo "
+#~ "trình khách thôi dùng địa chỉ đó). Muốn thay đổi ứng xử này thì phải ghi "
+#~ "dứt khoát vào tập tin <dhcpd.conf> những đoạn mạng cho chúng trình phục "
+#~ "vụ của bạn có thẩm quyền, bằng cách sử dụng câu lệnh « authoratitive »."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
-msgid "Change in default behaviour of the next-server directive"
-msgstr ""
-"Thay đổi ứng xử mặc định của chỉ thị 'next-server' (máy phục vụ kế tiếp)"
+#~ msgid "Change in default behaviour of the next-server directive"
+#~ msgstr ""
+#~ "Thay đổi ứng xử mặc định của chỉ thị 'next-server' (máy phục vụ kế tiếp)"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
 #, fuzzy
-#| msgid ""
-#| "From version 3.0.3, the DHCP server's default value of the next-server "
-#| "directive has changed. If you are network booting clients, and your TFTP "
-#| "server is your DHCP server, you need to explicitly set a next-server "
-#| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
-#| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
-#| "information."
-msgid ""
-"From version 3.0.3, the DHCP server's default value of the next-server "
-"directive has changed. If you are network booting clients, and your TFTP "
-"server is your DHCP server, you need to explicitly set a next-server "
-"directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS.Debian."
-"gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more information."
-msgstr ""
-"Kể từ phiên bản 3.0.3, giá trị mặc định của chỉ thị máy phục vụ kế tiếp đã "
-"thay đổi cho mỗi máy phục vụ DHCP. Nếu bạn khởi động trình khách qua mạng, "
-"và máy phục vụ TFTP cũng là máy phục vụ DHCP, bạn cần phải đặt riêng một chỉ "
-"thị 'next-server' để ghi như thế. Hãy xem tài liệu tin tức </usr/share/doc/"
-"dhcp3-server/NEWS.Debian> và tài liệu ghi chú phát hành </usr/share/doc/"
-"dhcp3-server/RELNOTES.gz> để tìm thông tin thêm."
+#~| msgid ""
+#~| "From version 3.0.3, the DHCP server's default value of the next-server "
+#~| "directive has changed. If you are network booting clients, and your TFTP "
+#~| "server is your DHCP server, you need to explicitly set a next-server "
+#~| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
+#~| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
+#~| "information."
+#~ msgid ""
+#~ "From version 3.0.3, the DHCP server's default value of the next-server "
+#~ "directive has changed. If you are network booting clients, and your TFTP "
+#~ "server is your DHCP server, you need to explicitly set a next-server "
+#~ "directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS."
+#~ "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
+#~ "information."
+#~ msgstr ""
+#~ "Kể từ phiên bản 3.0.3, giá trị mặc định của chỉ thị máy phục vụ kế tiếp "
+#~ "đã thay đổi cho mỗi máy phục vụ DHCP. Nếu bạn khởi động trình khách qua "
+#~ "mạng, và máy phục vụ TFTP cũng là máy phục vụ DHCP, bạn cần phải đặt "
+#~ "riêng một chỉ thị 'next-server' để ghi như thế. Hãy xem tài liệu tin tức "
+#~ "</usr/share/doc/dhcp3-server/NEWS.Debian> và tài liệu ghi chú phát hành </"
+#~ "usr/share/doc/dhcp3-server/RELNOTES.gz> để tìm thông tin thêm."
 
 # msgid "dhclient-script has moved!"
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid "dhclient-script moved"
-msgstr "dhclient-script đã di chuyển"
+#~ msgid "dhclient-script moved"
+#~ msgstr "dhclient-script đã di chuyển"
 
 # msgid ""
 # As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer a 
 # conffile. /etc/isc-dhcp/dhclient-script appears to have been modified at 
 # some point, so it has not been removed, however it is no longer being 
 # used.
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
 #, fuzzy
-#| msgid ""
-#| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-#| "registered as a configuration file. /etc/isc-dhcp/dhclient-script appears "
-#| "to have been modified at some point, so it has not been removed. However "
-#| "it is no longer being used."
-msgid ""
-"As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-"registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
-"have been modified at some point, so it has not been removed. However it is "
-"no longer being used."
-msgstr ""
-"Kể từ phiên bản 3.0.4-2, « dhclient-script » được cài đặt vào thư mục « /sbin "
-"», cũng không còn được đăng ký lại là tập tin cấu hình. Có vẻ là « /etc/dhcp3/"
-"dhclient-script » bị sửa đổi vào điểm thời nào : vì thế nó chưa bị gỡ bỏ ; "
-"cũng không còn được dùng lại."
+#~| msgid ""
+#~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
+#~| "appears to have been modified at some point, so it has not been removed. "
+#~| "However it is no longer being used."
+#~ msgid ""
+#~ "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~ "registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
+#~ "have been modified at some point, so it has not been removed. However it "
+#~ "is no longer being used."
+#~ msgstr ""
+#~ "Kể từ phiên bản 3.0.4-2, « dhclient-script » được cài đặt vào thư mục « /"
+#~ "sbin », cũng không còn được đăng ký lại là tập tin cấu hình. Có vẻ là « /"
+#~ "etc/dhcp3/dhclient-script » bị sửa đổi vào điểm thời nào : vì thế nó chưa "
+#~ "bị gỡ bỏ ; cũng không còn được dùng lại."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid ""
-"Please consider using the hook infrastructure (see dhclient-script(8) for "
-"more information) instead of modifying dhclient-script."
-msgstr ""
-"Khuyên bạn dùng hạ tầng cơ sở « hook » (xem « dhclient-script » để tìm thêm "
-"thông tin) thay vào sửa đổi « dhclient-script »."
+#~ msgid ""
+#~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
+#~ "more information) instead of modifying dhclient-script."
+#~ msgstr ""
+#~ "Khuyên bạn dùng hạ tầng cơ sở « hook » (xem « dhclient-script » để tìm thêm "
+#~ "thông tin) thay vào sửa đổi « dhclient-script »."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid "dhclient needs restarting"
-msgstr "dhclient cần phải được khởi chạy lại"
+#~ msgid "dhclient needs restarting"
+#~ msgstr "dhclient cần phải được khởi chạy lại"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"As always, dhclient is not restarted on upgrade, so you are still running "
-"the previous version of dhclient. You can restart it by doing an ifdown and "
-"ifup on the interface(s) that are configured to use DHCP, or by explicitly "
-"killing and restarting dhclient."
-msgstr ""
-"dhclient không được khởi chạy lại khi nâng cấp, vì thế bạn vẫn còn chạy "
-"phiên bản dhclient trước. Cũng có thể khởi chạy lại bằng cách làm « ifdown » "
-"và « ifup » trên mỗi giao diện được cấu hình để sử dụng DHCP, hoặc bằng cách "
-"buộc kết thúc và khởi chạy lại dhclient một cách dứt khoát."
+#~ msgid ""
+#~ "As always, dhclient is not restarted on upgrade, so you are still running "
+#~ "the previous version of dhclient. You can restart it by doing an ifdown "
+#~ "and ifup on the interface(s) that are configured to use DHCP, or by "
+#~ "explicitly killing and restarting dhclient."
+#~ msgstr ""
+#~ "dhclient không được khởi chạy lại khi nâng cấp, vì thế bạn vẫn còn chạy "
+#~ "phiên bản dhclient trước. Cũng có thể khởi chạy lại bằng cách làm « ifdown "
+#~ "» và « ifup » trên mỗi giao diện được cấu hình để sử dụng DHCP, hoặc bằng "
+#~ "cách buộc kết thúc và khởi chạy lại dhclient một cách dứt khoát."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"Naturally, you should exercise caution if you are managing a remote server "
-"via an interface using DHCP."
-msgstr "Cũng cần phải cẩn thận khi quản lý máy phục vụ từ xa bằng DHCP."
+#~ msgid ""
+#~ "Naturally, you should exercise caution if you are managing a remote "
+#~ "server via an interface using DHCP."
+#~ msgstr "Cũng cần phải cẩn thận khi quản lý máy phục vụ từ xa bằng DHCP."
 
 #~ msgid ""
 #~ "The names of the network interfaces that dhcrelay should attempt to "

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2009-04-05 12:17-0700\n"
+"POT-Creation-Date: 2009-07-12 22:09-0700\n"
 "PO-Revision-Date: 2007-05-31 15:22+0300\n"
 "Last-Translator: Mehmet Türker <mturker@innova.com.tr>\n"
 "Language-Team: Turkish <debian-l10n-turkish@lists.debian.org>\n"
@@ -145,136 +145,106 @@ msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "Bu alan boş bırakılırsa arayüzler otomatik olarak bulunacaktır."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "Non-authoritative version of DHCP server"
-msgstr "DHCP sunucusunun yetkisiz (Non-authoritative) sürümü"
+#~ msgid "Non-authoritative version of DHCP server"
+#~ msgstr "DHCP sunucusunun yetkisiz (Non-authoritative) sürümü"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "The version 3 DHCP server is non-authoritative by default."
-msgstr ""
-"Sürüm 3 DHCP sunucusu öntanımlı olarak yetkisiz (non-authoritative) durumda "
-"geliyor."
+#~ msgid "The version 3 DHCP server is non-authoritative by default."
+#~ msgstr ""
+#~ "Sürüm 3 DHCP sunucusu öntanımlı olarak yetkisiz (non-authoritative) "
+#~ "durumda geliyor."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid ""
-"This means that if a client requests an address that the server knows "
-"nothing about and the address is incorrect for that network segment, the "
-"server will _not_ send a DHCPNAK (which tells the client it should stop "
-"using the address). If you want to change this behavior, you must explicitly "
-"state in dhcpd.conf what network segments your server is authoritative for "
-"using the 'authoritative' statement."
-msgstr ""
-"Bunun anlamı eğer bir istemci, sunucunun hakkında birşey bilmediği bir adres "
-"isterse ve bu adres bu ağ kesimi için doğru değilse, sunucu (istemciye bu "
-"adresi kullanmayı bırakmasını söyleyen) bir DHCPNAK _göndermeyecektir_. Eğer "
-"bu davranışı değiştirmek isterseniz, dhcpd.conf dosyasında hangi ağ "
-"kesimlerinin yetkili olduğunu 'authoritative' satırını kullanarak açıkça "
-"belirtmeniz gerekir."
+#~ msgid ""
+#~ "This means that if a client requests an address that the server knows "
+#~ "nothing about and the address is incorrect for that network segment, the "
+#~ "server will _not_ send a DHCPNAK (which tells the client it should stop "
+#~ "using the address). If you want to change this behavior, you must "
+#~ "explicitly state in dhcpd.conf what network segments your server is "
+#~ "authoritative for using the 'authoritative' statement."
+#~ msgstr ""
+#~ "Bunun anlamı eğer bir istemci, sunucunun hakkında birşey bilmediği bir "
+#~ "adres isterse ve bu adres bu ağ kesimi için doğru değilse, sunucu "
+#~ "(istemciye bu adresi kullanmayı bırakmasını söyleyen) bir DHCPNAK "
+#~ "_göndermeyecektir_. Eğer bu davranışı değiştirmek isterseniz, dhcpd.conf "
+#~ "dosyasında hangi ağ kesimlerinin yetkili olduğunu 'authoritative' "
+#~ "satırını kullanarak açıkça belirtmeniz gerekir."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
-msgid "Change in default behaviour of the next-server directive"
-msgstr ""
-"\"next-server\" (sonraki sunucu) yönergesinin varsayılan davranışında "
-"değişiklik"
+#~ msgid "Change in default behaviour of the next-server directive"
+#~ msgstr ""
+#~ "\"next-server\" (sonraki sunucu) yönergesinin varsayılan davranışında "
+#~ "değişiklik"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
 #, fuzzy
-#| msgid ""
-#| "From version 3.0.3, the DHCP server's default value of the next-server "
-#| "directive has changed. If you are network booting clients, and your TFTP "
-#| "server is your DHCP server, you need to explicitly set a next-server "
-#| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
-#| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
-#| "information."
-msgid ""
-"From version 3.0.3, the DHCP server's default value of the next-server "
-"directive has changed. If you are network booting clients, and your TFTP "
-"server is your DHCP server, you need to explicitly set a next-server "
-"directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS.Debian."
-"gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more information."
-msgstr ""
-"Sürüm 3.0.3 ten beri, DHCP sunucusunun sonraki-sunucu yönergesi öntanımlı "
-"değeri değişmiştir. Eğer ağ üzerinden başlatılan (boot) istemcileriniz "
-"mevcut ise, ve TFTP sunucunuz aynı zamanda DHCP sunucu ise, bunu belirtmek "
-"için bir \"next-server\" (sonraki sunucu) yönergesi tanımlamanız gerekir. "
-"Lütfen daha fazla bilgi için /usr/share/doc/isc-dhcp-server/NEWS.Debian.gz "
-"ve /usr/share/doc/isc-dhcp-common/RELNOTES.gz dosyalarına bakın."
+#~| msgid ""
+#~| "From version 3.0.3, the DHCP server's default value of the next-server "
+#~| "directive has changed. If you are network booting clients, and your TFTP "
+#~| "server is your DHCP server, you need to explicitly set a next-server "
+#~| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
+#~| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
+#~| "information."
+#~ msgid ""
+#~ "From version 3.0.3, the DHCP server's default value of the next-server "
+#~ "directive has changed. If you are network booting clients, and your TFTP "
+#~ "server is your DHCP server, you need to explicitly set a next-server "
+#~ "directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS."
+#~ "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
+#~ "information."
+#~ msgstr ""
+#~ "Sürüm 3.0.3 ten beri, DHCP sunucusunun sonraki-sunucu yönergesi öntanımlı "
+#~ "değeri değişmiştir. Eğer ağ üzerinden başlatılan (boot) istemcileriniz "
+#~ "mevcut ise, ve TFTP sunucunuz aynı zamanda DHCP sunucu ise, bunu "
+#~ "belirtmek için bir \"next-server\" (sonraki sunucu) yönergesi "
+#~ "tanımlamanız gerekir. Lütfen daha fazla bilgi için /usr/share/doc/isc-"
+#~ "dhcp-server/NEWS.Debian.gz ve /usr/share/doc/isc-dhcp-common/RELNOTES.gz "
+#~ "dosyalarına bakın."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid "dhclient-script moved"
-msgstr "dhclient-script taşındı"
+#~ msgid "dhclient-script moved"
+#~ msgstr "dhclient-script taşındı"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
 #, fuzzy
-#| msgid ""
-#| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-#| "registered as a configuration file. /etc/isc-dhcp/dhclient-script appears "
-#| "to have been modified at some point, so it has not been removed. However "
-#| "it is no longer being used."
-msgid ""
-"As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-"registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
-"have been modified at some point, so it has not been removed. However it is "
-"no longer being used."
-msgstr ""
-"Sürüm 3.0.4-2 ile birlikte dhclient-script /sbin içine kurulur ve artık bir "
-"yapılandırma dosyası değildir. /etc/isc-dhcp/dhclient-script bir noktasında "
-"değiştirilmiş gibi gözüküyor, buyüzden silinmeyecek. Fakat artık "
-"kullanılmayacaktır."
+#~| msgid ""
+#~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
+#~| "appears to have been modified at some point, so it has not been removed. "
+#~| "However it is no longer being used."
+#~ msgid ""
+#~ "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~ "registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
+#~ "have been modified at some point, so it has not been removed. However it "
+#~ "is no longer being used."
+#~ msgstr ""
+#~ "Sürüm 3.0.4-2 ile birlikte dhclient-script /sbin içine kurulur ve artık "
+#~ "bir yapılandırma dosyası değildir. /etc/isc-dhcp/dhclient-script bir "
+#~ "noktasında değiştirilmiş gibi gözüküyor, buyüzden silinmeyecek. Fakat "
+#~ "artık kullanılmayacaktır."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid ""
-"Please consider using the hook infrastructure (see dhclient-script(8) for "
-"more information) instead of modifying dhclient-script."
-msgstr ""
-"Lütfen dhclient-script betiğini değiştirmek yerine hook altyapısını (daha "
-"fazla bilgi için dhclient-script(8) kısmına gözatın) kullanmayı tercih edin."
+#~ msgid ""
+#~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
+#~ "more information) instead of modifying dhclient-script."
+#~ msgstr ""
+#~ "Lütfen dhclient-script betiğini değiştirmek yerine hook altyapısını (daha "
+#~ "fazla bilgi için dhclient-script(8) kısmına gözatın) kullanmayı tercih "
+#~ "edin."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid "dhclient needs restarting"
-msgstr "dhclient takrar başlatmayı gerektiriyor"
+#~ msgid "dhclient needs restarting"
+#~ msgstr "dhclient takrar başlatmayı gerektiriyor"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"As always, dhclient is not restarted on upgrade, so you are still running "
-"the previous version of dhclient. You can restart it by doing an ifdown and "
-"ifup on the interface(s) that are configured to use DHCP, or by explicitly "
-"killing and restarting dhclient."
-msgstr ""
-"Herzamanki gibi dhclient güncellenmelerde tekrar başlatılmıyor, dolayısıyla "
-"hala dhclient'ın eski sürümünü kullanıyorsunuz. DHCP kullanan arayüzler için "
-"birer ifdown ve ifup yaparak tekrar başlatabilirsiniz, yada tamamen öldürüp "
-"dhclient'ı tekrar başlatabilirsiniz."
+#~ msgid ""
+#~ "As always, dhclient is not restarted on upgrade, so you are still running "
+#~ "the previous version of dhclient. You can restart it by doing an ifdown "
+#~ "and ifup on the interface(s) that are configured to use DHCP, or by "
+#~ "explicitly killing and restarting dhclient."
+#~ msgstr ""
+#~ "Herzamanki gibi dhclient güncellenmelerde tekrar başlatılmıyor, "
+#~ "dolayısıyla hala dhclient'ın eski sürümünü kullanıyorsunuz. DHCP kullanan "
+#~ "arayüzler için birer ifdown ve ifup yaparak tekrar başlatabilirsiniz, "
+#~ "yada tamamen öldürüp dhclient'ı tekrar başlatabilirsiniz."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"Naturally, you should exercise caution if you are managing a remote server "
-"via an interface using DHCP."
-msgstr ""
-"Eğer uzak bir sunucuyu DHCP kullanan bir arayüz üzerinden yönetiyorsanız "
-"doğal olarak dikkatli olmalısınız."
+#~ msgid ""
+#~ "Naturally, you should exercise caution if you are managing a remote "
+#~ "server via an interface using DHCP."
+#~ msgstr ""
+#~ "Eğer uzak bir sunucuyu DHCP kullanan bir arayüz üzerinden yönetiyorsanız "
+#~ "doğal olarak dikkatli olmalısınız."
 
 #~ msgid ""
 #~ "Please enter a space-separated list of interfaces names (e.g. eth0)  on "

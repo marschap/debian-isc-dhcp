@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3 3.0.6-1\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2009-04-05 12:17-0700\n"
+"POT-Creation-Date: 2009-07-12 22:09-0700\n"
 "PO-Revision-Date: 2007-08-17 23:36+0100\n"
 "Last-Translator: Ivan Masár <helix84@centrum.sk>\n"
 "Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
@@ -139,126 +139,94 @@ msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "Ak pole necháte nevyplnené, rozhrania budú detekované automaticky."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "Non-authoritative version of DHCP server"
-msgstr "Neautoritatívna verzia DHCP servera"
+#~ msgid "Non-authoritative version of DHCP server"
+#~ msgstr "Neautoritatívna verzia DHCP servera"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid "The version 3 DHCP server is non-authoritative by default."
-msgstr "Verzia 3 DHCP servera je štandardne neautoritatívna."
+#~ msgid "The version 3 DHCP server is non-authoritative by default."
+#~ msgstr "Verzia 3 DHCP servera je štandardne neautoritatívna."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:4001
-msgid ""
-"This means that if a client requests an address that the server knows "
-"nothing about and the address is incorrect for that network segment, the "
-"server will _not_ send a DHCPNAK (which tells the client it should stop "
-"using the address). If you want to change this behavior, you must explicitly "
-"state in dhcpd.conf what network segments your server is authoritative for "
-"using the 'authoritative' statement."
-msgstr ""
-"To znamená, že ak si klient vyžiada adresu, o ktorej server nič nevie a "
-"adresa je pre daný sieťový segment nesprávna, server _nepošle_ DHCPNAK "
-"(ktorý oznamuje klientovi, aby prestal túto adresu používať). Ak chcete toto "
-"správanie zmeniť, musíte v dhcpd.conf explicitne uviesť, pre ktoré segmenty "
-"siete je váš server autoritatívny pomocou výrazu 'authoritative'."
+#~ msgid ""
+#~ "This means that if a client requests an address that the server knows "
+#~ "nothing about and the address is incorrect for that network segment, the "
+#~ "server will _not_ send a DHCPNAK (which tells the client it should stop "
+#~ "using the address). If you want to change this behavior, you must "
+#~ "explicitly state in dhcpd.conf what network segments your server is "
+#~ "authoritative for using the 'authoritative' statement."
+#~ msgstr ""
+#~ "To znamená, že ak si klient vyžiada adresu, o ktorej server nič nevie a "
+#~ "adresa je pre daný sieťový segment nesprávna, server _nepošle_ DHCPNAK "
+#~ "(ktorý oznamuje klientovi, aby prestal túto adresu používať). Ak chcete "
+#~ "toto správanie zmeniť, musíte v dhcpd.conf explicitne uviesť, pre ktoré "
+#~ "segmenty siete je váš server autoritatívny pomocou výrazu 'authoritative'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
-msgid "Change in default behaviour of the next-server directive"
-msgstr "Zmeniť štandardné správanie direktívy next-server"
+#~ msgid "Change in default behaviour of the next-server directive"
+#~ msgstr "Zmeniť štandardné správanie direktívy next-server"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:5001
 #, fuzzy
-#| msgid ""
-#| "From version 3.0.3, the DHCP server's default value of the next-server "
-#| "directive has changed. If you are network booting clients, and your TFTP "
-#| "server is your DHCP server, you need to explicitly set a next-server "
-#| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
-#| "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
-#| "information."
-msgid ""
-"From version 3.0.3, the DHCP server's default value of the next-server "
-"directive has changed. If you are network booting clients, and your TFTP "
-"server is your DHCP server, you need to explicitly set a next-server "
-"directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS.Debian."
-"gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more information."
-msgstr ""
-"Od verzie 3.0.3 sa štandardná hodnota direktívy next-server DHCP servera "
-"zmenila. Ak ste klient, ktorý bootuje zo siete a váš TFTP server je váš DHCP "
-"server, musíte explicitne nastaviť direktívu next-server, aby to hovorila. "
-"Viac informácií nájdete v /usr/share/doc/isc-dhcp-server/NEWS.Debian.gz a v /"
-"usr/share/doc/dhcp3-common/RELNOTES.gz."
+#~| msgid ""
+#~| "From version 3.0.3, the DHCP server's default value of the next-server "
+#~| "directive has changed. If you are network booting clients, and your TFTP "
+#~| "server is your DHCP server, you need to explicitly set a next-server "
+#~| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
+#~| "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
+#~| "information."
+#~ msgid ""
+#~ "From version 3.0.3, the DHCP server's default value of the next-server "
+#~ "directive has changed. If you are network booting clients, and your TFTP "
+#~ "server is your DHCP server, you need to explicitly set a next-server "
+#~ "directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS."
+#~ "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
+#~ "information."
+#~ msgstr ""
+#~ "Od verzie 3.0.3 sa štandardná hodnota direktívy next-server DHCP servera "
+#~ "zmenila. Ak ste klient, ktorý bootuje zo siete a váš TFTP server je váš "
+#~ "DHCP server, musíte explicitne nastaviť direktívu next-server, aby to "
+#~ "hovorila. Viac informácií nájdete v /usr/share/doc/isc-dhcp-server/NEWS."
+#~ "Debian.gz a v /usr/share/doc/dhcp3-common/RELNOTES.gz."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid "dhclient-script moved"
-msgstr "dhclient-script sa presunul"
+#~ msgid "dhclient-script moved"
+#~ msgstr "dhclient-script sa presunul"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
 #, fuzzy
-#| msgid ""
-#| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-#| "registered as a configuration file. /etc/isc-dhcp/dhclient-script appears "
-#| "to have been modified at some point, so it has not been removed. However "
-#| "it is no longer being used."
-msgid ""
-"As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-"registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
-"have been modified at some point, so it has not been removed. However it is "
-"no longer being used."
-msgstr ""
-"Od verzie 3.0.4-2, je dhclient-script nainštalovaný v /sbin a už nie je "
-"registrovaný ako konfiguračný súbor. Zdá sa, že /etc/isc-dhcp/dhclient-"
-"script bol niekedy zmenený, takže nebol odstránený. Už sa však nepoužíva."
+#~| msgid ""
+#~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
+#~| "appears to have been modified at some point, so it has not been removed. "
+#~| "However it is no longer being used."
+#~ msgid ""
+#~ "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
+#~ "registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
+#~ "have been modified at some point, so it has not been removed. However it "
+#~ "is no longer being used."
+#~ msgstr ""
+#~ "Od verzie 3.0.4-2, je dhclient-script nainštalovaný v /sbin a už nie je "
+#~ "registrovaný ako konfiguračný súbor. Zdá sa, že /etc/isc-dhcp/dhclient-"
+#~ "script bol niekedy zmenený, takže nebol odstránený. Už sa však nepoužíva."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:2001
-msgid ""
-"Please consider using the hook infrastructure (see dhclient-script(8) for "
-"more information) instead of modifying dhclient-script."
-msgstr ""
-"Prosím, zvážte použitie infraštruktúry postupných volaní (hook) (viac "
-"informácií v dhclient-script(8)) namiesto zmeny dhclient-script."
+#~ msgid ""
+#~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
+#~ "more information) instead of modifying dhclient-script."
+#~ msgstr ""
+#~ "Prosím, zvážte použitie infraštruktúry postupných volaní (hook) (viac "
+#~ "informácií v dhclient-script(8)) namiesto zmeny dhclient-script."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid "dhclient needs restarting"
-msgstr "dhclient potrebuje reštart"
+#~ msgid "dhclient needs restarting"
+#~ msgstr "dhclient potrebuje reštart"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"As always, dhclient is not restarted on upgrade, so you are still running "
-"the previous version of dhclient. You can restart it by doing an ifdown and "
-"ifup on the interface(s) that are configured to use DHCP, or by explicitly "
-"killing and restarting dhclient."
-msgstr ""
-"Ako vždy, dhclient sa po upgrade nereštartuje, takže momentálne stále beží "
-"predchádzajúca verzia dhclient. Môžete ho reštartovať pomocou ifdown a ifup "
-"na rozhraniach, ktoré boli nakonfigurované, aby používali DHCP, alebo "
-"explicitne zabitím a znovuspustením procesu dhclient."
+#~ msgid ""
+#~ "As always, dhclient is not restarted on upgrade, so you are still running "
+#~ "the previous version of dhclient. You can restart it by doing an ifdown "
+#~ "and ifup on the interface(s) that are configured to use DHCP, or by "
+#~ "explicitly killing and restarting dhclient."
+#~ msgstr ""
+#~ "Ako vždy, dhclient sa po upgrade nereštartuje, takže momentálne stále "
+#~ "beží predchádzajúca verzia dhclient. Môžete ho reštartovať pomocou ifdown "
+#~ "a ifup na rozhraniach, ktoré boli nakonfigurované, aby používali DHCP, "
+#~ "alebo explicitne zabitím a znovuspustením procesu dhclient."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-client.templates:3001
-msgid ""
-"Naturally, you should exercise caution if you are managing a remote server "
-"via an interface using DHCP."
-msgstr ""
-"Prirodzene by ste mali byť opatrní ak spravujete vzdialený server cez "
-"rozhranie používajúce DHCP."
+#~ msgid ""
+#~ "Naturally, you should exercise caution if you are managing a remote "
+#~ "server via an interface using DHCP."
+#~ msgstr ""
+#~ "Prirodzene by ste mali byť opatrní ak spravujete vzdialený server cez "
+#~ "rozhranie používajúce DHCP."
