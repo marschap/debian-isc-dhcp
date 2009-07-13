@@ -32,7 +32,7 @@ else
 CFLAGS += -O2
 endif
 
-BVARS = PREDEFINES='-D_PATH_DHCPD_DB=\"/var/lib/dhcp/dhcpd.leases\" \
+CFLAGS += '-D_PATH_DHCPD_DB=\"/var/lib/dhcp/dhcpd.leases\" \
         -D_PATH_DHCLIENT_DB=\"/var/lib/dhcp/dhclient.leases\" \
         -D_PATH_DHCLIENT_SCRIPT=\"/sbin/dhclient-script\" \
         -D_PATH_DHCPD_CONF=\"/etc/dhcp/dhcpd.conf\" \
@@ -47,7 +47,7 @@ build-stamp: patch-stamp
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
 		--disable-dhcpv6 
 	
-	$(MAKE) $(BVARS) $(CROSS)
+	$(MAKE) $(CROSS)
 
 	touch build-stamp
 
