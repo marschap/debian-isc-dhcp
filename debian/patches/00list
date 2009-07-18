@@ -3,7 +3,7 @@
 # emailed upstream
 #-#ddns-update-style-default
 #-## emailed upstream
-#-#dhclient-script-exit-status
+dhclient-script-exit-status
 #-## emailed upstream
 #-#dhclient.c.stale-pids
 #-## emailed upstream
