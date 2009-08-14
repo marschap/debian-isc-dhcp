@@ -130,7 +130,11 @@ binary-arch: build install
 	dh_installexamples -a
 	dh_installinit -a -n
 	dh_installchangelogs
-	dh_strip -a
+	dh_strip -pisc-dhcp-server --dbg-package=isc-dhcp-server-dbg
+	dh_strip -pisc-dhcp-relay --dbg-package=isc-dhcp-relay-dbg
+	dh_strip -pisc-dhcp-client --dbg-package=isc-dhcp-client-dbg
+	dh_strip -pisc-dhcp-common
+	dh_strip -pisc-dhcp-client-udeb 
 	dh_compress
 	dh_fixperms -a
 	dh_installdeb

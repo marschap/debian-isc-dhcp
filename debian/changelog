@@ -6,6 +6,7 @@ isc-dhcp (4.1.0-1) unstable; urgency=low
     maintainer scripts, accordingly
   * use debhelper more extensively, de-cruft debian/rules
   * remove dhcp-server preinst
+  * add debug packages
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 05 Apr 2009 11:48:34 -0700
 

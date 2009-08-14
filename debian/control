@@ -23,6 +23,26 @@ Description: DHCP server for automatic IP address assignment
  .
  This server can handle multiple ethernet interfaces.
 
+Package: isc-dhcp-server-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), lsb-base, ${shlibs:Depends}, ${misc:Depends}
+Conflicts: dhcp
+Suggests: isc-dhcp-server-ldap
+Description: DHCP server for automatic IP address assignment (debug)
+ This is the server from the Internet Software Consortium's implementation of
+ DHCP. For more information, visit http://www.isc.org.
+ .
+ This package contains the debugging symbols for isc-dhcp-server
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration.
+ .
+ This server can handle multiple ethernet interfaces.
+
 #Package: isc-dhcp-server-ldap
 #Priority: optional
 #Architecture: any
@@ -75,6 +95,29 @@ Description: ISC DHCP client
  .
  Extra documentation can be found in the package isc-dhcp-common.
 
+Package: isc-dhcp-client-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Suggests: resolvconf, avahi-autoipd
+Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2)
+Description: ISC DHCP client (debugging symbols)
+ This is the client from the Internet Software Consortium's implementation of
+ DHCP. For more information visit http://www.isc.org.
+ .
+ This package contains the debugging symbols for isc-dhcp-client
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration. If your machine
+ depends on DHCP (especially likely if it's a workstation on a large
+ network, or a laptop, or attached to a cable modem), keep this or
+ another DHCP client installed.
+ .
+ Extra documentation can be found in the package isc-dhcp-common.
+
 Package: isc-dhcp-client-udeb
 Priority: extra
 Architecture: any
@@ -93,6 +136,24 @@ Description: DHCP relay daemon
  This is the relay from the Internet Software Consortium's implementation of
  DHCP. For more information visit
  http://www.isc.org.
+ .
+ Installing this package will make the machine a DHCP relay, which
+ requires a reachable DHCP or BOOTP server in order to function.
+ .
+ Extra documentation can be found in the package isc-dhcp-common.
+
+Package: isc-dhcp-relay-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Conflicts: dhcp-relay
+Description: DHCP relay daemon (debugging symbols)
+ This is the relay from the Internet Software Consortium's implementation of
+ DHCP. For more information visit
+ http://www.isc.org.
+ .
+ This package contains the debugging symbols for isc-dhcp-relay
  .
  Installing this package will make the machine a DHCP relay, which
  requires a reachable DHCP or BOOTP server in order to function.
