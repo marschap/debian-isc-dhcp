@@ -4,7 +4,7 @@ Priority: important
 Maintainer: Andrew Pollock <apollock@debian.org>
 Uploaders: Eloy A. Paris <peloy@debian.org>
 Build-Depends: debhelper (>> 7), dpkg-dev (>= 1.13.2), groff, dpatch, po-debconf, libldap2-dev, libssl-dev
-Standards-Version: 3.8.1
+Standards-Version: 3.8.3
 
 Package: isc-dhcp-server
 Priority: optional
@@ -159,3 +159,87 @@ Description: DHCP relay daemon (debugging symbols)
  requires a reachable DHCP or BOOTP server in order to function.
  .
  Extra documentation can be found in the package isc-dhcp-common.
+
+Package: dhcp3-server
+Priority: extra
+Architecture: all
+Depends: isc-dhcp-server, ${misc:Depends}
+Description: ISC DHCP server (transitional package)
+ This is the server from the Internet Software Consortium's implementation of
+ DHCP. For more information, visit http://www.isc.org.
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration.
+ .
+ This server can handle multiple ethernet interfaces.
+ .
+ This is a dummy package to aid in transitioning from the v3 DHCP packages
+ to the new-style DHCP packages.
+ .
+ This dummy package may be safely removed after upgrading to squeeze
+
+Package: dhcp3-client
+Priority: extra
+Architecture: all
+Depends: isc-dhcp-client, ${misc:Depends}
+Description: ISC DHCP server (transitional package)
+ This is the client from the Internet Software Consortium's implementation of
+ DHCP. For more information visit http://www.isc.org.
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration. If your machine
+ depends on DHCP (especially likely if it's a workstation on a large
+ network, or a laptop, or attached to a cable modem), keep this or
+ another DHCP client installed.
+ .
+ This is a dummy package to aid in transitioning from the v3 DHCP packages
+ to the new-style DHCP packages.
+ .
+ This dummy package may be safely removed after upgrading to squeeze
+
+Package: dhcp3-relay
+Priority: extra
+Architecture: all
+Depends: isc-dhcp-relay, ${misc:Depends}
+Description: ISC DHCP relay (transitional package)
+ This is the relay from the Internet Software Consortium's implementation of
+ DHCP. For more information visit
+ http://www.isc.org.
+ .
+ Installing this package will make the machine a DHCP relay, which
+ requires a reachable DHCP or BOOTP server in order to function.
+ .
+ This is a dummy package to aid in transitioning from the v3 DHCP packages
+ to the new-style DHCP packages.
+ .
+ This dummy package may be safely removed after upgrading to squeeze
+
+Package: dhcp3-common
+Priority: extra
+Architecture: all
+Depends: isc-dhcp-common, ${misc:Depends}
+Description: ISC DHCP common files (transitional package)
+ This package contains the files used by all the packages from ISC
+ DHCP.
+ .
+ This is a dummy package to aid in transitioning from the v3 DHCP packages
+ to the new-style DHCP packages.
+ .
+ This dummy package may be safely removed after upgrading to squeeze
+
+Package: dhcp3-dev
+Priority: extra
+Architecture: all
+Depends: isc-dhcp-dev, ${misc:Depends}
+Description: ISC DHCP development files (transitional package)
+ This package contains development files for the Internet Software Consortium's
+ implementation of DHCP. For more information visit http://www.isc.org.
+ .
+ This is a dummy package to aid in transitioning from the v3 DHCP packages
+ to the new-style DHCP packages.
+ .
+ This dummy package may be safely removed after upgrading to squeeze

@@ -1,0 +1,4 @@
+This package currently uses dpatch to manage the patches.
+
+See /usr/share/doc/dpatch/README.source.gz for more information on how to use
+dpatch
