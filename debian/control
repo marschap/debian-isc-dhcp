@@ -14,7 +14,7 @@ Provides: dhcp3-server
 Conflicts: dhcp, dhcp3-server
 Replaces: dhcp3-server
 Suggests: isc-dhcp-server-ldap
-Description: DHCP server for automatic IP address assignment
+Description: ISC DHCP server for automatic IP address assignment
  This is the server from the Internet Software Consortium's implementation of
  DHCP. For more information, visit http://www.isc.org.
  .
@@ -32,7 +32,7 @@ Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), lsb-base, ${shlibs:Depends}, ${misc:Depends}
 Conflicts: dhcp
 Suggests: isc-dhcp-server-ldap
-Description: DHCP server for automatic IP address assignment (debug)
+Description: ISC DHCP server for automatic IP address assignment (debug)
  This is the server from the Internet Software Consortium's implementation of
  DHCP. For more information, visit http://www.isc.org.
  .
@@ -134,7 +134,7 @@ Architecture: any
 Section: debian-installer
 Depends: ${shlibs:Depends}
 XC-Package-Type: udeb
-Description: DHCP Client for debian-installer
+Description: ISC DHCP Client for debian-installer
  dhcp-client-udeb is a minimal dhcp package used by the debian-installer.
 
 Package: isc-dhcp-relay
@@ -144,7 +144,7 @@ Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs
 Provides: dhcp3-relay
 Conflicts: dhcp-relay, dhcp3-relay
 Replaces: dhcp3-relay
-Description: DHCP relay daemon
+Description: ISC DHCP relay daemon
  This is the relay from the Internet Software Consortium's implementation of
  DHCP. For more information visit
  http://www.isc.org.

@@ -10,8 +10,9 @@ isc-dhcp (4.1.0-1) unstable; urgency=low
   * add transitional packages
   * add debian/README.source
   * debian/control: bumped Standards-Version
+  * debian/isc-dhcp-server.postinst: transfer existing config file when upgrading from dhcp3-server
 
- -- Andrew Pollock <apollock@debian.org>  Thu, 20 Aug 2009 00:32:54 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sun, 30 Aug 2009 16:58:49 -0700
 
 dhcp3 (3.1.2-1) unstable; urgency=low
 
