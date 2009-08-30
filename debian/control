@@ -10,7 +10,9 @@ Package: isc-dhcp-server
 Priority: optional
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), lsb-base, ${shlibs:Depends}, ${misc:Depends}
-Conflicts: dhcp
+Provides: dhcp3-server
+Conflicts: dhcp, dhcp3-server
+Replaces: dhcp3-server
 Suggests: isc-dhcp-server-ldap
 Description: DHCP server for automatic IP address assignment
  This is the server from the Internet Software Consortium's implementation of
@@ -62,6 +64,9 @@ Description: DHCP server for automatic IP address assignment (debug)
 Package: isc-dhcp-common
 Architecture: any
 Section: net
+Provides: dhcp3-common
+Conflicts: dhcp3-common
+Replaces: dhcp3-common
 Depends: debianutils (>= 2.8.2), ${shlibs:Depends}, ${misc:Depends}
 Description: common files used by all the isc-dhcp* packages
  This package contains the files used by all the packages from ISC
@@ -71,6 +76,9 @@ Package: isc-dhcp-dev
 Priority: optional
 Architecture: any
 Section: devel
+Provides: dhcp3-dev
+Conflicts: dhcp3-dev
+Replaces: dhcp3-dev
 Depends: libc6-dev, ${misc:Depends}
 Description: API for accessing and modifying the DHCP server and client state
  OMAPI is an API for accessing and modifying the DHCP server and
@@ -80,7 +88,9 @@ Package: isc-dhcp-client
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
-Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2)
+Provides: dhcp3-client
+Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), dhcp3-client
+Replaces: dhcp3-client
 Description: ISC DHCP client
  This is the client from the Internet Software Consortium's implementation of
  DHCP. For more information visit http://www.isc.org.
@@ -131,7 +141,9 @@ Package: isc-dhcp-relay
 Priority: optional
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Conflicts: dhcp-relay
+Provides: dhcp3-relay
+Conflicts: dhcp-relay, dhcp3-relay
+Replaces: dhcp3-relay
 Description: DHCP relay daemon
  This is the relay from the Internet Software Consortium's implementation of
  DHCP. For more information visit
