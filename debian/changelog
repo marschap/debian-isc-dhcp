@@ -14,6 +14,8 @@ isc-dhcp (4.1.0-1) unstable; urgency=low
     when upgrading from dhcp3-server
   * debian/isc-dhcp-client.postinst: transfer existing config file when
     upgrading from dhcp3-client
+  * debian/changelog: added marker for legacy malformed changelog entry to
+    placate Lintian
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 30 Aug 2009 18:02:09 -0700
 
@@ -1645,6 +1647,8 @@ dhcpd (0.5.7-1) unstable; urgency=high
   * New upstream version
 
  -- Christoph Lameter <clameter@waterf.org>  Wed, 4 Sep 1996 14:51:46 +0800
+
+Old Changelog:
 
 dhcpd (0.5.5-1) experimental; urgency=low
 
