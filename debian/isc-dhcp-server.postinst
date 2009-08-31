@@ -69,9 +69,15 @@ if [ ! -e /var/lib/dhcp/dhcpd.leases ]; then
     fi
 fi
 
-# If we're upgrading from dhcp3, copy /etc/dhcp3/dhcpd.conf to /etc/dhcp
-if [ -z "$2" ] && [ -f /etc/dhcp3/dhcpd.conf ]; then
-	cp /etc/dhcp3/dhcpd.conf /etc/dhcp/dhcpd.conf
+# If we're upgrading from dhcp3, copy the config and leases over to the new
+# locations
+if [ -z "$2" ] 
+	if [ -f /etc/dhcp3/dhcpd.conf ]; then
+		cp /etc/dhcp3/dhcpd.conf /etc/dhcp/dhcpd.conf
+	if
+	if [ -f /var/lib/dhcp3/dhcpd.leases ]; then
+		cp /var/lib/dhcp3/dhcpd.leases
+	fi
 fi
 
 [ -x /sbin/restorecon ] && restorecon /var/lib/dhcp/dhcpd.leases
