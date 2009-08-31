@@ -7,7 +7,7 @@
 @DPATCH@
 diff -urNad isc-dhcp~/common/dhcp-options.5 isc-dhcp/common/dhcp-options.5
 --- isc-dhcp~/common/dhcp-options.5	2009-06-23 22:15:20.000000000 -0700
-+++ isc-dhcp/common/dhcp-options.5	2009-08-30 22:08:46.000000000 -0700
++++ isc-dhcp/common/dhcp-options.5	2009-08-30 22:16:30.000000000 -0700
 @@ -1230,7 +1230,7 @@
  .PP
  Specifies the domain name that the client wishes to use.   This can be a
@@ -17,9 +17,18 @@ diff -urNad isc-dhcp~/common/dhcp-options.5 isc-dhcp/common/dhcp-options.5
  generally update that name in some locally-defined domain.
  .RE
  .PP
+@@ -1396,7 +1396,7 @@
+ .RS 0.25i
+ .PP
+ The \fBpreference\fR option informs a DHCPv6 client which server is
+-'preferred' for use on a given subnet.  This preference is only
++\'preferred\' for use on a given subnet.  This preference is only
+ applied during the initial stages of configuration - once a client
+ is bound to an IA, it will remain bound to that IA until it is no
+ longer valid or has expired.  This value may be configured on the
 diff -urNad isc-dhcp~/omapip/omapi.3 isc-dhcp/omapip/omapi.3
 --- isc-dhcp~/omapip/omapi.3	2009-06-23 22:15:20.000000000 -0700
-+++ isc-dhcp/omapip/omapi.3	2009-08-30 22:08:14.000000000 -0700
++++ isc-dhcp/omapip/omapi.3	2009-08-30 22:16:13.000000000 -0700
 @@ -37,7 +37,7 @@
  used by the ISC DHCP server and this outline addresses the parts of
  OMAPI appropriate to the clients of DHCP server. It does this by also
@@ -31,7 +40,7 @@ diff -urNad isc-dhcp~/omapip/omapi.3 isc-dhcp/omapip/omapi.3
  security can be imposed by having the client and server
 diff -urNad isc-dhcp~/server/dhcpd.conf.5 isc-dhcp/server/dhcpd.conf.5
 --- isc-dhcp~/server/dhcpd.conf.5	2009-06-23 22:15:20.000000000 -0700
-+++ isc-dhcp/server/dhcpd.conf.5	2009-08-30 22:08:34.000000000 -0700
++++ isc-dhcp/server/dhcpd.conf.5	2009-08-30 22:16:13.000000000 -0700
 @@ -820,7 +820,7 @@
  normally).  This process is referred to as 'MAC Address Affinity', but this
  is somewhat misnamed: it applies equally to DHCP Client Identifier options.
