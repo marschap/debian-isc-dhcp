@@ -1,0 +1,43 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## fix_groff_warnings.dpatch by  <apollock@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Correct errors in man pages detected by Lintian
+
+@DPATCH@
+diff -urNad isc-dhcp~/common/dhcp-options.5 isc-dhcp/common/dhcp-options.5
+--- isc-dhcp~/common/dhcp-options.5	2009-06-23 22:15:20.000000000 -0700
++++ isc-dhcp/common/dhcp-options.5	2009-08-30 22:08:46.000000000 -0700
+@@ -1230,7 +1230,7 @@
+ .PP
+ Specifies the domain name that the client wishes to use.   This can be a
+ fully-qualified domain name, or a single label.   If there is no trailing
+-'.' character in the name, it is not fully-qualified, and the server will
++\'.\' character in the name, it is not fully-qualified, and the server will
+ generally update that name in some locally-defined domain.
+ .RE
+ .PP
+diff -urNad isc-dhcp~/omapip/omapi.3 isc-dhcp/omapip/omapi.3
+--- isc-dhcp~/omapip/omapi.3	2009-06-23 22:15:20.000000000 -0700
++++ isc-dhcp/omapip/omapi.3	2009-08-30 22:08:14.000000000 -0700
+@@ -37,7 +37,7 @@
+ used by the ISC DHCP server and this outline addresses the parts of
+ OMAPI appropriate to the clients of DHCP server. It does this by also
+ describing the use of a thin API layered on top of OMAPI called
+-'dhcpctl'
++\'dhcpctl\'
+ .PP
+ OMAPI uses TCP/IP as the transport for server communication, and
+ security can be imposed by having the client and server
+diff -urNad isc-dhcp~/server/dhcpd.conf.5 isc-dhcp/server/dhcpd.conf.5
+--- isc-dhcp~/server/dhcpd.conf.5	2009-06-23 22:15:20.000000000 -0700
++++ isc-dhcp/server/dhcpd.conf.5	2009-08-30 22:08:34.000000000 -0700
+@@ -820,7 +820,7 @@
+ normally).  This process is referred to as 'MAC Address Affinity', but this
+ is somewhat misnamed: it applies equally to DHCP Client Identifier options.
+ Note also that affinity is applied to leases when they enter the state
+-'free' from 'expired' or 'released'.  In this case also, leases will not
++\'free\' from \'expired\' or \'released\'.  In this case also, leases will not
+ be moved from free to backup if the secondary already has more than its
+ share.
+ .PP

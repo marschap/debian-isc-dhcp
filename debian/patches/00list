@@ -1,23 +1,7 @@
 # emailed upstream
-#Makefile
-# emailed upstream
-#-#ddns-update-style-default
-#-## emailed upstream
 dhclient-script-exit-status
-#-## emailed upstream
-#-#dhclient.c.stale-pids
-#-## emailed upstream
-#-#dhcpd-chdir
-#-#dhclient-chdir
-#-## Not emailed upstream
-#-#remove-excessive-junk
-#-#site.conf
-#-## emailed upstream
-#-#add-libdst.a-dhcp3-dev
-#-## emailed upstream
-#-#ignore-invalid-interfaces
-#-## GNU/kfreebsd system
-#-#kfreebsd
+# emailed upstream
+fix_groff_warnings
 #ldap backend for dhcp3 server (docs and code)
 #dhcp-3.1.0-ldap-docs
 #dhcp-3.1.0-ldap-code
