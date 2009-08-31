@@ -1,8 +1,10 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 # Inspiration stolen from the fetchmail* packages. Thanks Henrique!
 #
 #
+
+set -e
 
 #DEBHELPER#
 
@@ -71,12 +73,12 @@ fi
 
 # If we're upgrading from dhcp3, copy the config and leases over to the new
 # locations
-if [ -z "$2" ] 
+if [ -z "$2" ]; then
 	if [ -f /etc/dhcp3/dhcpd.conf ]; then
 		cp /etc/dhcp3/dhcpd.conf /etc/dhcp/dhcpd.conf
-	if
+	fi
 	if [ -f /var/lib/dhcp3/dhcpd.leases ]; then
-		cp /var/lib/dhcp3/dhcpd.leases
+		cp /var/lib/dhcp3/dhcpd.leases /var/lib/dhcp/dhcpd.leases
 	fi
 fi
 
