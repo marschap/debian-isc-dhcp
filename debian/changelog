@@ -16,7 +16,8 @@ isc-dhcp (4.1.0-1) unstable; urgency=low
     upgrading from dhcp3-client
   * debian/changelog: added marker for legacy malformed changelog entry to
     placate Lintian
-  * Add a patch to correct groff warnings in man pages
+  * add a patch to correct groff warnings in man pages
+  * add a patch to ignore checksums on the loopback interface
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 30 Aug 2009 22:12:30 -0700
 
