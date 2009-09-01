@@ -1,3 +1,1 @@
-isc-dhcp-client: no-debconf-config
-isc-dhcp-client: postinst-uses-db-input
 isc-dhcp-client: possible-gpl-code-linked-with-openssl
