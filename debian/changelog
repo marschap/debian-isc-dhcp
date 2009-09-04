@@ -1,4 +1,4 @@
-isc-dhcp (4.1.0-1) unstable; urgency=low
+isc-dhcp (4.1.0-1) experimental; urgency=low
 
   * The "throw everything out and start over" release
   * New upstream release
