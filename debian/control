@@ -86,7 +86,7 @@ Description: API for accessing and modifying the DHCP server and client state
 
 Package: isc-dhcp-client
 Architecture: any
-Depends: debianutils (>= 2.8.2), ifupdown (>= 0.6.8+nmu2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: debianutils (>= 2.8.2), ifupdown (>= 0.6.8+nmu3), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
 Provides: dhcp3-client
 Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), dhcp3-client
