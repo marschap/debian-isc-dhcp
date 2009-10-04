@@ -1,3 +1,11 @@
+isc-dhcp (4.1.0-2) UNRELEASED; urgency=low
+
+  * debian/README.Debian: update for current upstream version, specifically
+    mention that DHCPv6 is disabled
+  * debian/rules: provide a pointer to why DHCPv6 is disabled
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 03 Oct 2009 15:51:31 -0700
+
 isc-dhcp (4.1.0-1) experimental; urgency=low
 
   * The "throw everything out and start over" release

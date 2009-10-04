@@ -43,6 +43,7 @@ build: patch-stamp build-stamp
 
 build-stamp: patch-stamp
 	
+# See http://bugs.debian.org/549060 for why DHCPv6 has to be disabled
 	./configure \
 		--prefix=$(DESTDIR)/usr \
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
@@ -57,10 +58,6 @@ clean: unpatch
 	rm -f build-stamp install-stamp
 
 	[ ! -f Makefile ] || $(MAKE) distclean
-
-	# Remove leftover junk...
-	# TODO: verify if still necessary
-	rm -Rf work.*/
 
 	debconf-updatepo
 	dh_clean
