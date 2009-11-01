@@ -99,13 +99,6 @@ exit_with_hooks() {
     exit $exit_status
 }
 
-set_hostname() {
-    local current_hostname=$(hostname)
-    if [ -z "$current_hostname" -o "$current_hostname" = "(none)" ]; then
-        hostname "$new_host_name"
-    fi
-}
-
 if [ -n "$new_broadcast_address" ]; then
     new_broadcast_arg="broadcast $new_broadcast_address"
 fi
@@ -156,12 +149,13 @@ case "$reason" in
         fi
         ifconfig $interface inet 0 up
 
-        # We need to give the kernel some time to get the interface up.
-        sleep 1
         ;;
     BOUND|RENEW|REBIND|REBOOT)
 
-        set_hostname
+	if [ -n "$old_host_name" -a -n "$host_name" -a \
+     	     "$host_name" != "$old_host_name" ]; then
+    	    hostname "$new_host_name"
+	fi
 
         if [ -n "$old_ip_address" -a -n "$alias_ip_address" -a \
              "$alias_ip_address" != "$old_ip_address" ]; then
