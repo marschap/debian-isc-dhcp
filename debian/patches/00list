@@ -4,6 +4,6 @@ dhclient-script-exit-status
 fix_groff_warnings
 # I think this has been independently emailed upstream
 no_loopback_checksum
-#ldap backend for dhcp3 server (docs and code)
-#dhcp-3.1.0-ldap-docs
-#dhcp-3.1.0-ldap-code
+#ldap backend for dhcp server (docs and code)
+dhcp-4.1.0-ldap-docs
+dhcp-4.1.0-ldap-code

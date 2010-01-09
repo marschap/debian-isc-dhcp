@@ -45,21 +45,24 @@ Description: ISC DHCP server for automatic IP address assignment (debug)
  .
  This server can handle multiple ethernet interfaces.
 
-#Package: isc-dhcp-server-ldap
-#Priority: optional
-#Architecture: any
-#Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), isc-dhcp-server (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-#Enhances: isc-dhcp-server
-#Description: DHCP server able to use LDAP as backend
-# This is the server from the Internet Software Consortium's implementation of
-# DHCP. For more information, visit http://www.isc.org.
-# .
-# Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
-# (actually dhcpd includes much of the functionality of bootpd). It
-# gives client machines "leases" for IP addresses and can
-# automatically set their network configuration.
-# .
-# This is the DHCP server with LDAP patches applied to it.
+Package: isc-dhcp-server-ldap
+Priority: optional
+Architecture: any
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), isc-dhcp-server (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Provides: dhcp3-server-ldap
+Conflicts: dhcp, dhcp3-server, dhcp3-server-ldap
+Replaces: dhcp3-server-ldap
+Enhances: isc-dhcp-server
+Description: DHCP server able to use LDAP as backend
+ This is the server from the Internet Software Consortium's implementation of
+ DHCP. For more information, visit http://www.isc.org.
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration.
+ .
+ This is the DHCP server with LDAP patches applied to it.
 
 Package: isc-dhcp-common
 Architecture: any
