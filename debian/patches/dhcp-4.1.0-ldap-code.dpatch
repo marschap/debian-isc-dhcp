@@ -1,5 +1,5 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
-## dhcp-3.1.0-ldap.dpatch by  <jredrejo@edu.juntaextremadura.net>
+## dhcp-4.1.0-ldap-code.dpatch by  <jredrejo@edu.juntaextremadura.net>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: Patch to use ldap as a backend for dhcp3 server
@@ -7,84 +7,30 @@
 ## DP: This patch is deeply based on the Brian Masney <masneyb@ntelos.net> work
 
 @DPATCH@
-
-diff -urNad dhcp3-3.1.0.orig/common/conflex.c dhcp3-3.1.0/common/conflex.c
---- dhcp3-3.1.0.orig/common/conflex.c	2007-05-29 19:49:44.000000000 +0200
-+++ dhcp3-3.1.0/common/conflex.c	2008-02-20 13:21:26.000000000 +0100
-@@ -47,6 +47,7 @@
- static enum dhcp_token read_number PROTO ((int, struct parse *));
- static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
- static enum dhcp_token intern PROTO ((unsigned char *, enum dhcp_token));
-+static int read_function PROTO ((struct parse *));
- 
- isc_result_t new_parse (cfile, file, inbuf, buflen, name, eolp)
- 	struct parse **cfile;
-@@ -74,6 +75,10 @@
- 	tmp -> file = file;
- 	tmp -> eol_token = eolp;
- 
-+	if (file != -1) {
-+		tmp -> read_function = read_function;;
-+	}
-+
- 	tmp -> bufix = 0;
- 	tmp -> buflen = buflen;
- 	if (inbuf) {
-@@ -113,22 +118,11 @@
+diff -urNad isc-dhcp.orig/common/conflex.c isc-dhcp/common/conflex.c
+--- isc-dhcp.orig/common/conflex.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/common/conflex.c	2009-12-30 12:34:08.000000000 +0100
+@@ -177,9 +177,13 @@
+ 	/* My kingdom for WITH... */
  	int c;
  
- 	if (cfile -> bufix == cfile -> buflen) {
--		if (cfile -> file != -1) {
--			cfile -> buflen =
--				read (cfile -> file,
--				      cfile -> inbuf, cfile -> bufsiz);
--			if (cfile -> buflen == 0) {
--				c = EOF;
--				cfile -> bufix = 0;
--			} else if (cfile -> buflen < 0) {
--				c = EOF;
--				cfile -> bufix = cfile -> buflen = 0;
--			} else {
--				c = cfile -> inbuf [0];
--				cfile -> bufix = 1;
--			}
--		} else
+-	if (cfile->bufix == cfile->buflen)
+-		c = EOF;
+-	else {
++	if (cfile->bufix == cfile->buflen) {
 +		if (cfile -> read_function) {
-+			c = cfile -> read_function (cfile);
++			c = cfile->read_function (cfile);
 +		} else {
- 			c = EOF;
++			c = EOF;
 +		}
- 	} else {
- 		c = cfile -> inbuf [cfile -> bufix];
- 		cfile -> bufix++;
-@@ -1213,3 +1207,23 @@
- 	}
- 	return dfv;
- }
-+
-+static int
-+read_function (struct parse * cfile)
-+{
-+	int c;
-+
-+	cfile -> buflen = read (cfile -> file, cfile -> inbuf, cfile -> bufsiz);
-+	if (cfile -> buflen == 0) {
-+		c = EOF;
-+		cfile -> bufix = 0;
-+	} else if (cfile -> buflen < 0) {
-+		c = EOF;
-+		cfile -> bufix = cfile -> buflen = 0;
 +	} else {
-+		c = cfile -> inbuf [0];
-+		cfile -> bufix = 1;
-+	}
-+
-+	return c;
-+}
-diff -urNad dhcp3-3.1.0.orig/common/print.c dhcp3-3.1.0/common/print.c
---- dhcp3-3.1.0.orig/common/print.c	2007-05-29 19:49:44.000000000 +0200
-+++ dhcp3-3.1.0/common/print.c	2008-02-20 13:21:26.000000000 +0100
-@@ -168,9 +168,9 @@
+ 		c = cfile->inbuf [cfile->bufix];
+ 		cfile->bufix++;
+ 	}
+diff -urNad isc-dhcp.orig/common/print.c isc-dhcp/common/print.c
+--- isc-dhcp.orig/common/print.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/common/print.c	2009-12-30 12:34:08.000000000 +0100
+@@ -163,9 +163,9 @@
  }
  
  char *print_hw_addr (htype, hlen, data)
@@ -97,74 +43,39 @@ diff -urNad dhcp3-3.1.0.orig/common/print.c dhcp3-3.1.0/common/print.c
  {
  	static char habuf [49];
  	char *s;
-diff -urNad dhcp3-3.1.0.orig/dst/Makefile.dist dhcp3-3.1.0/dst/Makefile.dist
---- dhcp3-3.1.0.orig/dst/Makefile.dist	2005-03-17 21:15:06.000000000 +0100
-+++ dhcp3-3.1.0/dst/Makefile.dist	2008-02-20 13:21:26.000000000 +0100
-@@ -23,12 +23,13 @@
- 
- SRC    = dst_support.c dst_api.c hmac_link.c md5_dgst.c base64.c prandom.c
- OBJ    = dst_support.o dst_api.o hmac_link.o md5_dgst.o base64.o prandom.o
-+OBJ_NM5= dst_support.o dst_api.o hmac_link.o base64.o prandom.o
- HDRS   = dst_internal.h md5.h md5_locl.h
- 
- INCLUDES = $(BINDINC) -I$(TOP)/includes
- CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB
- 
--all:	libdst.a
-+all:	libdst.a libdst-nomd5.a
- 
- install:
- 
-@@ -37,11 +38,16 @@
- 	ar cruv libdst.a $(OBJ)
- 	$(RANLIB) libdst.a
- 
-+libdst-nomd5.a:	$(OBJ_NM5)
-+	rm -f libdst-nomd5.a
-+	ar cruv libdst-nomd5.a $(OBJ_NM5)
-+	$(RANLIB) libdst-nomd5.a
-+
- depend:
- 	$(MKDEP) $(INCLUDES) $(PREDEFINES) $(SRC)
- 
- clean:
--	-rm -f $(OBJ) libdst.a
-+	-rm -f $(OBJ) libdst.a libdst-nomd5.a
- 
- realclean: clean
- 	-rm -f *~ $(CATMANPAGES) $(SEDMANPAGES)
-diff -urNad dhcp3-3.1.0.orig/includes/dhcpd.h dhcp3-3.1.0/includes/dhcpd.h
---- dhcp3-3.1.0.orig/includes/dhcpd.h	2007-05-29 19:49:44.000000000 +0200
-+++ dhcp3-3.1.0/includes/dhcpd.h	2008-02-20 13:21:26.000000000 +0100
-@@ -81,6 +81,11 @@
+diff -urNad isc-dhcp.orig/includes/dhcpd.h isc-dhcp/includes/dhcpd.h
+--- isc-dhcp.orig/includes/dhcpd.h	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/includes/dhcpd.h	2009-12-30 12:34:28.000000000 +0100
+@@ -102,6 +102,12 @@
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
  
++ #include <site.h>
 +#if defined(LDAP_CONFIGURATION)
 +# include <ldap.h>
 +# include <sys/utsname.h> /* for uname() */
 +#endif
 +
  #if !defined (BYTE_NAME_HASH_SIZE)
- # define BYTE_NAME_HASH_SIZE	401	/* Default would be rediculous. */
+ # define BYTE_NAME_HASH_SIZE	401	/* Default would be ridiculous. */
  #endif
-@@ -251,6 +256,8 @@
- 	char *inbuf;
- 	unsigned bufix, buflen;
- 	unsigned bufsiz;
-+
+@@ -290,6 +295,8 @@
+ 	size_t bufix, buflen;
+ 	size_t bufsiz;
+ 
 +	int (*read_function) (struct parse *);
++
+ 	struct parse *saved_state;
  };
  
- /* Variable-length array of data. */
-@@ -362,6 +369,32 @@
+@@ -422,6 +429,32 @@
  	u_int8_t hbuf [17];
  };
  
 +#if defined(LDAP_CONFIGURATION)
 +# define LDAP_BUFFER_SIZE		8192
 +# define LDAP_METHOD_STATIC		0
-+# define LDAP_METHOD_DYNAMIC	1
++# define LDAP_METHOD_DYNAMIC		1
 +#if defined (USE_SSL)
 +# define LDAP_SSL_OFF			0
 +# define LDAP_SSL_ON			1
@@ -173,16 +84,16 @@ diff -urNad dhcp3-3.1.0.orig/includes/dhcpd.h dhcp3-3.1.0/includes/dhcpd.h
 +#endif
 +
 +/* This is a tree of the current configuration we are building from LDAP */
++
 +struct ldap_config_stack {
 +	LDAPMessage * res;	/* Pointer returned from ldap_search */
-+	LDAPMessage * ldent;	/* Current item in LDAP that we're processing.
-+							in res */
++	LDAPMessage * ldent;	/* Current item in LDAP that we're processing 
++				   in res */
 +	int close_brace;	/* Put a closing } after we're through with
-+						this item */
-+	int processed;	/* We set this flag if this base item has been
-+					processed. After this base item is processed,
-+					we can start processing the children */
-+	struct ldap_config_stack *children;
++				   this item */
++	int processed;		/* We set this flag if this base item has been
++				   processed. After this base item is processed,
++				   we can start processing the children */
 +	struct ldap_config_stack *next;
 +};
 +#endif
@@ -190,37 +101,37 @@ diff -urNad dhcp3-3.1.0.orig/includes/dhcpd.h dhcp3-3.1.0/includes/dhcpd.h
  typedef enum {
  	server_startup = 0,
  	server_running = 1,
-@@ -558,6 +591,29 @@
- # define DEFAULT_PING_TIMEOUT 1
+@@ -642,6 +675,29 @@
+ # define DEFAULT_ACK_DELAY_USECS 250000 /* 1/4 of a second */
  #endif
  
 +#if defined(LDAP_CONFIGURATION)
-+# define SV_LDAP_SERVER		53
-+# define SV_LDAP_PORT		54
-+# define SV_LDAP_USERNAME	55
-+# define SV_LDAP_PASSWORD	56
-+# define SV_LDAP_BASE_DN	57
-+# define SV_LDAP_METHOD		58
-+# define SV_LDAP_DEBUG_FILE		59
-+# define SV_LDAP_DHCP_SERVER_CN		60
-+# define SV_LDAP_REFERRALS		61
++# define SV_LDAP_SERVER			60
++# define SV_LDAP_PORT			61
++# define SV_LDAP_USERNAME		62
++# define SV_LDAP_PASSWORD		63
++# define SV_LDAP_BASE_DN		64
++# define SV_LDAP_METHOD			65
++# define SV_LDAP_DEBUG_FILE		66
++# define SV_LDAP_DHCP_SERVER_CN		67
++# define SV_LDAP_REFERRALS		68
 +#if defined (USE_SSL)
-+# define SV_LDAP_SSL		62
-+# define SV_LDAP_TLS_REQCERT		63
-+# define SV_LDAP_TLS_CA_FILE		64
-+# define SV_LDAP_TLS_CA_DIR		65
-+# define SV_LDAP_TLS_CERT		66
-+# define SV_LDAP_TLS_KEY		67
-+# define SV_LDAP_TLS_CRLCHECK		68
-+# define SV_LDAP_TLS_CIPHERS		69
-+# define SV_LDAP_TLS_RANDFILE		70
++# define SV_LDAP_SSL			69
++# define SV_LDAP_TLS_REQCERT		70
++# define SV_LDAP_TLS_CA_FILE		71
++# define SV_LDAP_TLS_CA_DIR		72
++# define SV_LDAP_TLS_CERT		73
++# define SV_LDAP_TLS_KEY		74
++# define SV_LDAP_TLS_CRLCHECK		75
++# define SV_LDAP_TLS_CIPHERS		76
++# define SV_LDAP_TLS_RANDFILE		77
 +#endif
 +#endif
 +
  #if !defined (DEFAULT_DEFAULT_LEASE_TIME)
  # define DEFAULT_DEFAULT_LEASE_TIME 43200
  #endif
-@@ -1702,7 +1758,7 @@
+@@ -2107,7 +2163,7 @@
  char *quotify_string (const char *, const char *, int);
  char *quotify_buf (const unsigned char *, unsigned, const char *, int);
  char *print_base64 (const unsigned char *, unsigned, const char *, int);
@@ -229,11 +140,10 @@ diff -urNad dhcp3-3.1.0.orig/includes/dhcpd.h dhcp3-3.1.0/includes/dhcpd.h
  void print_lease PROTO ((struct lease *));
  void dump_raw PROTO ((const unsigned char *, unsigned));
  void dump_packet_option (struct option_cache *, struct packet *,
-@@ -2812,3 +2868,18 @@
- #endif /* FAILOVER_PROTOCOL */
+@@ -3228,6 +3284,22 @@
  
  const char *binding_state_print (enum failover_state);
-+
+ 
 +/* ldap.c */
 +#if defined(LDAP_CONFIGURATION)
 +extern struct enumeration ldap_methods;
@@ -244,123 +154,19 @@ diff -urNad dhcp3-3.1.0.orig/includes/dhcpd.h dhcp3-3.1.0/includes/dhcpd.h
 +#endif
 +isc_result_t ldap_read_config (void);
 +int find_haddr_in_ldap (struct host_decl **, int, unsigned,
-+                        const unsigned char *, const char *, int);
-+int find_subclass_in_ldap (struct class *, struct class **,
-+                           struct data_string *);
++			const unsigned char *, const char *, int);
++int find_subclass_in_ldap (struct class *, struct class **, 
++			   struct data_string *);
 +#endif
-diff -urNad dhcp3-3.1.0.orig/includes/ldap_casa.h dhcp3-3.1.0/includes/ldap_casa.h
---- dhcp3-3.1.0.orig/includes/ldap_casa.h	1970-01-01 01:00:00.000000000 +0100
-+++ dhcp3-3.1.0/includes/ldap_casa.h	2008-02-20 13:21:26.000000000 +0100
-@@ -0,0 +1,83 @@
-+/* ldap_casa.h
-+   
-+   Definition for CASA modules... */
 +
-+/* Copyright (c) 2004 Internet Systems Consorium, Inc. ("ISC")
-+ * Copyright (c) 1995-2003 Internet Software Consortium.
-+ * Copyright (c) 2006 Novell, Inc.
 +
-+ * All rights reserved.
-+ * Redistribution and use in source and binary forms, with or without 
-+ * modification, are permitted provided that the following conditions are met: 
-+ * 1.Redistributions of source code must retain the above copyright notice, 
-+ *   this list of conditions and the following disclaimer. 
-+ * 2.Redistributions in binary form must reproduce the above copyright notice, 
-+ *   this list of conditions and the following disclaimer in the documentation 
-+ *   and/or other materials provided with the distribution. 
-+ * 3.Neither the name of ISC, ISC DHCP, nor the names of its contributors 
-+ *   may be used to endorse or promote products derived from this software 
-+ *   without specific prior written permission. 
-+
-+ * THIS SOFTWARE IS PROVIDED BY INTERNET SYSTEMS CONSORTIUM AND CONTRIBUTORS 
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ISC OR CONTRIBUTORS BE LIABLE 
-+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-+ * POSSIBILITY OF SUCH DAMAGE.
-+
-+ * This file was written by S Kalyanasundaram <skalyanasundaram@novell.com>
-+ */
-+
-+#if defined(LDAP_CASA_AUTH)
-+#ifndef __LDAP_CASA_H__
-+#define __LDAP_CASA_H__
-+
-+#include <micasa_mgmd.h>
-+#include <dlfcn.h>
-+#include <string.h>
-+
-+#define MICASA_LIB     "libmicasa.so.1"
-+
-+SSCS_TYPEDEF_LIBCALL(int, CASA_GetCredential_T)
-+(
-+       uint32_t            ssFlags,
-+       SSCS_SECRET_ID_T   *appSecretID,
-+       SSCS_SECRET_ID_T   *sharedSecretID,
-+       uint32_t           *credentialType,
-+       void               *credential,
-+       SSCS_EXT_T         *ext 
-+);
-+SSCS_TYPEDEF_LIBCALL(int, CASA_SetCredential_T)
-+(
-+       uint32_t            ssFlags,
-+       SSCS_SECRET_ID_T   *appSecretID,
-+       SSCS_SECRET_ID_T   *sharedSecretID,
-+       uint32_t            credentialType,
-+       void               *credential,
-+       SSCS_EXT_T         *ext
-+);
-+
-+SSCS_TYPEDEF_LIBCALL(int, CASA_RemoveCredential_T)
-+(
-+       uint32_t            ssFlags,
-+       SSCS_SECRET_ID_T   *appSecretID,
-+       SSCS_SECRET_ID_T   *sharedSecretID,
-+       SSCS_EXT_T         *ext
-+);
-+static CASA_GetCredential_T            p_miCASAGetCredential = NULL;
-+static CASA_SetCredential_T            p_miCASASetCredential = NULL;
-+static CASA_RemoveCredential_T         p_miCASARemoveCredential = NULL;
-+static void                            *casaIDK = NULL;
-+
-+int load_casa(void);
-+static void release_casa(void);
-+int load_uname_pwd_from_miCASA(char **, char **);
-+
-+#endif /* __LDAP_CASA_H__ */
-+#endif /* LDAP_CASA_AUTH */
-+
-diff -urNad dhcp3-3.1.0.orig/includes/site.h dhcp3-3.1.0/includes/site.h
---- dhcp3-3.1.0.orig/includes/site.h	2006-08-01 00:19:51.000000000 +0200
-+++ dhcp3-3.1.0/includes/site.h	2008-02-20 13:21:26.000000000 +0100
-@@ -183,3 +183,18 @@
-    traces. */
  
- #define TRACING
-+
-+/* Define this if you want to read your config from LDAP. Read README.ldap
-+   about how to set this up */
-+
-+#define LDAP_CONFIGURATION
-+
-+/* Define this if you want to enable LDAP over a SSL connection. You will need
-+   to add -lcrypto -lssl to the LIBS= line of server/Makefile */
-+
-+#define USE_SSL
-+
-+#define _PATH_DHCPD_DB    "/var/lib/dhcp3/dhcpd.leases"
-+#define _PATH_DHCLIENT_DB "/var/lib/dhcp3/dhclient.leases"
-+#define _PATH_DHCPD_DB    "/var/lib/dhcp3/dhcpd.leases"
-+#define _PATH_DHCLIENT_DB "/var/lib/dhcp3/dhclient.leases"
-diff -urNad dhcp3-3.1.0.orig/server/class.c dhcp3-3.1.0/server/class.c
---- dhcp3-3.1.0.orig/server/class.c	2006-06-01 22:23:17.000000000 +0200
-+++ dhcp3-3.1.0/server/class.c	2008-02-20 13:21:26.000000000 +0100
-@@ -90,6 +90,7 @@
+ /* mdb6.c */
+ HASH_FUNCTIONS_DECL(ia, unsigned char *, struct ia_xx, ia_hash_t);
+diff -urNad isc-dhcp.orig/server/class.c isc-dhcp/server/class.c
+--- isc-dhcp.orig/server/class.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/class.c	2009-12-30 12:34:28.000000000 +0100
+@@ -84,6 +84,7 @@
  	int matched = 0;
  	int status;
  	int ignorep;
@@ -368,18 +174,22 @@ diff -urNad dhcp3-3.1.0.orig/server/class.c dhcp3-3.1.0/server/class.c
  
  	for (class = collection -> classes; class; class = class -> nic) {
  #if defined (DEBUG_CLASS_MATCHING)
-@@ -135,9 +136,15 @@
+@@ -129,9 +130,19 @@
  				   class -> submatch, MDL));
  			if (status && data.len) {
  				nc = (struct class *)0;
 -				if (class_hash_lookup (&nc, class -> hash,
 -						       (const char *)data.data,
 -						       data.len, MDL)) {
-+				classfound = class_hash_lookup (&nc, class -> hash,
-+					(const char *)data.data, data.len, MDL);
++                                classfound = class_hash_lookup (&nc, 
++						class -> hash, 
++						(const char *)data.data,
++						data.len, MDL);
 +
 +#ifdef LDAP_CONFIGURATION
-+				if (!classfound && find_subclass_in_ldap (class, &nc, &data))
++                                if (local_family == AF_INET && !classfound && 
++						find_subclass_in_ldap (class, 
++								&nc, &data)) 
 +					classfound = 1;
 +#endif
 +
@@ -387,10 +197,10 @@ diff -urNad dhcp3-3.1.0.orig/server/class.c dhcp3-3.1.0/server/class.c
  #if defined (DEBUG_CLASS_MATCHING)
  					log_info ("matches subclass %s.",
  					      print_hex_1 (data.len,
-diff -urNad dhcp3-3.1.0.orig/server/confpars.c dhcp3-3.1.0/server/confpars.c
---- dhcp3-3.1.0.orig/server/confpars.c	2007-06-28 19:20:40.000000000 +0200
-+++ dhcp3-3.1.0/server/confpars.c	2008-02-20 13:21:26.000000000 +0100
-@@ -63,7 +63,17 @@
+diff -urNad isc-dhcp.orig/server/confpars.c isc-dhcp/server/confpars.c
+--- isc-dhcp.orig/server/confpars.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/confpars.c	2009-12-30 12:34:28.000000000 +0100
+@@ -61,7 +61,18 @@
  
  isc_result_t readconf ()
  {
@@ -406,13 +216,14 @@ diff -urNad dhcp3-3.1.0.orig/server/confpars.c dhcp3-3.1.0/server/confpars.c
 +#else
 +	return (res);
 +#endif
++
  }
  
  isc_result_t read_conf_file (const char *filename, struct group *group,
-diff -urNad dhcp3-3.1.0.orig/server/dhcpd.c dhcp3-3.1.0/server/dhcpd.c
---- dhcp3-3.1.0.orig/server/dhcpd.c	2007-05-29 19:49:44.000000000 +0200
-+++ dhcp3-3.1.0/server/dhcpd.c	2008-02-20 13:21:26.000000000 +0100
-@@ -440,6 +440,14 @@
+diff -urNad isc-dhcp.orig/server/dhcpd.c isc-dhcp/server/dhcpd.c
+--- isc-dhcp.orig/server/dhcpd.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/dhcpd.c	2009-12-30 12:34:28.000000000 +0100
+@@ -598,6 +598,14 @@
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
  	add_enumeration (&syslog_enum);
@@ -427,10 +238,10 @@ diff -urNad dhcp3-3.1.0.orig/server/dhcpd.c dhcp3-3.1.0/server/dhcpd.c
  
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
-diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
---- dhcp3-3.1.0.orig/server/ldap.c	1970-01-01 01:00:00.000000000 +0100
-+++ dhcp3-3.1.0/server/ldap.c	2008-02-20 13:21:26.000000000 +0100
-@@ -0,0 +1,2003 @@
+diff -urNad isc-dhcp.orig/server/ldap.c isc-dhcp/server/ldap.c
+--- isc-dhcp.orig/server/ldap.c	1970-01-01 01:00:00.000000000 +0100
++++ isc-dhcp/server/ldap.c	2009-12-30 12:34:28.000000000 +0100
+@@ -0,0 +1,2358 @@
 +/* ldap.c
 +
 +   Routines for reading the configuration from LDAP */
@@ -470,14 +281,15 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 + * development was sponsored by Ntelos, Inc. (www.ntelos.com).
 + */
 +
-+#include "dhcpd.h"
-+#include <signal.h>
++#if defined(HAVE_CONFIG_H)
++#include <config.h>
++#endif
 +
 +#if defined(LDAP_CONFIGURATION)
-+
-+#if defined(LDAP_CASA_AUTH)
-+#include "ldap_casa.h"
-+#endif
++#include "dhcpd.h"
++#include <signal.h>
++#include <errno.h>
++#include <ctype.h>
 +
 +static LDAP * ld = NULL;
 +static char *ldap_server = NULL, 
@@ -520,118 +332,237 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  return strncat(dst, src, dst_size > len ? dst_size - len - 1: 0);
 +}
 +
++static char *
++x_strxform(char *dst, const char *src, size_t dst_size,
++           int (*xform)(int))
++{
++	if(dst && src && dst_size)
++	{
++		size_t len, pos;
++
++		len = strlen(src);
++		for(pos=0; pos < len && pos + 1 < dst_size; pos++)
++			dst[pos] = xform((int)src[pos]);
++		dst[pos] = '\0';
++
++		return dst;
++	}
++	return NULL;
++}
++
++static int
++get_host_entry(char *fqdnname, size_t fqdnname_size,
++               char *hostaddr, size_t hostaddr_size)
++{
++#if defined(MAXHOSTNAMELEN)
++  char   hname[MAXHOSTNAMELEN+1];
++#else
++  char   hname[65];
++#endif
++  struct hostent *hp;
++
++  if (NULL == fqdnname || 1 >= fqdnname_size)
++    return -1;
++
++  memset(hname, 0, sizeof(hname));
++  if (gethostname(hname, sizeof(hname)-1))
++    return -1;
++
++  if (NULL == (hp = gethostbyname(hname)))
++    return -1;
++
++  strncpy(fqdnname, hp->h_name, fqdnname_size-1);
++  fqdnname[fqdnname_size-1] = '\0';
++
++  if (hostaddr != NULL)
++    {
++      if (hp->h_addr != NULL)
++        {
++          struct in_addr *aptr = (struct in_addr *)hp->h_addr;
++#if defined(HAVE_INET_NTOP)
++          if (hostaddr_size >= INET_ADDRSTRLEN &&
++              inet_ntop(AF_INET, aptr, hostaddr, hostaddr_size) != NULL)
++            {
++              return 0;
++            }
++#else
++          char  *astr = inet_ntoa(*aptr);
++          size_t alen = strlen(astr);
++          if (astr && alen > 0 && hostaddr_size > alen)
++            {
++              strncpy(hostaddr, astr, hostaddr_size-1);
++              hostaddr[hostaddr_size-1] = '\0';
++              return 0;
++            }
++#endif
++        }
++      return -1;
++    }
++  return 0;
++}
++
++static int
++get_host_address(const char *hostname, char *hostaddr, size_t hostaddr_size)
++{
++  if (hostname && *hostname && hostaddr && hostaddr_size)
++    {
++      struct in_addr addr;
++
++#if defined(HAVE_INET_PTON)
++      if (inet_pton(AF_INET, hostname, &addr) == 1)
++#else
++      if (inet_aton(hostname, &addr) != 0)
++#endif
++        {
++          /* it is already IP address string */
++          if(strlen(hostname) < hostaddr_size)
++            {
++              strncpy(hostaddr, hostname, hostaddr_size-1);
++              hostaddr[hostaddr_size-1] = '\0';
++              return 0;
++            }
++        }
++      else
++        {
++          struct hostent *hp;
++          if ((hp = gethostbyname(hostname)) != NULL && hp->h_addr != NULL)
++            {
++              struct in_addr *aptr = (struct in_addr *)hp->h_addr;
++#if defined(HAVE_INET_NTOP)
++              if (hostaddr_size >= INET_ADDRSTRLEN &&
++                  inet_ntop(AF_INET, aptr, hostaddr, hostaddr_size) != NULL)
++                {
++                  return 0;
++                }
++#else
++              char  *astr = inet_ntoa(*aptr);
++              size_t alen = strlen(astr);
++              if (astr && alen > 0 && alen < hostaddr_size)
++                {
++                  strncpy(hostaddr, astr, hostaddr_size-1);
++                  hostaddr[hostaddr_size-1] = '\0';
++                  return 0;
++                }
++#endif
++            }
++        }
++    }
++  return -1;
++}
++
 +static void
 +ldap_parse_class (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv;
++  char **tempstr;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
-+      tempbv[0] == NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
 +  x_strncat (cfile->inbuf, "class \"", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +  x_strncat (cfile->inbuf, "\" {\n", LDAP_BUFFER_SIZE);
 +
 +  item->close_brace = 1;
-+  ldap_value_free_len (tempbv);
++  ldap_value_free (tempstr);
 +}
 +
 +
 +static void
 +ldap_parse_subclass (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv, **classdata;
++  char **tempstr, **classdata;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
-+      tempbv[0] == NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
-+  if ((classdata = ldap_get_values_len (ld, item->ldent, 
++  if ((classdata = ldap_get_values (ld, item->ldent, 
 +                                  "dhcpClassData")) == NULL || 
 +      classdata[0] == NULL)
 +    {
 +      if (classdata != NULL)
-+        ldap_value_free_len (classdata);
-+      ldap_value_free_len (tempbv);
++        ldap_value_free (classdata);
++      ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
 +  x_strncat (cfile->inbuf, "subclass ", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, classdata[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, classdata[0], LDAP_BUFFER_SIZE);
 +  x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +  x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
 +
 +  item->close_brace = 1;
-+  ldap_value_free_len (tempbv);
-+  ldap_value_free_len (classdata);
++  ldap_value_free (tempstr);
++  ldap_value_free (classdata);
 +}
 +
 +
 +static void
 +ldap_parse_host (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv, **hwaddr;
++  char **tempstr, **hwaddr;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
-+      tempbv[0] == NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
-+  hwaddr = ldap_get_values_len (ld, item->ldent, "dhcpHWAddress");
++  hwaddr = ldap_get_values (ld, item->ldent, "dhcpHWAddress");
 +
 +  x_strncat (cfile->inbuf, "host ", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
 +
 +  if (hwaddr != NULL && hwaddr[0] != NULL)
 +    {
-+      x_strncat (cfile->inbuf, " {\nhardware ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, hwaddr[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, "hardware ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, hwaddr[0], LDAP_BUFFER_SIZE);
 +      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (hwaddr);
++      ldap_value_free (hwaddr);
 +    }
 +
 +  item->close_brace = 1;
-+  ldap_value_free_len (tempbv);
++  ldap_value_free (tempstr);
 +}
 +
 +
 +static void
 +ldap_parse_shared_network (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv;
++  char **tempstr;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
-+      tempbv[0] == NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
 +  x_strncat (cfile->inbuf, "shared-network \"", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +  x_strncat (cfile->inbuf, "\" {\n", LDAP_BUFFER_SIZE);
 +
 +  item->close_brace = 1;
-+  ldap_value_free_len (tempbv);
++  ldap_value_free (tempstr);
 +}
 +
 +
@@ -657,51 +588,51 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +static void
 +ldap_parse_subnet (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv, **netmaskstr;
-+  char netmaskbuf[16];
++  char **tempstr, **netmaskstr, netmaskbuf[16];
 +  int i;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
-+      tempbv[0] == NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
-+  if ((netmaskstr = ldap_get_values_len (ld, item->ldent, 
++  if ((netmaskstr = ldap_get_values (ld, item->ldent, 
 +                                     "dhcpNetmask")) == NULL || 
 +      netmaskstr[0] == NULL)
 +    {
 +      if (netmaskstr != NULL)
-+        ldap_value_free_len (netmaskstr);
-+      ldap_value_free_len (tempbv);
++        ldap_value_free (netmaskstr);
++      ldap_value_free (tempstr);
 +
 +      return;
 +    }
 +
 +  x_strncat (cfile->inbuf, "subnet ", LDAP_BUFFER_SIZE);
-+  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +
 +  x_strncat (cfile->inbuf, " netmask ", LDAP_BUFFER_SIZE);
-+  parse_netmask (strtol (netmaskstr[0]->bv_val, NULL, 10), netmaskbuf);
++  parse_netmask (strtol (netmaskstr[0], NULL, 10), netmaskbuf);
 +  x_strncat (cfile->inbuf, netmaskbuf, LDAP_BUFFER_SIZE);
 +
 +  x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
 +
-+  ldap_value_free_len (tempbv);
-+  ldap_value_free_len (netmaskstr);
++  ldap_value_free (tempstr);
++  ldap_value_free (netmaskstr);
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpRange")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpRange")) != NULL)
 +    {
-+      for (i=0; tempbv[i] != NULL; i++)
++      for (i=0; tempstr[i] != NULL; i++)
 +        {
 +          x_strncat (cfile->inbuf, "range", LDAP_BUFFER_SIZE);
 +          x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
-+          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, tempstr[i], LDAP_BUFFER_SIZE);
 +          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
 +        }
++      ldap_value_free (tempstr);
 +    }
 +
 +  item->close_brace = 1;
@@ -711,31 +642,31 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +static void
 +ldap_parse_pool (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv;
++  char **tempstr;
 +  int i;
 +
 +  x_strncat (cfile->inbuf, "pool {\n", LDAP_BUFFER_SIZE);
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpRange")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpRange")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "range", LDAP_BUFFER_SIZE);
-+      for (i=0; tempbv[i] != NULL; i++)
++      for (i=0; tempstr[i] != NULL; i++)
 +        {
 +          x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
-+          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, tempstr[i], LDAP_BUFFER_SIZE);
 +        }
 +      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpPermitList")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpPermitList")) != NULL)
 +    {
-+      for (i=0; tempbv[i] != NULL; i++)
++      for (i=0; tempstr[i] != NULL; i++)
 +        {
-+          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, tempstr[i], LDAP_BUFFER_SIZE);
 +          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
 +        }
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
 +  item->close_brace = 1;
@@ -753,30 +684,30 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +static void
 +ldap_parse_key (struct ldap_config_stack *item, struct parse *cfile)
 +{
-+  struct berval **tempbv;
++  char **tempstr;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "key ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +      x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpKeyAlgorithm")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpKeyAlgorithm")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "algorithm ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpKeySecret")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpKeySecret")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "secret ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
 +  item->close_brace = 1;
@@ -787,30 +718,30 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +ldap_parse_zone (struct ldap_config_stack *item, struct parse *cfile)
 +{
 +  char *cnFindStart, *cnFindEnd;
-+  struct berval **tempbv;
++  char **tempstr;
 +  char *keyCn;
 +  size_t len;
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "zone ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +      x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpDnsZoneServer")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpDnsZoneServer")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "primary ", LDAP_BUFFER_SIZE);
-+      x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
 +
 +      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpKeyDN")) != NULL)
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpKeyDN")) != NULL)
 +    {
-+      cnFindStart = strchr(tempbv[0]->bv_val,'=');
++      cnFindStart = strchr(tempstr[0],'=');
 +      if (cnFindStart != NULL)
 +        cnFindEnd = strchr(++cnFindStart,',');
 +      else
@@ -839,7 +770,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +          dfree (keyCn, MDL);
 +        }
 +
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +     }
 +
 +  item->close_brace = 1;
@@ -860,30 +791,231 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  ldap_stack = ns;
 +}
 +
++static void
++ldap_parse_failover (struct ldap_config_stack *item, struct parse *cfile)
++{
++  char **tempstr;
++  char nodename[257]="\0", fqdnname[257]="\0", fqdnaddr[64]="\0";
++  char srvaddr[2][64] = {"\0", "\0"};
++  int primary, split = 0;
++  struct utsname unme;
++
++  if(uname(&unme) == 0)
++    {
++      snprintf(nodename, sizeof(nodename), "%s", unme.nodename);
++    }
++  if (get_host_entry (fqdnname, sizeof(fqdnname), fqdnaddr, sizeof(fqdnaddr)))
++    {
++      log_info("Could not get fqdn and the IP address of the host");
++      return;
++    }
++
++  /*
++  ** when dhcpFailOverPrimaryServer or dhcpFailOverSecondaryServer
++  ** matches our IP address, the following valiables are set:
++  ** - primary is 1 when we are primary or 0 when we are secondary
++  ** - srvaddr[0] contains ip address of the primary
++  ** - srvaddr[1] contains ip address of the secondary
++  */
++  primary = -1;
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverPrimaryServer")) != NULL)
++    {
++      if (strcasecmp (tempstr[0], fqdnaddr) == 0 ||
++          strcasecmp (tempstr[0], fqdnname) == 0 ||
++          strcasecmp (tempstr[0], nodename) == 0)
++        {
++          /* we are the primary */
++          primary = 1;
++          /* write primary address */
++          strncpy(srvaddr[0], fqdnaddr, sizeof(srvaddr[0])-1);
++          srvaddr[0][sizeof(srvaddr[0])-1] = '\0';
++        }
++      else
++        {
++          /* no match => don't set primary flag */
++          /* write primary address */
++          if (get_host_address (tempstr[0], srvaddr[0], sizeof(srvaddr[0])) != 0)
++            {
++              log_info("Can't resolve address of the primary failover server %s",
++                       tempstr[0]);
++              ldap_value_free (tempstr);
++              return;
++            }
++        }
++      ldap_value_free (tempstr);
++    }
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverSecondaryServer")) != NULL)
++    {
++      if (strcasecmp (tempstr[0], fqdnaddr) == 0 ||
++          strcasecmp (tempstr[0], fqdnname) == 0 ||
++          strcasecmp (tempstr[0], nodename) == 0)
++        {
++          if (primary == 1)
++            {
++              log_info("Both, primary and secondary failover server"
++                       " attribute matches our hostname/address");
++              ldap_value_free (tempstr);
++              return;
++            }
++          /* we are the secondary */
++          primary = 0;
++          /* write secondary address */
++          strncpy(srvaddr[1], fqdnaddr, sizeof(srvaddr[1])-1);
++          srvaddr[1][sizeof(srvaddr[1])-1] = '\0';
++        }
++      else
++        {
++          /* no match => don't set primary flag */
++          /* write secondary address */
++          if (get_host_address (tempstr[0], srvaddr[1], sizeof(srvaddr[1])) != 0)
++            {
++                log_info("Can't resolve address of the secondary failover server %s",
++                         tempstr[0]);
++                ldap_value_free (tempstr);
++                return;
++            }
++        }
++      ldap_value_free (tempstr);
++    }
++
++  if (primary == -1 || srvaddr[0] == '\0' || srvaddr[1] == '\0')
++    {
++      log_error("Could not decide if the server type is primary"
++                " or secondary for failover peering.");
++      return;
++    }
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "cn")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "failover peer \"", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, "\" {\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++  else
++    {
++      // ldap with disabled schema checks? fail to avoid syntax error.
++      log_error("Unable to find mandatory failover peering name attribute");
++      return;
++    }
++
++  if (primary)
++    x_strncat (cfile->inbuf, "primary;\n", LDAP_BUFFER_SIZE);
++  else
++    x_strncat (cfile->inbuf, "secondary;\n", LDAP_BUFFER_SIZE);
++
++  x_strncat (cfile->inbuf, "address ", LDAP_BUFFER_SIZE);
++  if (primary)
++    x_strncat (cfile->inbuf, srvaddr[0], LDAP_BUFFER_SIZE);
++  else
++    x_strncat (cfile->inbuf, srvaddr[1], LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++
++  x_strncat (cfile->inbuf, "peer address ", LDAP_BUFFER_SIZE);
++  if (primary)
++    x_strncat (cfile->inbuf, srvaddr[1], LDAP_BUFFER_SIZE);
++  else
++    x_strncat (cfile->inbuf, srvaddr[0], LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverPrimaryPort")) != NULL)
++    {
++      if (primary)
++        x_strncat (cfile->inbuf, "port ", LDAP_BUFFER_SIZE);
++      else
++        x_strncat (cfile->inbuf, "peer port ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverSecondaryPort")) != NULL)
++    {
++      if (primary)
++        x_strncat (cfile->inbuf, "peer port ", LDAP_BUFFER_SIZE);
++      else
++        x_strncat (cfile->inbuf, "port ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverResponseDelay")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "max-response-delay ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverUnackedUpdates")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "max-unacked-updates ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverLoadBalanceTime")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "load balance max seconds ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  if (primary &&
++      (tempstr = ldap_get_values (ld, item->ldent, "dhcpMaxClientLeadTime")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "mclt ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  if (primary &&
++      (tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverSplit")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "split ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      split = 1;
++      ldap_value_free (tempstr);
++    }
++
++  if (primary && !split &&
++      (tempstr = ldap_get_values (ld, item->ldent, "dhcpFailOverHashBucketAssignment")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "hba ", LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, tempstr[0], LDAP_BUFFER_SIZE);
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free (tempstr);
++    }
++
++  /*
++  ** Are there any other options can come here? If yes then we need to enable
++  ** dhcpStatements in the schema and apply them here as well.
++  **
++  if ((tempstr = ldap_get_values (ld, item->ldent, "dhcpStatements")) != NULL)
++    {
++      ...
++      ldap_value_free (tempstr);
++    }
++  */
++
++  item->close_brace = 1;
++}
 +
 +static void
 +ldap_stop()
 +{
-+  struct sigaction old, new;
 +
 +  if (ld == NULL)
 +    return;
 +
-+  /*
-+   ** ldap_unbind after a LDAP_SERVER_DOWN result
-+   ** causes a SIGPIPE and dhcpd gets terminated,
-+   ** since it doesn't handle it...
-+   */
-+
-+  new.sa_flags   = 0;
-+  new.sa_handler = SIG_IGN;
-+  sigemptyset (&new.sa_mask);
-+  sigaction (SIGPIPE, &new, &old);
-+
-+  ldap_unbind_ext_s (ld, NULL, NULL);
++  ldap_unbind (ld);
 +  ld = NULL;
 +
-+  sigaction (SIGPIPE, &old, &new);
 +}
 +
 +
@@ -892,7 +1024,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  struct option_cache *oc;
 +  struct data_string db;
-+  char *ret;
++  char *ret = NULL;
 +
 +  memset (&db, 0, sizeof (db));
 +  oc = lookup_option (&server_universe, options, option_name);
@@ -913,8 +1045,6 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +      ret[db.len] = 0;
 +      data_string_forget (&db, MDL);
 +    }
-+  else
-+    ret = NULL;
 +
 +  return (ret);
 +}
@@ -925,7 +1055,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  struct option_cache *oc;
 +  struct data_string db;
-+  int ret;
++  int ret = 0;
 +
 +  memset (&db, 0, sizeof (db));
 +  oc = lookup_option (&server_universe, options, option_name);
@@ -937,11 +1067,9 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                             &global_scope, oc, MDL) &&
 +      db.data != NULL && *db.data != '\0')
 +    {
-+      ret = strtol ((const char *) db.data, NULL, 10);
++      ret = strtol ((const char *)db.data, NULL, 10);
 +      data_string_forget (&db, MDL);
 +    }
-+  else
-+    ret = 0;
 +
 +  return (ret);
 +}
@@ -952,7 +1080,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  struct option_cache *oc;
 +  struct data_string db;
-+  int ret = -1;
++  int ret = 0;
 +
 +  memset (&db, 0, sizeof (db));
 +  oc = lookup_option (&server_universe, options, option_name);
@@ -971,19 +1099,16 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +      data_string_forget (&db, MDL);
 +    }
-+  else
-+    ret = 0;
 +
 +  return (ret);
 +}
 +
-+int
++static int
 +ldap_rebind_cb (LDAP *ld, LDAP_CONST char *url, ber_tag_t request, ber_int_t msgid, void *parms)
 +{
 +  int ret;
 +  LDAPURLDesc *ldapurl = NULL;
-+  char *who = NULL;
-+  struct berval creds;
++  char *who = NULL, *pwd = NULL;
 +
 +  log_info("LDAP rebind to '%s'", url);
 +  if ((ret = ldap_url_parse(url, &ldapurl)) != LDAP_SUCCESS)
@@ -1002,6 +1127,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        {
 +          log_error ("Error: Cannot init LDAPS session to %s:%d: %s",
 +                    ldapurl->lud_host, ldapurl->lud_port, ldap_err2string (ret));
++          ldap_free_urldesc(ldapurl);
 +          return ret;
 +        }
 +      else
@@ -1017,6 +1143,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        {
 +          log_error ("Error: Cannot start TLS session to %s:%d: %s",
 +                     ldapurl->lud_host, ldapurl->lud_port, ldap_err2string (ret));
++          ldap_free_urldesc(ldapurl);
 +          return ret;
 +        }
 +      else
@@ -1031,16 +1158,15 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  if (ldap_username != NULL || *ldap_username != '\0')
 +    {
 +      who = ldap_username;
-+      creds.bv_val = strdup(ldap_password);
-+      creds.bv_len = strlen(ldap_password);
++      pwd = ldap_password;
 +    }
 +
-+  if ((ret = ldap_sasl_bind_s (ld, who, LDAP_SASL_SIMPLE, &creds,
-+                               NULL, NULL, NULL)) != LDAP_SUCCESS)
++  if ((ret = ldap_simple_bind_s (ld, who, pwd)) != LDAP_SUCCESS)
 +    {
 +      log_error ("Error: Cannot login into ldap server %s:%d: %s",
 +                 ldapurl->lud_host, ldapurl->lud_port, ldap_err2string (ret));
 +    }
++  ldap_free_urldesc(ldapurl);
 +  return ret;
 +}
 +
@@ -1049,8 +1175,6 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  struct option_state *options;
 +  int ret, version;
-+  char *uri = NULL;
-+  struct berval creds;
 +
 +  if (ld != NULL)
 +    return;
@@ -1223,24 +1347,11 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +    }
 +#endif
 +
-+  /* enough for 'ldap://+ + hostname + ':' + port number */
-+  uri = malloc(strlen(ldap_server) + 16);
-+  if (uri == NULL)
-+    {
-+      log_error ("Cannot build ldap init URI %s:%d", ldap_server, ldap_port);
-+      return;
-+    }
-+
-+  sprintf(uri,"ldap://%s:%d", ldap_server, ldap_port);
-+  ldap_initialize(&ld, uri);
-+
-+  if (ld == NULL)
++  if ((ld = ldap_init (ldap_server, ldap_port)) == NULL)
 +    {
 +      log_error ("Cannot init ldap session to %s:%d", ldap_server, ldap_port);
 +      return;
 +    }
-+
-+  free(uri);
 +
 +  version = LDAP_VERSION3;
 +  if ((ret = ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version)) != LDAP_OPT_SUCCESS)
@@ -1303,11 +1414,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +  if (ldap_username != NULL && *ldap_username != '\0')
 +    {
-+      creds.bv_val = strdup(ldap_password);
-+      creds.bv_len = strlen(ldap_password);
-+
-+      if ((ret = ldap_sasl_bind_s (ld, ldap_username, LDAP_SASL_SIMPLE,
-+                                    &creds, NULL, NULL, NULL)) != LDAP_SUCCESS)
++      if ((ret = ldap_simple_bind_s (ld, ldap_username,
++                                     ldap_password)) != LDAP_SUCCESS)
 +        {
 +          log_error ("Error: Cannot login into ldap server %s:%d: %s",
 +                     ldap_server, ldap_port, ldap_err2string (ret));
@@ -1327,9 +1435,18 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  char *search[] = {"dhcpOptionsDN", "dhcpSharedNetworkDN", "dhcpSubnetDN",
 +                    "dhcpGroupDN", "dhcpHostDN", "dhcpClassesDN",
-+                    "dhcpPoolDN", NULL};
++                    "dhcpPoolDN", "dhcpZoneDN", "dhcpFailOverPeerDN", NULL};
++
++  /* FIXME: dhcpKeyDN can't be added. It is referenced in dhcpDnsZone to
++     retrive the key name (cn). Adding keyDN will reflect adding a key declaration
++     inside the zone configuration.
++
++     dhcpSubClassesDN cant be added. It is also similar to the above.
++     Needs schema change.
++   */
 +  LDAPMessage * newres, * newent;
-+  struct berval **tempbv;
++  struct ldap_config_stack *ns;
++  char **tempstr;
 +  int i, j, ret;
 +#if defined (DEBUG_LDAP)
 +  char *dn;
@@ -1349,25 +1466,25 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +  for (i=0; search[i] != NULL; i++)
 +    {
-+      if ((tempbv = ldap_get_values_len (ld, ent, search[i])) == NULL)
++      if ((tempstr = ldap_get_values (ld, ent, search[i])) == NULL)
 +        continue;
 +
-+      for (j=0; tempbv[j] != NULL; j++)
++      for (j=0; tempstr[j] != NULL; j++)
 +        {
-+          if (*tempbv[j]->bv_val == '\0')
++          if (*tempstr[j] == '\0')
 +            continue;
 +
-+          if ((ret = ldap_search_ext_s(ld, tempbv[j]->bv_val, LDAP_SCOPE_BASE,
-+                                       "objectClass=*", NULL, 0, NULL,
-+                                       NULL, NULL, 0, &newres)) != LDAP_SUCCESS)
++          if ((ret = ldap_search_s (ld, tempstr[j], LDAP_SCOPE_BASE, 
++                                    "objectClass=*", NULL, 0, 
++                                    &newres)) != LDAP_SUCCESS)
 +            {
-+              ldap_value_free_len (tempbv);
++              ldap_value_free (tempstr);
 +              ldap_stop();
 +              return;
 +            }
 +    
 +#if defined (DEBUG_LDAP)
-+          log_info ("Adding contents of subtree '%s' to config stack from '%s' reference", tempbv[j], search[i]);
++          log_info ("Adding contents of subtree '%s' to config stack from '%s' reference", tempstr[j], search[i]);
 +#endif
 +          for (newent = ldap_first_entry (ld, newres);
 +               newent != NULL;
@@ -1387,7 +1504,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +            }
 +        }
 +
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +}
 +
@@ -1427,8 +1544,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +    }
 +
 +  while (ldap_stack != NULL && 
-+         (ldap_stack->ldent == NULL ||
-+          (ldap_stack->ldent = ldap_next_entry (ld, ldap_stack->ldent)) == NULL))
++         (ldap_stack->ldent == NULL || ( ldap_stack->processed &&
++          (ldap_stack->ldent = ldap_next_entry (ld, ldap_stack->ldent)) == NULL)))
 +    {
 +      if (ldap_stack->close_brace)
 +        {
@@ -1502,26 +1619,26 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +ldap_parse_entry_options (LDAPMessage *ent, char *buffer, size_t size,
 +                          int *lease_limit)
 +{
-+  struct berval **tempbv;
++  char **tempstr;
 +  int i;
 +
 +  if (ent == NULL || buffer == NULL || size == 0)
 +    return (ISC_R_FAILURE);
 +
-+  if ((tempbv = ldap_get_values_len (ld, ent, "dhcpStatements")) != NULL)
++  if ((tempstr = ldap_get_values (ld, ent, "dhcpStatements")) != NULL)
 +    {
-+      for (i=0; tempbv[i] != NULL; i++)
++      for (i=0; tempstr[i] != NULL; i++)
 +        {
 +          if (lease_limit != NULL &&
-+              strncasecmp ("lease limit ", tempbv[i]->bv_val, 12) == 0)
++              strncasecmp ("lease limit ", tempstr[i], 12) == 0)
 +            {
-+              *lease_limit = (int) strtol ((tempbv[i]->bv_val) + 12, NULL, 10);
++              *lease_limit = (int) strtol ((tempstr[i]) + 12, NULL, 10);
 +              continue;
 +            }
 +
-+          x_strncat (buffer, tempbv[i]->bv_val, size);
++          x_strncat (buffer, tempstr[i], size);
 +
-+          switch((int) check_statement_end (tempbv[i]->bv_val))
++          switch((int) check_statement_end (tempstr[i]))
 +            {
 +              case '}':
 +              case ';':
@@ -1532,16 +1649,16 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                break;
 +            }
 +        }
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
-+  if ((tempbv = ldap_get_values_len (ld, ent, "dhcpOption")) != NULL)
++  if ((tempstr = ldap_get_values (ld, ent, "dhcpOption")) != NULL)
 +    {
-+      for (i=0; tempbv[i] != NULL; i++)
++      for (i=0; tempstr[i] != NULL; i++)
 +        {
 +          x_strncat (buffer, "option ", size);
-+          x_strncat (buffer, tempbv[i]->bv_val, size);
-+          switch ((int) check_statement_end (tempbv[i]->bv_val))
++          x_strncat (buffer, tempstr[i], size);
++          switch ((int) check_statement_end (tempstr[i]))
 +            {
 +              case ';':
 +                x_strncat (buffer, "\n", size);
@@ -1551,7 +1668,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                break;
 +            }
 +        }
-+      ldap_value_free_len (tempbv);
++      ldap_value_free (tempstr);
 +    }
 +
 +  return (ISC_R_SUCCESS);
@@ -1561,12 +1678,11 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +static void
 +ldap_generate_config_string (struct parse *cfile)
 +{
-+  struct berval **objectClass;
-+  char *dn;
++  char **objectClass, *dn;
 +  struct ldap_config_stack *entry;
-+  LDAPMessage * ent, * res;
-+  int i, ignore, found;
-+  int ret;
++  LDAPMessage *ent, *res, *entfirst, *resfirst;
++  int i, j, ignore, found;
++  int ret, parsedn = 1;
 +
 +  if (ld == NULL)
 +    ldap_start ();
@@ -1574,29 +1690,32 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +    return;
 +
 +  entry = ldap_stack;
-+  if ((objectClass = ldap_get_values_len (ld, entry->ldent, 
++  if ((objectClass = ldap_get_values (ld, entry->ldent, 
 +                                      "objectClass")) == NULL)
 +    return;
 +    
++  entry->processed = 1;
 +  ignore = 0;
 +  found = 1;
 +  for (i=0; objectClass[i] != NULL; i++)
 +    {
-+      if (strcasecmp (objectClass[i]->bv_val, "dhcpSharedNetwork") == 0)
++      if (strcasecmp (objectClass[i], "dhcpSharedNetwork") == 0)
 +        ldap_parse_shared_network (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpClass") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpClass") == 0)
 +        ldap_parse_class (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpSubnet") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpSubnet") == 0)
 +        ldap_parse_subnet (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpPool") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpPool") == 0)
 +        ldap_parse_pool (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpGroup") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpGroup") == 0)
 +        ldap_parse_group (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpTSigKey") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpTSigKey") == 0)
 +        ldap_parse_key (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpDnsZone") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpDnsZone") == 0)
 +        ldap_parse_zone (entry, cfile);
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpHost") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpFailOverPeer") == 0)
++        ldap_parse_failover (entry, cfile);
++      else if (strcasecmp (objectClass[i], "dhcpHost") == 0)
 +        {
 +          if (ldap_method == LDAP_METHOD_STATIC)
 +            ldap_parse_host (entry, cfile);
@@ -1606,7 +1725,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +              break;
 +            }
 +        }
-+      else if (strcasecmp (objectClass[i]->bv_val, "dhcpSubClass") == 0)
++      else if (strcasecmp (objectClass[i], "dhcpSubClass") == 0)
 +        {
 +          if (ldap_method == LDAP_METHOD_STATIC)
 +            ldap_parse_subclass (entry, cfile);
@@ -1626,7 +1745,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        }
 +    }
 +
-+  ldap_value_free_len (objectClass);
++  ldap_value_free (objectClass);
 +
 +  if (ignore)
 +    {
@@ -1638,19 +1757,32 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                           LDAP_BUFFER_SIZE-1, NULL);
 +
 +  dn = ldap_get_dn (ld, entry->ldent);
-+
++  if (dn == NULL)
++    {
++      ldap_stop();
++      return;
++    }
 +#if defined(DEBUG_LDAP)
-+  if (dn != NULL)
-+    log_info ("Found LDAP entry '%s'", dn);
++  else
++    {
++      log_info ("Found LDAP entry '%s'", dn);
++    }
 +#endif
 +
-+  if (dn == NULL ||
-+      (ret = ldap_search_ext_s (ld, dn, LDAP_SCOPE_ONELEVEL,
-+                                "objectClass=*", NULL, 0, NULL, NULL,
-+                                NULL, 0, &res)) != LDAP_SUCCESS)
++  if ((ret = ldap_search_s (ld, dn, LDAP_SCOPE_ONELEVEL, "(!(|(|(objectClass=dhcpTSigKey)(objectClass=dhcpClass)) (objectClass=dhcpFailOverPeer)))",
++                            NULL, 0, &res)) != LDAP_SUCCESS)
 +    {
-+      if (dn)
-+        ldap_memfree (dn);
++      ldap_memfree (dn);
++
++      ldap_stop();
++      return;
++    }
++
++  if ((ret = ldap_search_s (ld, dn, LDAP_SCOPE_ONELEVEL, "(|(|(objectClass=dhcpTSigKey)(objectClass=dhcpClass)) (objectClass=dhcpFailOverPeer))",
++                            NULL, 0, &resfirst)) != LDAP_SUCCESS)
++    {
++      ldap_memfree (dn);
++      ldap_msgfree (res);
 +
 +      ldap_stop();
 +      return;
@@ -1658,17 +1790,32 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +  ldap_memfree (dn);
 +
-+  if ((ent = ldap_first_entry (ld, res)) != NULL)
++  ent = ldap_first_entry(ld, res);
++  entfirst = ldap_first_entry(ld, resfirst);
++
++  if (ent == NULL && entfirst == NULL)
 +    {
-+      add_to_config_stack (res, ent);
-+      parse_external_dns (entry->ldent);
-+    }
-+  else
-+    {
-+      ldap_msgfree (res);
 +      parse_external_dns (entry->ldent);
 +      next_ldap_entry (cfile);
 +    }
++
++  if (ent != NULL)
++    {
++      add_to_config_stack (res, ent);
++      parse_external_dns (entry->ldent);
++      parsedn = 0;
++    }
++  else
++    ldap_msgfree (res);
++
++  if (entfirst != NULL)
++    {
++      add_to_config_stack (resfirst, entfirst);
++      if(parsedn)
++        parse_external_dns (entry->ldent);
++    }
++  else
++    ldap_msgfree (resfirst);
 +}
 +
 +
@@ -1702,7 +1849,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +ldap_read_function (struct parse *cfile)
 +{
 +  cfile->inbuf[0] = '\0';
-+  cfile->buflen = 0;
++  cfile->bufix = cfile->buflen = 0;
 + 
 +  while (ldap_stack != NULL && *cfile->inbuf == '\0')
 +    ldap_generate_config_string (cfile);
@@ -1726,14 +1873,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +static char *
 +ldap_get_host_name (LDAPMessage * ent)
 +{
-+  struct berval **name;
-+  char *ret;
++  char **name, *ret;
 +
 +  ret = NULL;
-+  if ((name = ldap_get_values_len (ld, ent, "cn")) == NULL || name[0] == NULL)
++  if ((name = ldap_get_values (ld, ent, "cn")) == NULL || name[0] == NULL)
 +    {
 +      if (name != NULL)
-+        ldap_value_free_len (name);
++        ldap_value_free (name);
 +
 +#if defined (DEBUG_LDAP)
 +      ret = ldap_get_dn (ld, ent);
@@ -1746,37 +1892,11 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +      return (NULL);
 +    }
 +
-+  ret = dmalloc (strlen (name[0]->bv_val) + 1, MDL);
-+  strcpy (ret, name[0]->bv_val);
-+  ldap_value_free_len (name);
++  ret = dmalloc (strlen (name[0]) + 1, MDL);
++  strcpy (ret, name[0]);
++  ldap_value_free (name);
 +
 +  return (ret);
-+}
-+
-+
-+static int
-+getfqhostname(char *fqhost, size_t size)
-+{
-+#if defined(MAXHOSTNAMELEN)
-+  char   hname[MAXHOSTNAMELEN];
-+#else
-+  char   hname[65];
-+#endif
-+  struct hostent *hp;
-+
-+  if(NULL == fqhost || 1 >= size)
-+    return -1;
-+
-+  memset(hname, 0, sizeof(hname));
-+  if( gethostname(hname, sizeof(hname)-1))
-+    return -1;
-+
-+  if(NULL == (hp = gethostbyname(hname)))
-+    return -1;
-+
-+  strncpy(fqhost, hp->h_name, size-1);
-+  fqhost[size-1] = '\0';
-+  return 0;
 +}
 +
 +
@@ -1785,14 +1905,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +{
 +  LDAPMessage * ldres, * hostres, * ent, * hostent;
 +  char hfilter[1024], sfilter[1024], fqdn[257];
-+  char *buffer, *hostdn;
++  char *buffer, **tempstr = NULL, *hostdn;
 +  ldap_dn_node *curr = NULL;
 +  struct parse *cfile;
 +  struct utsname unme;
 +  isc_result_t res;
 +  size_t length;
 +  int ret, cnt;
-+  struct berval **tempbv = NULL;
 +
 +  if (ld == NULL)
 +    ldap_start ();
@@ -1816,7 +1935,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +    }
 +  else
 +  {
-+  if(0 == getfqhostname(fqdn, sizeof(fqdn)))
++  if(0 == get_host_entry(fqdn, sizeof(fqdn), NULL, 0))
 +    {
 +      snprintf (hfilter, sizeof (hfilter),
 +                "(&(objectClass=dhcpServer)(|(cn=%s)(cn=%s)))", 
@@ -1830,9 +1949,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +  }
 +  hostres = NULL;
-+  if ((ret = ldap_search_ext_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE,
-+                                hfilter, NULL, 0, NULL, NULL, NULL, 0,
-+                                &hostres)) != LDAP_SUCCESS)
++  if ((ret = ldap_search_s (ld, ldap_base_dn, LDAP_SCOPE_SUBTREE,
++                            hfilter, NULL, 0, &hostres)) != LDAP_SUCCESS)
 +    {
 +      log_error ("Cannot find host LDAP entry %s %s",
 +		 ((ldap_dhcp_server_cn == NULL)?(unme.nodename):(ldap_dhcp_server_cn)), hfilter);
@@ -1857,13 +1975,15 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +#endif
 +
 +  if (hostdn == NULL ||
-+      (tempbv = ldap_get_values_len (ld, hostent, "dhcpServiceDN")) == NULL ||
-+      tempbv[0] == NULL)
++      (tempstr = ldap_get_values (ld, hostent, "dhcpServiceDN")) == NULL ||
++      tempstr[0] == NULL)
 +    {
-+      log_error ("Error: Cannot find LDAP entry matching %s", hfilter);
++      log_error ("Error: No dhcp service is associated with the server %s %s",
++                 (hostdn ? "dn" : "name"), (hostdn ? hostdn :
++                 (ldap_dhcp_server_cn ? ldap_dhcp_server_cn : unme.nodename)));
 +
-+      if (tempbv != NULL)
-+        ldap_value_free_len (tempbv);
++      if (tempstr != NULL)
++        ldap_value_free (tempstr);
 +
 +      if (hostdn)
 +        ldap_memfree (hostdn);
@@ -1902,18 +2022,17 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  cfile->read_function = ldap_read_function;
 +
 +  res = ISC_R_SUCCESS;
-+  for (cnt=0; tempbv[cnt] != NULL; cnt++)
++  for (cnt=0; tempstr[cnt] != NULL; cnt++)
 +    {
 +      snprintf(sfilter, sizeof(sfilter), "(&(objectClass=dhcpService)"
-+                        "(|(dhcpPrimaryDN=%s)(dhcpSecondaryDN=%s)))",
-+                        hostdn, hostdn);
++                        "(|(|(dhcpPrimaryDN=%s)(dhcpSecondaryDN=%s))(dhcpServerDN=%s)))",
++                        hostdn, hostdn, hostdn);
 +      ldres = NULL;
-+      if ((ret = ldap_search_ext_s (ld, tempbv[cnt]->bv_val, LDAP_SCOPE_BASE,
-+                                    sfilter, NULL, 0, NULL, NULL, NULL,
-+                                    0, &ldres)) != LDAP_SUCCESS)
++      if ((ret = ldap_search_s (ld, tempstr[cnt], LDAP_SCOPE_BASE,
++                                sfilter, NULL, 0, &ldres)) != LDAP_SUCCESS)
 +        {
 +          log_error ("Error searching for dhcpServiceDN '%s': %s. Please update the LDAP entry '%s'",
-+                     tempbv[cnt]->bv_val, ldap_err2string (ret), hostdn);
++                     tempstr[cnt], ldap_err2string (ret), hostdn);
 +          if(NULL != ldres)
 +            ldap_msgfree(ldres);
 +          res = ISC_R_FAILURE;
@@ -1922,8 +2041,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +      if ((ent = ldap_first_entry (ld, ldres)) == NULL)
 +        {
-+          log_error ("Error: Cannot find dhcpService DN '%s' with primary or secondary server reference. Please update the LDAP server entry '%s'",
-+                     tempbv[cnt]->bv_val, hostdn);
++          log_error ("Error: Cannot find dhcpService DN '%s' with server reference. Please update the LDAP server entry '%s'",
++                     tempstr[cnt], hostdn);
 +
 +          ldap_msgfree(ldres);
 +          res = ISC_R_FAILURE;
@@ -1939,7 +2058,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +      curr = dmalloc (sizeof (*curr), MDL);
 +      if (curr != NULL)
 +        {
-+          length = strlen (tempbv[cnt]->bv_val);
++          length = strlen (tempstr[cnt]);
 +          curr->dn = dmalloc (length + 1, MDL);
 +          if (curr->dn == NULL)
 +            {
@@ -1947,7 +2066,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +              curr = NULL;
 +            }
 +          else
-+            strcpy (curr->dn, tempbv[cnt]->bv_val);
++            strcpy (curr->dn, tempstr[cnt]);
 +        }
 +
 +      if (curr != NULL)
@@ -1966,13 +2085,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        log_fatal ("no memory to remember ldap service dn");
 +
 +#if defined (DEBUG_LDAP)
-+      log_info ("LDAP: Parsing dhcpService DN '%s' ...", tempbv[cnt]);
++      log_info ("LDAP: Parsing dhcpService DN '%s' ...", tempstr[cnt]);
 +#endif
 +      add_to_config_stack (ldres, ent);
 +      res = conf_file_subparse (cfile, root_group, ROOT_GROUP);
 +      if (res != ISC_R_SUCCESS)
 +        {
-+          log_error ("LDAP: cannot parse dhcpService entry '%s'", tempbv[cnt]->bv_val);
++          log_error ("LDAP: cannot parse dhcpService entry '%s'", tempstr[cnt]);
 +          break;
 +        }
 +    }
@@ -1981,7 +2100,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  ldap_close_debug_fd();
 +
 +  ldap_memfree (hostdn);
-+  ldap_value_free_len (tempbv);
++  ldap_value_free (tempstr);
 +
 +  if (res != ISC_R_SUCCESS)
 +    {
@@ -2024,7 +2143,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                         int type, struct host_decl *host,
 +                         struct class **class)
 +{
-+  int declaration, lease_limit;
++  int i, declaration, lease_limit;
 +  char option_buffer[8192];
 +  enum dhcp_token token;
 +  struct parse *cfile;
@@ -2068,8 +2187,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +          if (basedn != NULL && *basedn != '\0')
 +            {
-+              ret = ldap_search_ext_s (ld, basedn, LDAP_SCOPE_SUBTREE, filter,
-+                                       NULL, 0, NULL, NULL, NULL, 0, &groupdn);
++              ret = ldap_search_s (ld, basedn, LDAP_SCOPE_SUBTREE,
++                                   filter, NULL, 0, &groupdn);
 +              if (ret == LDAP_SUCCESS)
 +                {
 +                  if ((entry = ldap_first_entry (ld, groupdn)) != NULL)
@@ -2130,20 +2249,35 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +find_haddr_in_ldap (struct host_decl **hp, int htype, unsigned hlen,
 +                    const unsigned char *haddr, const char *file, int line)
 +{
-+  char buf[128], *type_str;
++  char buf[128], *type_str, **tempstr, *addr_str;
 +  LDAPMessage * res, *ent;
 +  struct host_decl * host;
 +  isc_result_t status;
 +  ldap_dn_node *curr;
++  char up_hwaddr[20];
++  char lo_hwaddr[20];
 +  int ret;
++  struct sigaction old, new;
 +
 +  if (ldap_method == LDAP_METHOD_STATIC)
 +    return (0);
++  /*
++   ** ldap_* calls can result in a SIGPIPE and dhcpd gets terminated,
++   ** since it doesn't handle it...
++   */
++
++  new.sa_flags   = 0;
++  new.sa_handler = SIG_IGN;
++  sigemptyset (&new.sa_mask);
++  sigaction (SIGPIPE, &new, &old);
 +
 +  if (ld == NULL)
 +    ldap_start ();
 +  if (ld == NULL)
-+    return (0);
++    {
++      sigaction (SIGPIPE, &old, &new);
++      return (0);
++    }
 +
 +  switch (htype)
 +    {
@@ -2158,6 +2292,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        break;
 +      default:
 +        log_info ("Ignoring unknown type %d", htype);
++        sigaction (SIGPIPE, &old, &new);
 +        return (0);
 +    }
 +
@@ -2165,9 +2300,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +  ** FIXME: It is not guaranteed, that the dhcpHWAddress attribute
 +  **        contains _exactly_ "type addr" with one space between!
 +  */
++  snprintf(lo_hwaddr, sizeof(lo_hwaddr), "%s",
++           print_hw_addr (htype, hlen, haddr));
++  x_strxform(up_hwaddr, lo_hwaddr, sizeof(up_hwaddr), toupper);
++
 +  snprintf (buf, sizeof (buf),
-+            "(&(objectClass=dhcpHost)(dhcpHWAddress=%s %s))",
-+           type_str, print_hw_addr (htype, hlen, haddr));
++            "(&(objectClass=dhcpHost)(|(dhcpHWAddress=%s %s)(dhcpHWAddress=%s %s)))",
++            type_str, lo_hwaddr, type_str, up_hwaddr);
 +
 +  res = ent = NULL;
 +  for (curr = ldap_service_dn_head;
@@ -2177,8 +2316,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +#if defined (DEBUG_LDAP)
 +      log_info ("Searching for %s in LDAP tree %s", buf, curr->dn);
 +#endif
-+      ret = ldap_search_ext_s (ld, curr->dn, LDAP_SCOPE_SUBTREE, buf, NULL, 0,
-+                               NULL, NULL, NULL, 0, &res);
++      ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                           buf, NULL, 0, &res);
 +
 +      if(ret == LDAP_SERVER_DOWN)
 +        {
@@ -2189,11 +2328,12 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +          if(ld == NULL)
 +            {
 +              log_info ("LDAP reconnect failed - try again later...");
++ 		       sigaction (SIGPIPE, &old, &new);
 +              return (0);
 +            }
 +
-+          ret = ldap_search_ext_s (ld, curr->dn, LDAP_SCOPE_SUBTREE, buf, NULL,
-+                                   0, NULL, NULL, NULL, 0, &res);
++          ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                               buf, NULL, 0, &res);
 +        }
 +
 +      if (ret == LDAP_SUCCESS)
@@ -2224,12 +2364,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +              log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
 +                         curr->dn, ldap_err2string (ret));
 +              ldap_stop();
++ 		       sigaction (SIGPIPE, &old, &new);
 +              return (0);
 +            }
 +#if defined (DEBUG_LDAP)
 +          else
 +            {
-+              log_info ("ldap_search_ext_s returned %s when searching for %s in %s",
++              log_info ("ldap_search_s returned %s when searching for %s in %s",
 +                        ldap_err2string (ret), buf, curr->dn);
 +            }
 +#endif
@@ -2254,6 +2395,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +          log_fatal ("can't allocate host decl struct: %s", 
 +                     isc_result_totext (status)); 
 +          ldap_msgfree (res);
++          sigaction (SIGPIPE, &old, &new);
 +          return (0);
 +        }
 +
@@ -2262,6 +2404,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        {
 +          host_dereference (&host, MDL);
 +          ldap_msgfree (res);
++          sigaction (SIGPIPE, &old, &new);
 +          return (0);
 +        }
 +
@@ -2270,6 +2413,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +          log_fatal ("can't clone group for host %s", host->name);
 +          host_dereference (&host, MDL);
 +          ldap_msgfree (res);
++          sigaction (SIGPIPE, &old, &new);
 +          return (0);
 +        }
 +
@@ -2277,11 +2421,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +
 +      *hp = host;
 +      ldap_msgfree (res);
++      sigaction (SIGPIPE, &old, &new);
 +      return (1);
 +    }
 +
 +
 +  if(res) ldap_msgfree (res);
++  sigaction (SIGPIPE, &old, &new);
 +  return (0);
 +}
 +
@@ -2291,23 +2437,37 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +                       struct data_string *data)
 +{
 +  LDAPMessage * res, * ent;
-+  int ret, lease_limit;
++  int i, ret, lease_limit;
 +  isc_result_t status;
 +  ldap_dn_node *curr;
 +  char buf[1024];
++  struct sigaction old, new;
 +
 +  if (ldap_method == LDAP_METHOD_STATIC)
 +    return (0);
 +
++  /*
++   ** ldap_* calls can result in a SIGPIPE and dhcpd gets terminated,
++   ** since it doesn't handle it...
++   */
++
++  new.sa_flags   = 0;
++  new.sa_handler = SIG_IGN;
++  sigemptyset (&new.sa_mask);
++  sigaction (SIGPIPE, &new, &old);
++
 +  if (ld == NULL)
 +    ldap_start ();
 +  if (ld == NULL)
-+    return (0);
++    {
++      sigaction (SIGPIPE, &old, &new);
++      return (0);
++    }
 +
 +  snprintf (buf, sizeof (buf),
 +            "(&(objectClass=dhcpSubClass)(cn=%s)(dhcpClassData=%s))",
-+            print_hex_1 (data->len, data->data, 60),
-+            print_hex_2 (strlen (class->name), (u_int8_t *) class->name, 60));
++            print_hex_1 (data->len, (const u_int8_t *)data->data, 60),
++            print_hex_2 (strlen (class->name), (const u_int8_t *)class->name, 60));
 +#if defined (DEBUG_LDAP)
 +  log_info ("Searching LDAP for %s", buf);
 +#endif
@@ -2320,8 +2480,8 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +#if defined (DEBUG_LDAP)
 +      log_info ("Searching for %s in LDAP tree %s", buf, curr->dn);
 +#endif
-+      ret = ldap_search_ext_s (ld, curr->dn, LDAP_SCOPE_SUBTREE, buf, NULL, 0,
-+                               NULL, NULL, NULL, 0, &res);
++      ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                           buf, NULL, 0, &res);
 +
 +      if(ret == LDAP_SERVER_DOWN)
 +        {
@@ -2333,11 +2493,12 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +          if(ld == NULL)
 +            {
 +              log_info ("LDAP reconnect failed - try again later...");
++              sigaction (SIGPIPE, &old, &new);
 +              return (0);
 +            }
 +
-+          ret = ldap_search_ext_s (ld, curr->dn, LDAP_SCOPE_SUBTREE, buf,
-+                                   NULL, 0, NULL, NULL, NULL, 0, &res);
++          ret = ldap_search_s (ld, curr->dn, LDAP_SCOPE_SUBTREE,
++                               buf, NULL, 0, &res);
 +        }
 +
 +      if (ret == LDAP_SUCCESS)
@@ -2368,12 +2529,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +              log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
 +                         curr->dn, ldap_err2string (ret));
 +              ldap_stop();
++       	   sigaction (SIGPIPE, &old, &new);
 +              return (0);
 +            }
 +#if defined (DEBUG_LDAP)
 +          else
 +            {
-+              log_info ("ldap_search_ext_s returned %s when searching for %s in %s",
++              log_info ("ldap_search_s returned %s when searching for %s in %s",
 +                        ldap_err2string (ret), buf, curr->dn);
 +            }
 +#endif
@@ -2396,6 +2558,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +        {
 +          log_error ("Cannot allocate memory for a new class");
 +          ldap_msgfree (res);
++        sigaction (SIGPIPE, &old, &new);
 +          return (0);
 +        }
 +
@@ -2417,6 +2580,7 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +              log_error ("no memory for billing");
 +              class_dereference (newclass, MDL);
 +              ldap_msgfree (res);
++        sigaction (SIGPIPE, &old, &new);
 +              return (0);
 +            }
 +          memset ((*newclass)->billed_leases, 0, 
@@ -2426,18 +2590,253 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap.c dhcp3-3.1.0/server/ldap.c
 +      data_string_copy (&(*newclass)->hash_string, data, MDL);
 +
 +      ldap_msgfree (res);
++        sigaction (SIGPIPE, &old, &new);
 +      return (1);
 +    }
 +
 +  if(res) ldap_msgfree (res);
++        sigaction (SIGPIPE, &old, &new);
 +  return (0);
 +}
 +
++#endif /* LDAP_CONFIGURATION */
+diff -urNad isc-dhcp.orig/server/mdb.c isc-dhcp/server/mdb.c
+--- isc-dhcp.orig/server/mdb.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/mdb.c	2009-12-30 12:34:28.000000000 +0100
+@@ -600,6 +600,14 @@
+ 			 const char *file, int line)
+ {
+ 	struct hardware h;
++	int ret;
++
++#if defined(LDAP_CONFIGURATION)
++	if(local_family == AF_INET) {
++		if ((ret = find_haddr_in_ldap (hp, htype, hlen, haddr, file, line)))
++			return ret;
++	}
 +#endif
-diff -urNad dhcp3-3.1.0.orig/server/ldap_casa.c dhcp3-3.1.0/server/ldap_casa.c
---- dhcp3-3.1.0.orig/server/ldap_casa.c	1970-01-01 01:00:00.000000000 +0100
-+++ dhcp3-3.1.0/server/ldap_casa.c	2008-02-20 13:21:26.000000000 +0100
-@@ -0,0 +1,138 @@
+ 
+ 	h.hlen = hlen + 1;
+ 	h.hbuf [0] = htype;
+diff -urNad isc-dhcp.orig/server/stables.c isc-dhcp/server/stables.c
+--- isc-dhcp.orig/server/stables.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/stables.c	2009-12-30 12:34:28.000000000 +0100
+@@ -244,9 +244,89 @@
+ 	{ "delayed-ack", "S",			&server_universe,  58, 1 },
+ 	{ "max-ack-delay", "L",			&server_universe,  59, 1 },
+ #endif
++#if defined(LDAP_CONFIGURATION)
++	{ "ldap-server", "t",			&server_universe,  60, 1 },
++	{ "ldap-port", "d",			&server_universe,  61, 1 },
++	{ "ldap-username", "t",			&server_universe,  62, 1 },
++	{ "ldap-password", "t",			&server_universe,  63, 1 },
++	{ "ldap-base-dn", "t",			&server_universe,  64, 1 },
++	{ "ldap-method", "Nldap-methods.",	&server_universe,  65, 1 },
++	{ "ldap-debug-file", "t",		&server_universe,  66, 1 },
++	{ "ldap-dhcp-server-cn", "t",		&server_universe,  67, 1 },
++	{ "ldap-referrals", "f",		&server_universe,  68, 1 },
++#if defined(USE_SSL)
++	{ "ldap-ssl", "Nldap-ssl-usage.",	&server_universe,  69, 1 },
++	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",
++						&server_universe,  70, 1 },
++	{ "ldap-tls-ca-file", "t",		&server_universe,  71, 1 },
++	{ "ldap-tls-ca-dir", "t",		&server_universe,  72, 1 },
++	{ "ldap-tls-cert", "t",			&server_universe,  73, 1 },
++	{ "ldap-tls-key", "t",			&server_universe,  74, 1 },
++	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",
++						&server_universe,  75, 1 },
++	{ "ldap-tls-ciphers", "t",		&server_universe,  76, 1 },
++	{ "ldap-tls-randfile", "t",		&server_universe,  77, 1 },
++#endif
++#endif
+ 	{ NULL, NULL, NULL, 0, 0 }
+ };
+ 
++#if defined(LDAP_CONFIGURATION)
++struct enumeration_value ldap_values [] = {
++	{ "static", LDAP_METHOD_STATIC },
++	{ "dynamic", LDAP_METHOD_DYNAMIC },
++	{ (char *) 0, 0 }
++};
++
++struct enumeration ldap_methods = {
++	(struct enumeration *)0,
++	"ldap-methods", 1,
++	ldap_values
++};
++
++#if defined(USE_SSL)
++struct enumeration_value ldap_ssl_usage_values [] = {
++	{ "off",       LDAP_SSL_OFF  },
++	{ "on",	       LDAP_SSL_ON   },
++	{ "ldaps",     LDAP_SSL_LDAPS},
++	{ "start_tls", LDAP_SSL_TLS  },
++	{ (char *) 0, 0 }
++};
++struct enumeration ldap_ssl_usage_enum = {
++	(struct enumeration *)0,
++	"ldap-ssl-usage", 1,
++	ldap_ssl_usage_values
++};
++
++struct enumeration_value ldap_tls_reqcert_values [] = {
++	{ "never",  LDAP_OPT_X_TLS_NEVER },
++	{ "hard",   LDAP_OPT_X_TLS_HARD	 },
++	{ "demand", LDAP_OPT_X_TLS_DEMAND},
++	{ "allow",  LDAP_OPT_X_TLS_ALLOW },
++	{ "try",    LDAP_OPT_X_TLS_TRY	 },
++	{ (char *) 0, 0 }
++};
++struct enumeration ldap_tls_reqcert_enum = {
++	(struct enumeration *)0,
++	"ldap-tls-reqcert", 1,
++	ldap_tls_reqcert_values
++};
++
++struct enumeration_value ldap_tls_crlcheck_values [] = {
++	{ "none", LDAP_OPT_X_TLS_CRL_NONE},
++	{ "peer", LDAP_OPT_X_TLS_CRL_PEER},
++	{ "all",  LDAP_OPT_X_TLS_CRL_ALL },
++	{ (char *) 0, 0 }
++};
++struct enumeration ldap_tls_crlcheck_enum = {
++	(struct enumeration *)0,
++	"ldap-tls-crlcheck", 1,
++	ldap_tls_crlcheck_values
++};
++#endif
++#endif
++
++
+ struct enumeration_value ddns_styles_values [] = {
+ 	{ "none", 0 },
+ 	{ "ad-hoc", 1 },
+diff -urNad isc-dhcp.orig/dst/Makefile.am isc-dhcp/dst/Makefile.am
+--- isc-dhcp.orig/dst/Makefile.am	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/dst/Makefile.am	2009-12-30 12:34:28.000000000 +0100
+@@ -1,8 +1,12 @@
+ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
+ 
+ lib_LIBRARIES = libdst.a
++noinst_LIBRARIES = libdst-nomd5.a
+ 
+ libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c md5_dgst.c \
+ 		   base64.c prandom.c
+ 
++libdst_nomd5_a_SOURCES = dst_support.c dst_api.c hmac_link.c \
++			 base64.c prandom.c
++
+ EXTRA_DIST = dst_internal.h md5.h md5_locl.h
+diff -urNad isc-dhcp.orig/server/Makefile.am isc-dhcp/server/Makefile.am
+--- isc-dhcp.orig/server/Makefile.am	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/Makefile.am	2009-12-30 12:34:28.000000000 +0100
+@@ -1,15 +1,16 @@
+-AM_CPPFLAGS = -I.. -DLOCALSTATEDIR='"@localstatedir@"'
++AM_CPPFLAGS = -I.. -DLOCALSTATEDIR='"@localstatedir@"' $(LDAP_CPPFLAGS)
+ 
+ dist_sysconf_DATA = dhcpd.conf
+ sbin_PROGRAMS = dhcpd
+ dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
+ 		omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c \
+-		dhcpv6.c mdb6.c
++		dhcpv6.c mdb6.c ldap.c ldap_casa.c
+ 
++dhcpd_CFLAGS= $(OPENSSL_CFLAGS)
+ # libomapi.a this is here twice to handle circular library dependencies :(
+-dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a ../dst/libdst.a \
++dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a ../dst/libdst-nomd5.a \
+ 	      ../dhcpctl/libdhcpctl.a ../minires/libres.a \
+-	      ../omapip/libomapi.a
++	      ../omapip/libomapi.a $(OPENSSL_LIBS) $(CRYPTO_LIBS) $(LDAP_LIBS)
+ 
+ man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
+ EXTRA_DIST = $(man_MANS)
+diff -urNad isc-dhcp.orig/configure.ac isc-dhcp/configure.ac
+--- isc-dhcp.orig/configure.ac	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/configure.ac	2009-12-30 12:34:28.000000000 +0100
+@@ -389,8 +389,78 @@ AC_TRY_LINK(
+ AC_CHECK_HEADERS(sys/socket.h net/if_dl.h net/if6.h regex.h)
+ 
+ # find an MD5 library
++saved_LIBS="$LIBS"
++LIBS=""
+ AC_SEARCH_LIBS(MD5_Init, [crypto])
+ AC_SEARCH_LIBS(MD5Init, [crypto])
++CRYPTO_LIBS="$LIBS"
++LIBS="$saved_LIBS"
++
++AC_ARG_ENABLE(ldap-conf,
++	AS_HELP_STRING([--enable-ldap-conf],
++		[enable ldap configuration support (default is no)]))
++AC_ARG_ENABLE(ldap-ssl,
++	AS_HELP_STRING([--enable-ldap-ssl],
++		[enable SSL/TLS in ldap support (default is yes)]))
++AC_ARG_ENABLE(ldap-casa,
++	AS_HELP_STRING([--enable-ldap-casa],
++		[enable casa auth in ldap support (default is yes)]))
++if test "x$enable_ldap_conf" = xyes ; then
++
++	AC_CHECK_HEADERS([ldap.h])
++	saved_LIBS="$LIBS"
++	LIBS=""
++	AC_SEARCH_LIBS([ber_init], [ldap], [
++		LDAP_LIBS="-lldap"
++	],[
++		AC_SEARCH_LIBS([ber_init], [lber], [
++			LDAP_LIBS="-lldap -llber"
++		], [
++			AC_MSG_ERROR([unable to find ldap libraries])
++		], [-lldap])
++	])
++	LIBS="$saved_LIBS"
++
++	# TODO: avoid deprecated functions. until then, enable them
++	LDAP_CPPFLAGS="-DLDAP_DEPRECATED"
++
++	AC_DEFINE([LDAP_CONFIGURATION], [1],
++		  [Define to 1 to enable ldap configuration support.])
++
++	if test "x$enable_ldap_ssl" != xno ; then
++		AC_DEFINE([USE_SSL], [1],
++			  [Define to 1 to enable SSL/TLS in ldap support])
++
++		# Hmm... should be not needed to use explicit -lssl ...
++		# AFAIS libldap is linked against libssl and there is
++		# also no guard around ldap_start_tls in ldap.h, so it
++		# should be possible to just link against libldap...
++		# All this at least in case of openldap-2.4.x.
++		#
++		#PKG_CHECK_MODULES(OPENSSL, [openssl])
++		#if test "x$OPENSSL_LIBS" != x ; then
++		#	# reset it, libcrypto is in OPENSSL_LIBS
++		#	CRYPTO_LIBS=""
++		#fi
++	fi
++
++	if test "x$enable_ldap_casa" != xno ; then
++		AC_CHECK_HEADERS([micasa_mgmd.h],[
++			AC_DEFINE([LDAP_CASA_AUTH], [1],
++				  [Define to 1 to enable casa in ldap support])
++		],[
++			# fail, when explicitely requested
++			if test "$x$enable_ldap_casa" = xyes ; then
++				AC_MSG_ERROR([Unable to find micasa_mgmd.h header file])
++			fi
++		])
++	fi
++fi
++AC_SUBST(CRYPTO_LIBS)
++AC_SUBST(LDAP_LIBS)
++AC_SUBST(LDAP_CPPFLAGS)
++AC_SUBST(OPENSSL_LIBS)
++AC_SUBST(OPENSSL_CFLAGS)
+ 
+ # Solaris needs some libraries for functions
+ AC_SEARCH_LIBS(socket, [socket])
+diff -urNad isc-dhcp.orig/server/ldap_casa.c isc-dhcp/server/ldap_casa.c
+--- isc-dhcp.orig/server/ldap_casa.c	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/ldap_casa.c	2009-12-30 12:34:28.000000000 +0100
+@@ -0,0 +1,142 @@
 +/* ldap_casa.c
 +   
 +   CASA routines for DHCPD... */
@@ -2473,9 +2872,13 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap_casa.c dhcp3-3.1.0/server/ldap_casa.c
 + * This file was written by S Kalyanasundaram <skalyanasundaram@novell.com>
 + */
 +
++#if defined(HAVE_CONFIG_H)
++#include <config.h>
++#endif
++
 +#if defined(LDAP_CASA_AUTH)
-+#include "ldap_casa.h"
 +#include "dhcpd.h"
++#include "ldap_casa.h"
 +
 +int
 +load_casa (void)
@@ -2556,9 +2959,9 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap_casa.c dhcp3-3.1.0/server/ldap_casa.c
 +         memcpy(tempVar, credential.password, credential.pwordLen);
 +         *ldap_password = tempVar;
 +
-+
++#if defined (DEBUG_LDAP)
 +         log_info ("Authentication credential taken from CASA");
-+
++#endif
 +
 +         release_casa();
 +         return 1;
@@ -2576,161 +2979,90 @@ diff -urNad dhcp3-3.1.0.orig/server/ldap_casa.c dhcp3-3.1.0/server/ldap_casa.c
 +
 +#endif /* LDAP_CASA_AUTH */
 +
-diff -urNad dhcp3-3.1.0.orig/server/Makefile.dist dhcp3-3.1.0/server/Makefile.dist
---- dhcp3-3.1.0.orig/server/Makefile.dist	2006-07-25 15:26:00.000000000 +0200
-+++ dhcp3-3.1.0/server/Makefile.dist	2008-02-20 13:21:26.000000000 +0100
-@@ -25,15 +25,15 @@
- CATMANPAGES = dhcpd.cat8 dhcpd.conf.cat5 dhcpd.leases.cat5
- SEDMANPAGES = dhcpd.man8 dhcpd.conf.man5 dhcpd.leases.man5
- SRCS   = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
--	 omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c
-+	 omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c ldap.c ldap_casa.c
- OBJS   = dhcpd.o dhcp.o bootp.o confpars.o db.o class.o failover.o \
--	 omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o
-+	 omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o ldap.o ldap_casa.o
- PROG   = dhcpd
- MAN    = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
- 
- INCLUDES = -I$(TOP) $(BINDINC) -I$(TOP)/includes
--DHCPLIB = ../common/libdhcp.a $(BINDLIB) ../omapip/libomapi.a ../dst/libdst.a
--CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS)
-+DHCPLIB = ../common/libdhcp.a $(BINDLIB) ../omapip/libomapi.a ../dst/libdst-nomd5.a
-+CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS)  -DDEBUG_LDAP  
- 
- all:	$(PROG) $(CATMANPAGES)
- 
-@@ -106,6 +106,6 @@
- 		-e "s#RUNDIR#$(VARRUN)#g" < dhcpd.leases.5 >dhcpd.leases.man5
- 
- dhcpd:	$(OBJS) $(COBJ) $(DHCPLIB)
--	$(CC) $(LFLAGS) -o dhcpd $(OBJS) $(DHCPLIB) $(LIBS)
-+	$(CC) $(LFLAGS) -o dhcpd $(OBJS) $(DHCPLIB) $(LIBS) -lcrypto -lldap -llber
- 
- # Dependencies (semi-automatically-generated)
-diff -urNad dhcp3-3.1.0.orig/server/mdb.c dhcp3-3.1.0/server/mdb.c
---- dhcp3-3.1.0.orig/server/mdb.c	2007-06-08 20:57:02.000000000 +0200
-+++ dhcp3-3.1.0/server/mdb.c	2008-02-20 13:21:26.000000000 +0100
-@@ -454,6 +454,12 @@
- {
- 	struct host_decl *foo;
- 	struct hardware h;
-+	int ret;
+diff -urNad isc-dhcp.orig/server/ldap_casa.h isc-dhcp/server/ldap_casa.h
+--- isc-dhcp.orig/server/ldap_casa.h	2009-12-30 10:56:15.000000000 +0100
++++ isc-dhcp/server/ldap_casa.h	2009-12-30 12:34:28.000000000 +0100
+@@ -0,0 +1,83 @@
++/* ldap_casa.h
++   
++   Definition for CASA modules... */
 +
-+#if defined(LDAP_CONFIGURATION)
-+	if ((ret = find_haddr_in_ldap (hp, htype, hlen, haddr, file, line)))
-+		return ret;
-+#endif
- 
- 	h.hlen = hlen + 1;
- 	h.hbuf [0] = htype;
-diff -urNad dhcp3-3.1.0.orig/server/stables.c dhcp3-3.1.0/server/stables.c
---- dhcp3-3.1.0.orig/server/stables.c	2007-04-28 00:48:10.000000000 +0200
-+++ dhcp3-3.1.0/server/stables.c	2008-02-20 13:21:26.000000000 +0100
-@@ -238,9 +238,107 @@
- 	{ "adaptive-lease-time-threshold", "B",	&server_universe,  50, 1 },
- 	{ "do-reverse-updates", "f",		&server_universe,  51, 1 },
- 	{ "fqdn-reply", "f",			&server_universe,  52, 1 },
-+#if defined(LDAP_CONFIGURATION)
-+	{ "ldap-server", "t",				&server_universe, 53 },
-+	{ "ldap-port", "d",					&server_universe, 54 },
-+	{ "ldap-username", "t",				&server_universe, 55 },
-+	{ "ldap-password", "t",				&server_universe, 56 },
-+	{ "ldap-base-dn", "t",				&server_universe, 57 },
-+	{ "ldap-method", "Nldap-methods.",	&server_universe, 58 },
-+	{ "ldap-debug-file", "t",			&server_universe, 59 },
-+	{ "ldap-dhcp-server-cn", "t",		&server_universe, 60 },
-+	{ "ldap-referrals", "f",			&server_universe, 61 },
-+#if defined(USE_SSL)
-+	{ "ldap-ssl", "Nldap-ssl-usage.",	&server_universe, 62 },
-+	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",	&server_universe, 63 },
-+	{ "ldap-tls-ca-file", "t",			&server_universe, 64 },
-+	{ "ldap-tls-ca-dir", "t",			&server_universe, 65 },
-+	{ "ldap-tls-cert", "t",				&server_universe, 66 },
-+	{ "ldap-tls-key", "t",				&server_universe, 67 },
-+	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",	&server_universe, 68 },
-+	{ "ldap-tls-ciphers", "t",			&server_universe, 69 },
-+	{ "ldap-tls-randfile", "t",			&server_universe, 70 },
-+#else
-+	{ "unknown-62", "X",			&server_universe, 62 },
-+	{ "unknown-63", "X",			&server_universe, 63 },
-+	{ "unknown-64", "X",			&server_universe, 64 },
-+	{ "unknown-65", "X",			&server_universe, 65 },
-+	{ "unknown-66", "X",			&server_universe, 66 },
-+	{ "unknown-67", "X",			&server_universe, 67 },
-+	{ "unknown-68", "X",			&server_universe, 68 },
-+	{ "unknown-69", "X",			&server_universe, 69 },
-+	{ "unknown-70", "X",			&server_universe, 70 },
-+#endif
-+#else
-+	{ "unknown-53", "X",			&server_universe, 53 },
-+	{ "unknown-54", "X",			&server_universe, 54 },
-+	{ "unknown-55", "X",			&server_universe, 55 },
-+	{ "unknown-56", "X",			&server_universe, 56 },
-+	{ "unknown-57", "X",			&server_universe, 57 },
-+	{ "unknown-58", "X",			&server_universe, 58 },
-+	{ "unknown-59", "X",			&server_universe, 59 },
-+	{ "unknown-60", "X",			&server_universe, 60 },
-+	{ "unknown-61", "X",			&server_universe, 61 },
-+#endif
- 	{ NULL, NULL, NULL, 0, 0 }
- };
- 
-+#if defined(LDAP_CONFIGURATION)
-+struct enumeration_value ldap_values [] = {
-+	{ "static", LDAP_METHOD_STATIC },
-+	{ "dynamic", LDAP_METHOD_DYNAMIC },
-+	{ (char *) 0, 0 }
-+};
++/* Copyright (c) 2004 Internet Systems Consorium, Inc. ("ISC")
++ * Copyright (c) 1995-2003 Internet Software Consortium.
++ * Copyright (c) 2006 Novell, Inc.
 +
-+struct enumeration ldap_methods = {
-+	(struct enumeration *)0,
-+	"ldap-methods",
-+	ldap_values
-+};
++ * All rights reserved.
++ * Redistribution and use in source and binary forms, with or without 
++ * modification, are permitted provided that the following conditions are met: 
++ * 1.Redistributions of source code must retain the above copyright notice, 
++ *   this list of conditions and the following disclaimer. 
++ * 2.Redistributions in binary form must reproduce the above copyright notice, 
++ *   this list of conditions and the following disclaimer in the documentation 
++ *   and/or other materials provided with the distribution. 
++ * 3.Neither the name of ISC, ISC DHCP, nor the names of its contributors 
++ *   may be used to endorse or promote products derived from this software 
++ *   without specific prior written permission. 
 +
-+#if defined(USE_SSL)
-+struct enumeration_value ldap_ssl_usage_values [] = {
-+	{ "off", LDAP_SSL_OFF },
-+	{ "on",LDAP_SSL_ON },
-+	{ "ldaps", LDAP_SSL_LDAPS },
-+	{ "start_tls", LDAP_SSL_TLS },
-+	{ (char *) 0, 0 }
-+};
++ * THIS SOFTWARE IS PROVIDED BY INTERNET SYSTEMS CONSORTIUM AND CONTRIBUTORS 
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ISC OR CONTRIBUTORS BE LIABLE 
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
++ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
++ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
++ * POSSIBILITY OF SUCH DAMAGE.
 +
-+struct enumeration ldap_ssl_usage_enum = {
-+	(struct enumeration *)0,
-+	"ldap-ssl-usage",
-+	ldap_ssl_usage_values
-+};
++ * This file was written by S Kalyanasundaram <skalyanasundaram@novell.com>
++ */
 +
-+struct enumeration_value ldap_tls_reqcert_values [] = {
-+	{ "never", LDAP_OPT_X_TLS_NEVER },
-+	{ "hard", LDAP_OPT_X_TLS_HARD  },
-+	{ "demand", LDAP_OPT_X_TLS_DEMAND},
-+	{ "allow", LDAP_OPT_X_TLS_ALLOW },
-+	{ "try", LDAP_OPT_X_TLS_TRY   },
-+	{ (char *) 0, 0 }
-+};
-+struct enumeration ldap_tls_reqcert_enum = {
-+	(struct enumeration *)0,
-+	"ldap-tls-reqcert",
-+	ldap_tls_reqcert_values
-+};
++#if defined(LDAP_CASA_AUTH)
++#ifndef __LDAP_CASA_H__
++#define __LDAP_CASA_H__
 +
-+struct enumeration_value ldap_tls_crlcheck_values [] = {
-+	{ "none", LDAP_OPT_X_TLS_CRL_NONE},
-+	{ "peer", LDAP_OPT_X_TLS_CRL_PEER},
-+	{ "all",  LDAP_OPT_X_TLS_CRL_ALL },
-+	{ (char *) 0, 0 }
-+};
-+struct enumeration ldap_tls_crlcheck_enum = {
-+	(struct enumeration *)0,
-+	"ldap-tls-crlcheck",
-+	ldap_tls_crlcheck_values
-+};
-+#endif
-+#endif
++#include <micasa_mgmd.h>
++#include <dlfcn.h>
++#include <string.h>
 +
- struct enumeration_value ddns_styles_values [] = {
- 	{ "none", 0 },
- 	{ "ad-hoc", 1 },
++#define MICASA_LIB     "libmicasa.so.1"
++
++SSCS_TYPEDEF_LIBCALL(int, CASA_GetCredential_T)
++(
++       uint32_t            ssFlags,
++       SSCS_SECRET_ID_T   *appSecretID,
++       SSCS_SECRET_ID_T   *sharedSecretID,
++       uint32_t           *credentialType,
++       void               *credential,
++       SSCS_EXT_T         *ext 
++);
++SSCS_TYPEDEF_LIBCALL(int, CASA_SetCredential_T)
++(
++       uint32_t            ssFlags,
++       SSCS_SECRET_ID_T   *appSecretID,
++       SSCS_SECRET_ID_T   *sharedSecretID,
++       uint32_t            credentialType,
++       void               *credential,
++       SSCS_EXT_T         *ext
++);
++
++SSCS_TYPEDEF_LIBCALL(int, CASA_RemoveCredential_T)
++(
++       uint32_t            ssFlags,
++       SSCS_SECRET_ID_T   *appSecretID,
++       SSCS_SECRET_ID_T   *sharedSecretID,
++       SSCS_EXT_T         *ext
++);
++static CASA_GetCredential_T            p_miCASAGetCredential = NULL;
++static CASA_SetCredential_T            p_miCASASetCredential = NULL;
++static CASA_RemoveCredential_T         p_miCASARemoveCredential = NULL;
++static void                            *casaIDK = NULL;
++
++int load_casa(void);
++static void release_casa(void);
++int load_uname_pwd_from_miCASA(char **, char **);
++
++#endif /* __LDAP_CASA_H__ */
++#endif /* LDAP_CASA_AUTH */
++

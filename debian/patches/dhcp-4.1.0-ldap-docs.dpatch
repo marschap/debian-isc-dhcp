@@ -8,10 +8,22 @@
 
 @DPATCH@
 
-diff -urNad dhcp3-3.1.0.orig/Changelog-LDAP dhcp3-3.1.0/Changelog-LDAP
---- dhcp3-3.1.0.orig/Changelog-LDAP	1970-01-01 01:00:00.000000000 +0100
-+++ dhcp3-3.1.0/Changelog-LDAP	2008-02-20 13:21:26.000000000 +0100
-@@ -0,0 +1,255 @@
+diff -urNad isc-dhcp.orig/Changelog-LDAP isc-dhcp/Changelog-LDAP
+--- isc-dhcp.orig/Changelog-LDAP	1970-01-01 01:00:00.000000000 +0100
++++ isc-dhcp/Changelog-LDAP	2009-12-30 10:57:24.000000000 +0100
+@@ -0,0 +1,267 @@
++2009-12-30 José L. Redrejo <jredrejo@edu.juntaextremadura.net>
++	* server/ldap.c: Apply patch to avoid DHCP server stops with SIGPIPE
++     when talking to LDAP server. Thanks to Petter Reinholdtsen
++     at http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=559160
++
++2009-09-29 Marius Tomaschewski <mt@suse.de>
++    * Fixed gcc warnings by adding casts with expected signedness.
++	* Added configure checks and the options --enable-ldap-conf=no,
++      --enable-ldap-ssl=yes, --enable-ldap-casa=yes
++      Removed ldap constants from site.h, adopted Makefile.am in dst
++      and server directories, added config.h inclusions to ldap*.c
++
 +2008-2-8 José L. Redrejo <jredrejo@edu.juntaextremadura.net>
 +	* includes/dhcpd.h: fixed SV_LDAP_ values according to server/stables.c
 +	* server/ldap.c : fixed sprintf call
