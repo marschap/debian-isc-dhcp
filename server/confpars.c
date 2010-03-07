@@ -3,7 +3,7 @@
    Parser for dhcpd config file... */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -724,6 +724,20 @@ int parse_statement (cfile, group, type, host_decl, declaration)
 					break;
 				}
 				next_token (&val, (unsigned *)0, cfile);
+
+				/*
+				 * If the option was known, remove it from the
+				 * code and name hashes before redefining it.
+				 */
+				if (known) {
+					option_name_hash_delete(
+						option->universe->name_hash,
+							option->name, 0, MDL);
+					option_code_hash_delete(
+						option->universe->code_hash,
+							&option->code, 0, MDL);
+				}
+
 				parse_option_code_definition(cfile, option);
 				option_dereference(&option, MDL);
 				return declaration;
@@ -1314,6 +1328,10 @@ void parse_failover_state (cfile, state, stos)
 
 	      case COMMUNICATIONS_INTERRUPTED:
 		state_in = communications_interrupted;
+		break;
+
+	      case CONFLICT_DONE:
+		state_in = conflict_done;
 		break;
 
 	      case RESOLUTION_INTERRUPTED:

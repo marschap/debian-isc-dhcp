@@ -3,7 +3,7 @@
    Definitions for dhcpd... */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -40,6 +40,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #include <netdb.h>
 #else
@@ -1151,7 +1152,8 @@ struct interface_info {
 
 	/* Only used by DHCP client code. */
 	struct client_state *client;
-# if defined (USE_DLPI_SEND) || defined (USE_DLPI_RECEIVE)
+# if defined(USE_DLPI_SEND) || defined(USE_DLPI_RECEIVE) || \
+     defined(USE_DLPI_HWADDR)
 	int dlpi_sap_length;
 	struct hardware dlpi_broadcast_addr;
 # endif /* DLPI_SEND || DLPI_RECEIVE */
@@ -1671,6 +1673,9 @@ extern enum dhcp_shutdown_state shutdown_state;
 isc_result_t dhcp_io_shutdown (omapi_object_t *, void *);
 isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 				     control_object_state_t newstate);
+#if defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
+void relinquish_ackqueue(void);
+#endif
 
 /* conflex.c */
 isc_result_t new_parse PROTO ((struct parse **, int,
@@ -2450,6 +2455,7 @@ isc_result_t free_iaddrcidrnetlist(struct iaddrcidrnetlist **result);
 const char *piaddr PROTO ((struct iaddr));
 char *piaddrmask(struct iaddr *, struct iaddr *);
 char *piaddrcidr(const struct iaddr *, unsigned int);
+u_int16_t validate_port(char *);
 
 /* dhclient.c */
 extern int nowait;

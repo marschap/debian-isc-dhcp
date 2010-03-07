@@ -4,7 +4,7 @@
    protocol... */
 
 /*
- * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -23,12 +23,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -255,8 +255,9 @@ void dmalloc_dump_outstanding ()
 {
 	static unsigned long dmalloc_cutoff_point;
 	struct dmalloc_preamble *dp;
+#if defined(DEBUG_MALLOC_POOL)
 	unsigned char *foo;
-	int i;
+#endif
 
 	if (!dmalloc_cutoff_point)
 		dmalloc_cutoff_point = dmalloc_cutoff_generation;
@@ -307,7 +308,7 @@ void dmalloc_dump_outstanding ()
 			    if (rc_history [i].addr == dp + 1) {
 				inhistory = 1;
 				if (!noted) {
-				    log_info ("  %s(%d): %d", dp -> file,
+				    log_info ("  %s(%d): %ld", dp -> file,
 					      dp -> line, dp -> size);
 				    noted = 1;
 				}
@@ -320,7 +321,7 @@ void dmalloc_dump_outstanding ()
 			} while (count--);
 			if (!inhistory)
 #endif
-				log_info ("  %s(%d): %d",
+				log_info ("  %s(%d): %ld",
 					  dp -> file, dp -> line, dp -> size);
 		}
 #endif
@@ -353,7 +354,7 @@ void dump_rc_history (void *addr)
 			i += RC_HISTORY_MAX;
 	}
 	rc_history_count = 0;
-		
+
 	while (rc_history [i].file) {
 		if (!addr || addr == rc_history [i].addr)
 			print_rc_hist_entry (i);
@@ -427,7 +428,6 @@ static int dmalloc_find_entry (struct dmalloc_preamble *dp,
 			       int min, int max)
 {
 	int middle;
-	int cmp;
 
 	middle = (min + max) / 2;
 	if (middle == min)
@@ -448,8 +448,7 @@ static int dmalloc_find_entry (struct dmalloc_preamble *dp,
 void omapi_print_dmalloc_usage_by_caller ()
 {
 	struct dmalloc_preamble *dp;
-	unsigned char *foo;
-	int ccur, cmax, i, j;
+	int ccur, cmax, i;
 	struct caller cp [1024];
 
 	cmax = 1024;
@@ -494,7 +493,9 @@ void omapi_print_dmalloc_usage_by_caller ()
 	for (i = 0; i < ccur; i++) {
 		printf ("%d\t%s:%d\t%d\n", i,
 			cp [i].dp -> file, cp [i].dp -> line, cp [i].count);
+#if defined(DUMP_RC_HISTORY)
 		dump_rc_history (cp [i].dp + 1);
+#endif
 	}
 }
 #endif /* DEBUG_MEMORY_LEAKAGE || DEBUG_MALLOC_POOL */

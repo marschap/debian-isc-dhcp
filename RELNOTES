@@ -1,6 +1,6 @@
 	      Internet Systems Consortium DHCP Distribution
-		              Version 4.1.0
-			     5 December 2008
+			     Version 4.1.1
+			     7 January 2010
 
 			      Release Notes
 
@@ -46,6 +46,164 @@ output of "./configure --help" to see what options are available.
 The system has only been tested on Linux, FreeBSD, and Solaris, and may not
 work on other platforms. Please report any problems and suggested fixes to
 <dhcp-users@isc.org>.
+
+
+                        Changes since 4.1.1rc1
+
+- When using 'ignore client-updates;', the FQDN returned to the client
+  is no longer truncated to one octet.
+
+                        Changes since 4.1.1b3
+
+- None.
+
+			Changes since 4.1.1b2
+
+- Fix test in dhcp_interface_signal_handler to check that the inner handler
+  has a signal_handler before calling it.
+
+- Both host and subnet6 configuration groups are now included whether a
+  fixed-address6 (DHCPv6) is in use or not.  Host scoped configuration takes
+  precedence.  This fixes two bugs, one where host scoped configuration
+  would not be included from a non-fixed-address6 host record, and the equal
+  and opposite bug where subnet6 scoped configuration would not be used when
+  over-riding values were not present in a matching fixed-address6 host
+  configuration.
+
+- ./configure now checks to ensure the intX_t and u_intX_t types are defined,
+  correcting a compilation failure when using Sun's compiler.
+
+- Modified the handling of a connection to avoid releasing the omapi io
+  object for the connection while it is still in use.  One symptom from
+  this error was a segfault when a failover secondary attempted to connect
+  to the failover primary if their clocks were not synchronized.
+
+			Changes since 4.1.1b1
+
+- Remove infinite loop in token_print_indent_concat().
+
+- Memory leak in the load_balance_mine() function is fixed.  This would
+  leak ~20-30 octets per DHCPDISCOVER packet while failover was in use
+  and in normal state.
+
+- Various compilation fixes have been included for the memory related
+  DEBUG #defines in includes/site.h.
+
+- Fixed Linux client script 'unary operator expected' errors with DHCPv6.
+
+- Fixed setting hostname in Linux hosts that require hostname argument
+  to be double-quoted.  Also allow server-provided hostname to
+  override hostnames 'localhost' and '(none)'.
+
+- Added client support for setting interface MTU and metric, thanks to
+  Roy "UberLord" Marples <roy@marples.name>.
+
+- Fixed failover reconnection retry code to continue to retry to reconnect
+  rather than restarting the listener.
+
+- Compilation on Solaris with USE_SOCKETS defined in includes/site.h has
+  been repaired.  Other USE_ overrides should work better.
+
+- A check for the local flavor of IFNAMSIZ had a broken 'else' condition,
+  that probably still resulted in the correct behaviour (but wouldn't use
+  a larger defined value provided by the host OS).
+
+- Fixed a bug where an OMAPI socket disconnection message would not result
+  in scheduling a failover reconnection, if the link had not negotiated a
+  failover connect yet (e.g.: connection refused, asynch socket connect()
+  timeouts).
+
+- A bug was fixed that caused the 'conflict-done' state to fail to be parsed
+  in failover state records.
+
+! A stack overflow vulnerability was fixed in dhclient that could allow
+  remote attackers to execute arbitrary commands as root on the system,
+  or simply terminate the client, by providing an over-long subnet-mask
+  option.  CERT VU#410676 - CVE-2009-0692
+
+- Versions 3.0.x syntax with multiple name->code option definitions is now
+  supported.  Note that, similarly to 3.0.x, for by-code lookups only the
+  last option definition is used.
+
+- Fixed a bug where a time difference of greater than 60 seconds between a
+  failover pair could cause the primary to crash on contact with the
+  secondary.  Thanks to a patch from Steinar Haug.
+
+- Don't look for IPv6 interfaces on Linux when running in DHCPv4 mode.
+  Thanks to patches from Matthew Newton and David Cantrell.
+
+- Secondary servers in a failover pair will now perform ddns removals if
+  they had performed ddns updates on a lease that is expiring, or was
+  released through the primary.  As part of the same fix, stale binding scopes
+  will now be removed if a change in identity of a lease's active client is
+  detected, rather than simply if a lease is noticed to have expired (which it
+  may have expired without a failover server noticing in some situations).
+
+- A patch supplied by David Cantrell at RedHat was applied that detects
+  invalid calling parameters given to the ns_name_ntop() function.
+  Specifically, it detects if the caller passed a pointer and size pair
+  that causes the pointer to integer-wrap past zero.
+
+! Fixed a fenceposting bug when a client had two host records configured,
+  one using 'uid' and the other using 'hardware ethernet'.  CVE-2009-1892
+
+			Changes since 4.1.0
+
+- Validate the argument to the -p option.
+
+- The notorious 'option <unknown> ... larger than buffer' log line,
+  which is seen in some malformed DHCP client packets, was modified.
+  It now logs the universe name, and does not log the length values
+  (which are bogus corruption read from the packet anyway).  It also
+  carries a hopefully more useful explanation.
+
+- A bug was fixed that caused the server not to answer some valid Solicit
+  and Request packets, if the dynamic range covering any requested addresses
+  had been deleted from configuration.
+
+- Suppress spurious warnings from configure about --datarootdir
+
+- Update the code to deal with GCC 4.3.  This included two sets of changes.
+  The first is to the configuration files to include the use of
+  AC_USE_SYSTEM_EXTENSIONS.  The second is to deal with return values that
+  were being ignored.
+
+- The db-time-format option was documented in manpages.
+
+- Using reserved leases no longer results in 'lease with binding state
+  free not on its queue' error messages, thanks to a patch from Frode
+  Nordahl.
+
+- DDNS removal routines were updated so that the DHCID is not removed until
+  the client has been deprived of all A and AAAA records (not only the last
+  one of either of those).  This resolves a bug where dual stack clients
+  would not be able to regain their names after either expiration event.
+
+- Fix a build error in dhcrelay, using older versions of gcc with
+  dhcpv6 disabled.
+
+- Two uninitialized stack structures are now memset to zero, thanks to
+  patch from David Cantrell at Red Hat.
+
+- Fixed a cosmetic bug where pretty-printing valid domain-search options would
+  result in an erroneous error log message ('garbage in format string').
+
+- A bug in DLPI packet transmission (Solaris, HP/UX) that caused the server
+  to stop receiving packets is fixed.  The same fix also means that the MAC
+  address will no longer appear 'bogus' on DLPI-based systems.
+
+- A bug in select handling was discovered where the results of one select()
+  call were discarded, causing the server to process the next select() call
+  and use more system calls than required.  This has been repaired - the
+  sockets will be handled after the first return from select(), resulting in
+  fewer system calls.
+
+- The update-conflict-detection feature would leave an FQDN updated without
+  a DHCID (still currently implemented as a TXT RR).  This would cause later
+  expiration or release events to fail to remove the domain name.  The feature
+  now also inserts the client's up to date DHCID record, so records may safely
+  be removed at expiration or release time.  Thanks to a patch submitted by
+  Christof Chen.
 
                         Changes since 4.1.0b1
 
@@ -1064,7 +1222,7 @@ work on other platforms. Please report any problems and suggested fixes to
   zero is redundant.  These redundancies were removed.
 
 - Some type declaration corrections to u_int16_t were made in common/tr.c
-  (Token Ring support) thanks to a patch from Jason Vas Dias at RedHat.
+  (Token Ring support) thanks to a patch from Jason Vas Dias at Red Hat.
 
 - A failover bug that was allowing leases that EXPIRED or were RELEASED
   where tsfp and tstp are identical timestamps to languish in these
@@ -1124,7 +1282,7 @@ work on other platforms. Please report any problems and suggested fixes to
   domain-name field) that had been improperly NULL-terminated by the
   DHCP server will no longer result in a truncated string containing
   only the option from the server, and not the expected appended value.
-  Thanks to a patch from Jason Vas Dias at RedHat.
+  Thanks to a patch from Jason Vas Dias at Red Hat.
 
 - File handlers on configuration state (config files and lease dbs) should
   be treated consistently, regardless of whether TRACING is defined or not.
@@ -1176,11 +1334,11 @@ work on other platforms. Please report any problems and suggested fixes to
 
 - The package will now compile cleanly in gcc 3.3 and 3.4.  As a side effect,
   lease structures will be 9 bytes smaller on all platforms.  Thanks to
-  Jason Vas Dias at Redhat.
+  Jason Vas Dias at Red Hat.
 
 - Interface discovery code in DISCOVER_UNCONFIGURED mode is now
   properly restricted to only detecting broadcast interfaces.  Thanks
-  to a patch from Jason Vas Dias at RedHat.
+  to a patch from Jason Vas Dias at Red Hat.
 
 - decode_udp_ip_header was changed so that the IP address was copied out
   to a variable, rather than referenced by a pointer.  This enforces 4-byte
@@ -1219,7 +1377,7 @@ work on other platforms. Please report any problems and suggested fixes to
 
 - Configuring a subnet in dhcpd.conf with a subnet mask of 32 bits might
   cause an internal function to overflow heap.  Thanks to Jason Vas Dias
-  at Redhat.
+  at Red Hat.
 
 - Some inconsistencies in treating numbers that the lexer parsed as 'NUMBER'
   or 'NUMBER_OR_NAME' was repaired.  Hexadecimal parsing is affected, and

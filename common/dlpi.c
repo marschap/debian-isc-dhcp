@@ -3,7 +3,7 @@
    Data Link Provider Interface (DLPI) network interface code. */
 
 /*
- * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,11 +22,11 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software was written for Internet Systems Consortium
  * by Eric James Negaard, <lmdejn@lmd.ericsson.se>.  To learn more about
- * Internet Systems Consortium, see ``http://www.isc.org''.
+ * Internet Systems Consortium, see ``https://www.isc.org''.
  *
  * Joost Mulders has also done considerable work in debugging the DLPI API
  * support on Solaris and getting this code to work properly on a variety
@@ -87,7 +87,8 @@
 
 #include "dhcpd.h"
 
-#if defined (USE_DLPI_SEND) || defined (USE_DLPI_RECEIVE)
+#if defined (USE_DLPI_SEND) || defined (USE_DLPI_RECEIVE) || \
+    defined(USE_DLPI_HWADDR)
 
 # include <sys/ioctl.h>
 # include <sys/time.h>
@@ -149,6 +150,10 @@ static int dlpiokack PROTO ((int fd, char *bufp));
 static int dlpiinfoack PROTO ((int fd, char *bufp));
 static int dlpiphysaddrack PROTO ((int fd, char *bufp));
 static int dlpibindack PROTO ((int fd, char *bufp));
+#if defined(USE_DLPI_SEND) || defined(USE_DLPI_RECEIVE)
+/* These functions are not used if we're only sourcing the get_hw_addr()
+ * function (for USE_SOCKETS).
+ */
 static int dlpiunitdatareq PROTO ((int fd, unsigned char *addr,
 				   int addrlen, unsigned long minpri,
 				   unsigned long maxpri, unsigned char *data,
@@ -161,7 +166,7 @@ static int dlpiunitdataind PROTO ((int fd,
 				   unsigned long *grpaddr,
 				   unsigned char *data,
 				   int datalen));
-
+#endif /* !USE_DLPI_HWADDR: USE_DLPI_SEND || USE_DLPI_RECEIVE */
 static int	expected PROTO ((unsigned long prim, union DL_primitives *dlp,
 				  int msgflags));
 static int	strgetmsg PROTO ((int fd, struct strbuf *ctlp,
@@ -203,7 +208,6 @@ int if_register_dlpi (info)
 	if ((sock = dlpiopen (info -> name)) < 0) {
 	    log_fatal ("Can't open DLPI device for %s: %m", info -> name);
 	}
-
 
 	/*
 	 * Submit a DL_INFO_REQ request, to find the dl_mac_type and 
@@ -291,8 +295,6 @@ int if_register_dlpi (info)
 		   info -> name);
 	}
 #endif
-
-	get_hw_addr(info->name, &info->hw_address);
 
 	return sock;
 }
@@ -639,6 +641,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 #endif
 
 	if (length <= 0) {
+	    log_error("receive_packet: %m");
 	    return length;
 	}
 
@@ -662,8 +665,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
               memcpy ((char *) &hfrom -> hbuf [1], srcaddr, phys_len);
             }
             else {
-              memcpy ((char *) &hfrom -> hbuf [1], (char *) &srcaddr [phys_len],
-                phys_len);
+              memcpy((char *)&hfrom->hbuf[1], srcaddr + sap_len, phys_len);
             }
           } 
           else if (hfrom) {
@@ -691,9 +693,16 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 	offset = decode_udp_ip_header (interface, dbuf, bufix,
 				       from, length, &paylen);
 
-	/* If the IP or UDP checksum was bad, skip the packet... */
+	/*
+	 * If the IP or UDP checksum was bad, skip the packet...
+	 *
+	 * Note: this happens all the time when writing packets via the
+	 * fallback socket.  The packet received by streams does not have
+	 * the IP or UDP checksums filled in, as those are calculated by
+	 * the hardware.
+	 */
 	if (offset < 0) {
-	    return 0;
+		return 0;
 	}
 
 	bufix += offset;
@@ -1083,6 +1092,7 @@ int dlpiphysaddrack (fd, bufp)
 	return 0;
 }
 
+#if defined(USE_DLPI_SEND) || defined(USE_DLPI_RECEIVE)
 int dlpiunitdatareq (fd, addr, addrlen, minpri, maxpri, dbuf, dbuflen)
 	int fd;
 	unsigned char *addr;
@@ -1144,22 +1154,32 @@ static int dlpiunitdataind (fd, daddr, daddrlen,
 	ctl.maxlen = DLPI_MAXDLBUF;
 	ctl.len = 0;
 	ctl.buf = (char *)buf;
-	
+
 	data.maxlen = dlen;
 	data.len = 0;
 	data.buf = (char *)dbuf;
-	
+
 	result = getmsg (fd, &ctl, &data, &flags);
-	
+
+	/*
+	 * The getmsg() manpage says:
+	 *
+	 * "On successful completion, a non-negative value is returned."
+	 *
+	 * This suggests that if MOREDATA or MORECTL are set, we error?
+	 * This seems to be safe as it never seems to happen.  Still,
+	 * set a log message, so we know if it ever starts happening.
+	 */
 	if (result != 0) {
+		log_debug("dlpiunitdataind: %m");
 		return -1;
 	}
-	
+
 	if (ctl.len < sizeof (dl_unitdata_ind_t) ||
 	    dlp -> unitdata_ind.dl_primitive != DL_UNITDATA_IND) {
 		return -1;
 	}
-	
+
 	if (data.len <= 0) {
 		return data.len;
 	}
@@ -1183,13 +1203,14 @@ static int dlpiunitdataind (fd, daddr, daddrlen,
 	if (daddrlen) {
 		*daddrlen = dlp -> unitdata_ind.dl_dest_addr_length;
 	}
-	
+
 	if (grpaddr) {
 		*grpaddr = dlp -> unitdata_ind.dl_group_address;
 	}
-	
+
 	return data.len;
 }
+#endif /* !USE_DLPI_HWADDR: USE_DLPI_RECEIVE || USE_DLPI_SEND */
 
 /*
  * expected - see if we got what we wanted.
@@ -1281,6 +1302,7 @@ static int strgetmsg (fd, ctlp, datap, flagsp, caller)
 	return 0;
 }
 
+#if defined(USE_DLPI_SEND)
 int can_unicast_without_arp (ip)
 	struct interface_info *ip;
 {
@@ -1314,10 +1336,11 @@ void maybe_setup_fallback ()
 		interface_dereference (&fbi, MDL);
 	}
 }
+#endif /* USE_DLPI_SEND */
 
 void 
 get_hw_addr(const char *name, struct hardware *hw) {
-	int sock;
+	int sock, unit;
 	long buf[DLPI_MAXDLBUF];
         union DL_primitives *dlp;
 
@@ -1357,6 +1380,20 @@ get_hw_addr(const char *name, struct hardware *hw) {
 				  (unsigned long)dlp->info_ack.dl_mac_type);
 	}
 
+	if (dlp->info_ack.dl_provider_style == DL_STYLE2) {
+		/*
+		 * Attach to the device.  If this fails, the device
+		 * does not exist.
+		 */
+		unit = dlpiunit((char *)name);
+
+		if (dlpiattachreq(sock, unit) < 0 ||
+		    dlpiokack(sock, (char *)buf) < 0) {
+			log_fatal("Can't attach DLPI device for %s: %m",
+				  name);
+		}
+	}
+
 	/*
 	 * Submit a DL_PHYS_ADDR_REQ request, to find
 	 * the hardware address.
@@ -1383,4 +1420,4 @@ get_hw_addr(const char *name, struct hardware *hw) {
 
 	close(sock);
 }
-#endif /* USE_DLPI */
+#endif /* USE_DLPI_SEND || USE_DLPI_RECEIVE || USE_DLPI_HWADDR */

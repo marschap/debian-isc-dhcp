@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,11 +18,11 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_parse.c,v 1.3 2005/03/17 20:15:17 dhankins Exp $";
+static const char rcsid[] = "$Id: ns_parse.c,v 1.3.786.2 2009/07/24 22:04:52 sar Exp $";
 #endif
 
 /* Import. */

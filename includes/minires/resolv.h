@@ -32,7 +32,7 @@
  */
 
 /*
- * Portions Copyright (c) 2004,2007-2008 by Internet Systems Consortium,
+ * Portions Copyright (c) 2004,2007-2009 by Internet Systems Consortium,
  *                                          Inc. ("ISC")
  * Portions Copyright (c) 1995-2003 by Internet Software Consortium
  *
@@ -52,12 +52,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  */
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.6 2008/01/24 02:43:05 each Exp $
+ *	$Id: resolv.h,v 1.6.116.2 2009/07/24 22:04:52 sar Exp $
  */
 
 #ifndef _RESOLV_H_

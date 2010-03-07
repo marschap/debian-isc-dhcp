@@ -4,7 +4,7 @@
 
 /*
  * Copyright (c) 1995 RadioMail Corporation.
- * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -23,7 +23,7 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software was written for RadioMail Corporation by Ted Lemon
  * under a contract with Vixie Enterprises.   Further modifications have
@@ -70,8 +70,8 @@ void log_fatal (const char * fmt, ... )
 
   /* Also log it to stderr? */
   if (log_perror) {
-	  write (STDERR_FILENO, mbuf, strlen (mbuf));
-	  write (STDERR_FILENO, "\n", 1);
+	  IGNORE_RET (write (STDERR_FILENO, mbuf, strlen (mbuf)));
+	  IGNORE_RET (write (STDERR_FILENO, "\n", 1));
   }
 
 #if !defined (NOMINUM)
@@ -118,8 +118,8 @@ int log_error (const char * fmt, ...)
 #endif
 
   if (log_perror) {
-	  write (STDERR_FILENO, mbuf, strlen (mbuf));
-	  write (STDERR_FILENO, "\n", 1);
+	  IGNORE_RET (write (STDERR_FILENO, mbuf, strlen (mbuf)));
+	  IGNORE_RET (write (STDERR_FILENO, "\n", 1));
   }
 
   return 0;
@@ -145,8 +145,8 @@ int log_info (const char *fmt, ...)
 #endif
 
   if (log_perror) {
-	  write (STDERR_FILENO, mbuf, strlen (mbuf));
-	  write (STDERR_FILENO, "\n", 1);
+	  IGNORE_RET (write (STDERR_FILENO, mbuf, strlen (mbuf)));
+	  IGNORE_RET (write (STDERR_FILENO, "\n", 1));
   }
 
   return 0;
@@ -172,8 +172,8 @@ int log_debug (const char *fmt, ...)
 #endif
 
   if (log_perror) {
-	  write (STDERR_FILENO, mbuf, strlen (mbuf));
-	  write (STDERR_FILENO, "\n", 1);
+	  IGNORE_RET (write (STDERR_FILENO, mbuf, strlen (mbuf)));
+	  IGNORE_RET (write (STDERR_FILENO, "\n", 1));
   }
 
   return 0;

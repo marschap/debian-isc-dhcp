@@ -3,7 +3,7 @@
    Lexical scanner for dhcpd config file... */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -776,46 +776,69 @@ intern(char *atom, enum dhcp_token dfv) {
 			return BOUND;
 		break;
 	      case 'c':
-		if (!strcasecmp (atom + 1, "ase"))
+		if (!strcasecmp(atom + 1, "ase"))
 			return CASE;
-		if (!strcasecmp (atom + 1, "ommit"))
-			return COMMIT;
-		if (!strcasecmp (atom + 1, "ode"))
-			return CODE;
-		if (!strcasecmp (atom + 1, "onfig-option"))
-			return CONFIG_OPTION;
-		if (!strcasecmp (atom + 1, "heck"))
+		if (!strcasecmp(atom + 1, "heck"))
 			return CHECK;
-		if (!strcasecmp (atom + 1, "lass"))
-			return CLASS;
-		if (!strcasecmp (atom + 1, "lose"))
-			return TOKEN_CLOSE;
-		if (!strcasecmp(atom + 1, "ompressed"))
-			return COMPRESSED;
-		if (!strcasecmp (atom + 1, "reate"))
-			return TOKEN_CREATE;
-		if (!strcasecmp (atom + 1, "iaddr"))
+		if (!strcasecmp(atom + 1, "iaddr"))
 			return CIADDR;
-		if (!strncasecmp (atom + 1, "lient", 5)) {
-			if (!strcasecmp (atom + 6, "-identifier"))
-				return CLIENT_IDENTIFIER;
-			if (!strcasecmp (atom + 6, "-hostname"))
-				return CLIENT_HOSTNAME;
-			if (!strcasecmp (atom + 6, "-state"))
-				return CLIENT_STATE;
-			if (!strcasecmp (atom + 6, "-updates"))
-				return CLIENT_UPDATES;
-			if (!strcasecmp (atom + 6, "s"))
-				return CLIENTS;
+		if (isascii(atom[1]) &&
+		    tolower((unsigned char)atom[1]) == 'l') {
+			if (!strcasecmp(atom + 2, "ass"))
+				return CLASS;
+			if (!strncasecmp(atom + 2, "ient", 4)) {
+				if (!strcasecmp(atom + 6, "s"))
+					return CLIENTS;
+				if (atom[6] == '-') {
+					if (!strcasecmp(atom + 7, "hostname"))
+						return CLIENT_HOSTNAME;
+					if (!strcasecmp(atom + 7, "identifier"))
+						return CLIENT_IDENTIFIER;
+					if (!strcasecmp(atom + 7, "state"))
+						return CLIENT_STATE;
+					if (!strcasecmp(atom + 7, "updates"))
+						return CLIENT_UPDATES;
+					break;
+				}
+				break;
+			}
+			if (!strcasecmp(atom + 2, "ose"))
+				return TOKEN_CLOSE;
+			if (!strcasecmp(atom + 2, "tt"))
+				return CLTT;
+			break;
 		}
-		if (!strcasecmp (atom + 1, "oncat"))
-			return CONCAT;
-		if (!strcasecmp (atom + 1, "onnect"))
-			return CONNECT;
-		if (!strcasecmp (atom + 1, "ommunications-interrupted"))
-			return COMMUNICATIONS_INTERRUPTED;
-		if (!strcasecmp (atom + 1, "ltt"))
-			return CLTT;
+		if (isascii(atom[1]) &&
+		    tolower((unsigned char)atom[1]) == 'o') {
+			if (!strcasecmp(atom + 2, "de"))
+				return CODE;
+			if (isascii(atom[2]) &&
+			    tolower((unsigned char)atom[2]) == 'm') {
+				if (!strcasecmp(atom + 3, "mit"))
+					return COMMIT;
+				if (!strcasecmp(atom + 3,
+						"munications-interrupted"))
+					return COMMUNICATIONS_INTERRUPTED;
+				if (!strcasecmp(atom + 3, "pressed"))
+					return COMPRESSED;
+				break;
+			}
+			if (isascii(atom[2]) &&
+			    tolower((unsigned char)atom[2]) == 'n') {
+				if (!strcasecmp(atom + 3, "cat"))
+					return CONCAT;
+				if (!strcasecmp(atom + 3, "fig-option"))
+					return CONFIG_OPTION;
+				if (!strcasecmp(atom + 3, "flict-done"))
+					return CONFLICT_DONE;
+				if (!strcasecmp(atom + 3, "nect"))
+					return CONNECT;
+				break;
+			}
+			break;
+		}
+		if (!strcasecmp(atom + 1, "reate"))
+			return TOKEN_CREATE;
 		break;
 	      case 'd':
 		if (!strcasecmp(atom + 1, "b-time-format"))

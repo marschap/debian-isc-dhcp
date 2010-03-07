@@ -3,7 +3,7 @@
    DHCP/BOOTP Relay Agent. */
 
 /*
- * Copyright(c) 2004-2008 by Internet Systems Consortium, Inc.("ISC")
+ * Copyright(c) 2004-2010 by Internet Systems Consortium, Inc.("ISC")
  * Copyright(c) 1997-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -126,10 +126,13 @@ static int strip_relay_agent_options(struct interface_info *,
 				     struct interface_info **,
 				     struct dhcp_packet *, unsigned);
 
-static char copyright[] = "Copyright 2004-2008 Internet Systems Consortium.";
-static char arr[] = "All rights reserved.";
-static char message[] = "Internet Systems Consortium DHCP Relay Agent";
-static char url[] = "For info, please visit http://www.isc.org/sw/dhcp/";
+static const char copyright[] =
+"Copyright 2004-2010 Internet Systems Consortium.";
+static const char arr[] = "All rights reserved.";
+static const char message[] =
+"Internet Systems Consortium DHCP Relay Agent";
+static const char url[] =
+"For info, please visit https://www.isc.org/software/dhcp/";
 
 #ifdef DHCPv6
 #define DHCRELAY_USAGE \
@@ -161,8 +164,8 @@ main(int argc, char **argv) {
 	struct servent *ent;
 	struct server_list *sp = NULL;
 	struct interface_info *tmp = NULL;
-	char *service_local, *service_remote;
-	u_int16_t port_local, port_remote;
+	char *service_local = NULL, *service_remote = NULL;
+	u_int16_t port_local = 0, port_remote = 0;
 	int no_daemon = 0, quiet = 0;
 	int fd;
 	int i;
@@ -222,7 +225,7 @@ main(int argc, char **argv) {
 		} else if (!strcmp(argv[i], "-p")) {
 			if (++i == argc)
 				usage();
-			local_port = htons(atoi (argv[i]));
+			local_port = validate_port(argv[i]);
 			log_debug("binding to user-specified port %d",
 				  ntohs(local_port));
 		} else if (!strcmp(argv[i], "-c")) {
@@ -531,7 +534,7 @@ main(int argc, char **argv) {
 		close(2);
 		pid = setsid();
 
-		chdir("/");
+		IGNORE_RET (chdir("/"));
 	}
 
 	/* Set up the packet handler... */

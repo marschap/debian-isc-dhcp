@@ -3,7 +3,7 @@
    Tokens for config file lexer and parser. */
 
 /*
- * Copyright (c) 2004,2007-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -352,7 +352,8 @@ enum dhcp_token {
 	ZEROLEN = 655,
 	TEMPORARY = 656,
 	PREFIX6 = 657,
-	FIXED_PREFIX6 = 658
+	FIXED_PREFIX6 = 658,
+	CONFLICT_DONE = 660
 };
 
 #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\

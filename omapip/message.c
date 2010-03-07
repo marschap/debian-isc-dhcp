@@ -3,7 +3,7 @@
    Subroutines for dealing with message objects. */
 
 /*
- * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -364,7 +364,7 @@ omapi_message_process_internal (omapi_object_t *, omapi_object_t *);
 isc_result_t omapi_message_process (omapi_object_t *mo, omapi_object_t *po)
 {
 	isc_result_t status;
-#if defined (DEBUG_MEMORY_LEAKAGE)
+#if defined (DEBUG_MEMORY_LEAKAGE) && 0
 	unsigned long previous_outstanding = dmalloc_outstanding;
 #endif
 

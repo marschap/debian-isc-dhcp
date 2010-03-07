@@ -3,7 +3,7 @@
    DHCP options parsing and reassembly. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -137,6 +137,7 @@ int parse_option_buffer (options, buffer, length, universe)
 	struct option_cache *op = NULL, *nop = NULL;
 	struct buffer *bp = (struct buffer *)0;
 	struct option *option = NULL;
+	char *reason = "general failure";
 
 	if (!buffer_allocate (&bp, length, MDL)) {
 		log_error ("no memory for option buffer.");
@@ -155,7 +156,8 @@ int parse_option_buffer (options, buffer, length, universe)
 
 		/* Don't look for length if the buffer isn't that big. */
 		if ((offset + universe->length_size) > length) {
-			len = 65536;
+			reason = "code tag at end of buffer - missing "
+				 "length field";
 			goto bogus;
 		}
 
@@ -187,10 +189,12 @@ int parse_option_buffer (options, buffer, length, universe)
 
 		/* If the length is outrageous, the options are bad. */
 		if (offset + len > length) {
+			reason = "option length exceeds option buffer length";
 		      bogus:
-			log_error ("parse_option_buffer: option %s (%u:%u) %s.",
-				   option ? option->name : "<unknown>",
-				   code, len, "larger than buffer");
+			log_error("parse_option_buffer: malformed option "
+				  "%s.%s (code %u): %s.", universe->name,
+				  option ? option->name : "<unknown>",
+				  code, reason);
 			buffer_dereference (&bp, MDL);
 			return 0;
 		}
@@ -1726,12 +1730,27 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 			}
 			fmtbuf [l + 1] = 0;
 			break;
+		      case 'c':
+			/* The 'c' atom is a 'D' modifier only. */
+			log_error("'c' atom not following D atom in format "
+				  "string: %s", option->format);
+			break;
+		      case 'D':
+			/*
+			 * Skip the 'c' atom, if present.  It does not affect
+			 * how we convert wire->text format (if compression is
+			 * present either way, we still process it).
+			 */
+			if (option->format[i+1] == 'c')
+				i++;
+			fmtbuf[l + 1] = 0;
+			numhunk = -2;
+			break;
 		      case 'd':
 			fmtbuf[l] = 't';
 			/* Fall Through ! */
 		      case 't':
-		      case 'D':
-			fmtbuf [l + 1] = 0;
+			fmtbuf[l + 1] = 0;
 			numhunk = -2;
 			break;
 		      case 'N':

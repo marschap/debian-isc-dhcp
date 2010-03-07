@@ -1,4 +1,4 @@
-AC_INIT([DHCP], [4.1.0], [dhcp-users@isc.org])
+AC_INIT([DHCP], [4.1.1], [dhcp-users@isc.org])
 
 # we specify "foreign" to avoid having to have the GNU mandated files,
 # like AUTHORS, COPYING, and such
@@ -12,6 +12,9 @@ SAVE_CFLAGS="$CFLAGS"
 # Now find our C compiler.
 AC_PROG_CC
 
+# Suppress warnings about --datarootdir
+AC_DEFUN([AC_DATAROOTDIR_CHECKED])
+
 # If we have gcc, and AC_PROG_CC changed the flags, then we know the
 # user did not specify any flags. Add warnings in this case.
 if test "$GCC" = "yes"; then
@@ -19,6 +22,13 @@ if test "$GCC" = "yes"; then
 		STD_CWARNINGS="$STD_CWARNINGS -Wall -Werror -fno-strict-aliasing"
 	fi
 fi
+
+# POSIX doesn't include the IPv6 Advanced Socket API and glibc hides
+# parts of the IPv6 Advanced Socket API as a result.  This is stupid
+# as it breaks how the two halves (Basic and Advanced) of the IPv6
+# Socket API were designed to be used but we have to live with it.
+# Use this to define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_RANLIB
 AC_CONFIG_HEADERS([includes/config.h])
@@ -308,6 +318,28 @@ AC_ARG_WITH(relay-pid-file,
 	AC_DEFINE_UNQUOTED([_PATH_DHCRELAY_PID], ["$withval"],
 			   [File for dhcrelay process information.]))
 
+# Check basic types.
+AC_TYPE_INT8_T
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+
+# Some systems need the u_intX_t types defined across.
+AC_CHECK_TYPE([u_int8_t], [], [
+  AC_TYPE_UINT8_T
+  AC_DEFINE(u_int8_t, [uint8_t], [Define a type for 8-bit unsigned
+				  integers.])
+])
+AC_CHECK_TYPE([u_int16_t], [], [
+  AC_TYPE_UINT16_T
+  AC_DEFINE(u_int16_t, [uint16_t], [Define a type for 16-bit unsigned
+				    integers.])
+])
+AC_CHECK_TYPE([u_int32_t], [], [
+  AC_TYPE_UINT32_T
+  AC_DEFINE(u_int32_t, [uint32_t], [Define a type for 32-bit unsigned
+				    integers.])
+])
+
 # see if ifaddrs.h is available
 AC_CHECK_HEADERS(ifaddrs.h)
 
@@ -322,24 +354,23 @@ AC_CHECK_HEADER(linux/filter.h, DO_LPF=1, ,
 ])
 if test -n "$DO_LPF"
 then
-	AC_DEFINE([USE_LPF], [1], 
+	AC_DEFINE([HAVE_LPF], [1], 
 		  [Define to 1 to use the Linux Packet Filter interface code.])
 else
 	AC_CHECK_HEADER(sys/dlpi.h, DO_DLPI=1)
 	if test -n "$DO_DLPI"
 	then
-		AC_DEFINE([USE_DLPI], [1], 
+		AC_DEFINE([HAVE_DLPI], [1], 
 			  [Define to 1 to use DLPI interface code.])
 	else
 		AC_CHECK_HEADER(net/bpf.h, DO_BPF=1)
 		if test -n "$DO_BPF"
 		then
-			AC_DEFINE([USE_BPF], [""],
+			AC_DEFINE([HAVE_BPF], [""],
 	  			  [Define to 1 to use the 
 				   Berkeley Packet Filter interface code.])
 		fi
 	fi
-
 fi
 
 # SIOCGLIFCONF uses some transport structures.  Trick is not all platforms
