@@ -32,7 +32,7 @@
  */
 
 /*
- * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -51,11 +51,11 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  */
 
 /*
- *	$Id: nameser.h,v 1.5 2005/03/17 20:15:10 dhankins Exp $
+ *	$Id: nameser.h,v 1.5.786.2 2009/07/24 22:04:52 sar Exp $
  */
 
 #ifndef _ARPA_NAMESER_H_

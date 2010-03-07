@@ -3,7 +3,7 @@
    Failover protocol support code... */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -328,22 +328,19 @@ isc_result_t dhcp_failover_link_signal (omapi_object_t *h,
 		link -> state = dhcp_flink_disconnected;
 
 		/* Make the transition. */
-		if (state -> link_to_peer == link) {
-		    dhcp_failover_state_transition (link -> state_object,
-						    name);
+		if (state->link_to_peer == link)
+		    dhcp_failover_state_transition(link->state_object, name);
 
-		    /* Start trying to reconnect. */
+		/* Schedule an attempt to reconnect. */
 #if defined (DEBUG_FAILOVER_TIMING)
-		    log_info ("add_timeout +5 %s",
-			      "dhcp_failover_reconnect");
+		log_info("add_timeout +5 dhcp_failover_reconnect");
 #endif
-		    tv . tv_sec = cur_time + 5;
-		    tv . tv_usec = 0;
-		    add_timeout (&tv, dhcp_failover_reconnect,
-				 state,
-				 (tvref_t)dhcp_failover_state_reference,
-				 (tvunref_t)dhcp_failover_state_dereference);
-		}
+		tv.tv_sec = cur_time + 5;
+		tv.tv_usec = cur_tv.tv_usec;
+		add_timeout(&tv, dhcp_failover_reconnect, state,
+			    (tvref_t)dhcp_failover_state_reference,
+			    (tvunref_t)dhcp_failover_state_dereference);
+
 		dhcp_failover_state_dereference (&state, MDL);
 	    }
 	    return ISC_R_SUCCESS;
@@ -600,7 +597,8 @@ isc_result_t dhcp_failover_link_signal (omapi_object_t *h,
 		omapi_signal ((omapi_object_t *)link -> state_object,
 			      "message", link);
 		link -> state = dhcp_flink_message_length_wait;
-		failover_message_dereference (&link -> imsg, MDL);
+		if (link -> imsg)
+			failover_message_dereference (&link -> imsg, MDL);
 		/* XXX This is dangerous because we could get into a tight
 		   XXX loop reading input without servicing any other stuff.
 		   XXX There needs to be a way to relinquish control but
@@ -3005,15 +3003,13 @@ void dhcp_failover_reconnect (void *vs)
 		log_info ("failover peer %s: %s", state -> name,
 			  isc_result_totext (status));
 #if defined (DEBUG_FAILOVER_TIMING)
-		log_info ("add_timeout +90 %s",
-			  "dhcp_failover_listener_restart");
+		log_info("add_timeout +90 dhcp_failover_reconnect");
 #endif
 		tv . tv_sec = cur_time + 90;
 		tv . tv_usec = 0;
-		add_timeout (&tv,
-			     dhcp_failover_listener_restart, state,
-			     (tvref_t)dhcp_failover_state_reference,
-			     (tvunref_t)dhcp_failover_state_dereference);
+		add_timeout(&tv, dhcp_failover_reconnect, state,
+			    (tvref_t)dhcp_failover_state_reference,
+			    (tvunref_t)dhcp_failover_state_dereference);
 	}
 }
 
@@ -4979,6 +4975,8 @@ isc_result_t dhcp_failover_process_bind_update (dhcp_failover_state_t *state,
 	int new_binding_state;
 	int send_to_backup = 0;
 	int required_options;
+	isc_boolean_t chaddr_changed = ISC_FALSE;
+	isc_boolean_t ident_changed = ISC_FALSE;
 
 	/* Validate the binding update. */
 	required_options = FTB_ASSIGNED_IP_ADDRESS | FTB_BINDING_STATUS;
@@ -5048,6 +5046,12 @@ isc_result_t dhcp_failover_process_bind_update (dhcp_failover_state_t *state,
 			message = "chaddr too long";
 			goto bad;
 		}
+
+		if ((lt->hardware_addr.hlen != msg->chaddr.count) ||
+		    (memcmp(lt->hardware_addr.hbuf, msg->chaddr.data,
+			    msg->chaddr.count) != 0))
+			chaddr_changed = ISC_TRUE;
+
 		lt -> hardware_addr.hlen = msg -> chaddr.count;
 		memcpy (lt -> hardware_addr.hbuf, msg -> chaddr.data,
 			msg -> chaddr.count);
@@ -5058,6 +5062,7 @@ isc_result_t dhcp_failover_process_bind_update (dhcp_failover_state_t *state,
 		reason = FTR_MISSING_BINDINFO;
 		goto bad;
 	} else if (msg->binding_status == FTS_ABANDONED) {
+		chaddr_changed = ISC_TRUE;
 		lt->hardware_addr.hlen = 0;
 		if (lt->scope)
 			binding_scope_dereference(&lt->scope, MDL);
@@ -5072,6 +5077,12 @@ isc_result_t dhcp_failover_process_bind_update (dhcp_failover_state_t *state,
 			message = "BNDUPD to ABANDONED with client-id";
 			goto bad;
 		}
+
+		if ((lt->uid_len != msg->client_identifier.count) ||
+		    (lt->uid == NULL) || /* Sanity; should never happen. */
+		    (memcmp(lt->uid, msg->client_identifier.data,
+			    lt->uid_len) != 0))
+			ident_changed = ISC_TRUE;
 
 		lt->uid_len = msg->client_identifier.count;
 
@@ -5101,15 +5112,45 @@ isc_result_t dhcp_failover_process_bind_update (dhcp_failover_state_t *state,
 	} else if (lt->uid && msg->binding_status != FTS_RESET &&
 		   msg->binding_status != FTS_FREE &&
 		   msg->binding_status != FTS_BACKUP) {
+		ident_changed = ISC_TRUE;
 		if (lt->uid != lt->uid_buf)
 			dfree (lt->uid, MDL);
 		lt->uid = NULL;
 		lt->uid_max = lt->uid_len = 0;
 	}
 
-	/* If the lease was expired, also remove the stale binding scope. */
-	if (lt->scope && lt->ends < cur_time)
-		binding_scope_dereference(&lt->scope, MDL);
+	/*
+	 * A server's configuration can assign a 'binding scope';
+	 *
+	 *	set var = "value";
+	 *
+	 * The problem with these binding scopes is that they are refreshed
+	 * when the server processes a client's DHCP packet.  A local binding
+	 * scope is trash, then, when the lease has been assigned by the
+	 * partner server.  There is no real way to detect this, a peer may
+	 * be updating us (as through potential conflict) with a binding we
+	 * sent them, but we can trivially detect the /problematic/ case;
+	 *
+	 *	lease is free.
+	 *	primary allocates lease to client A, assigns ddns name A.
+	 *	primary fails.
+	 *	secondary enters partner down.
+	 *	lease expires, and is set free.
+	 *	lease is allocated to client B and given ddns name B.
+	 *	primary recovers.
+	 *
+	 * The binding update in this case will be active->active, but the
+	 * client identification on the lease will have changed.  The ddns
+	 * update on client A will have leaked if we just remove the binding
+	 * scope blindly.
+	 */
+	if (msg->binding_status == FTS_ACTIVE &&
+	    (chaddr_changed || ident_changed)) {
+		ddns_removals(lease, NULL);
+
+		if (lease->scope != NULL)
+			binding_scope_dereference(&lease->scope, MDL);
+	}
 
 	/* XXX Times may need to be adjusted based on clock skew! */
 	if (msg -> options_present & FTB_STOS) {
@@ -5729,6 +5770,8 @@ int load_balance_mine (struct packet *packet, dhcp_failover_state_t *state)
 				   packet -> options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
 		hbaix = loadb_p_hash (ds.data, ds.len);
+
+		data_string_forget(&ds, MDL);
 	} else {
 		hbaix = loadb_p_hash (packet -> raw -> chaddr,
 				      packet -> raw -> hlen);

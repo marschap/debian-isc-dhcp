@@ -3,7 +3,7 @@
    DHCP Server Daemon. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,21 +22,22 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
 
-static char copyright[] =
-"Copyright 2004-2008 Internet Systems Consortium.";
-static char arr [] = "All rights reserved.";
-static char message [] = "Internet Systems Consortium DHCP Server";
-static char url [] = "For info, please visit http://www.isc.org/sw/dhcp/";
+static const char copyright[] =
+"Copyright 2004-2010 Internet Systems Consortium.";
+static const char arr [] = "All rights reserved.";
+static const char message [] = "Internet Systems Consortium DHCP Server";
+static const char url [] =
+"For info, please visit https://www.isc.org/software/dhcp/";
 
 #include "dhcpd.h"
 #include <omapip/omapip_p.h>
@@ -298,15 +299,7 @@ main(int argc, char **argv) {
 		if (!strcmp (argv [i], "-p")) {
 			if (++i == argc)
 				usage ();
-			for (s = argv [i]; *s; s++)
-				if (!isdigit ((unsigned char)*s))
-					log_fatal ("%s: not a valid UDP port",
-					       argv [i]);
-			status = atoi (argv [i]);
-			if (status < 1 || status > 65535)
-				log_fatal ("%s: not a valid UDP port",
-				       argv [i]);
-			local_port = htons (status);
+			local_port = validate_port (argv [i]);
 			log_debug ("binding to user-specified port %d",
 			       ntohs (local_port));
 		} else if (!strcmp (argv [i], "-f")) {
@@ -531,7 +524,7 @@ main(int argc, char **argv) {
 	if (!local_port)
 	{
 		if ((s = getenv ("DHCPD_PORT"))) {
-			local_port = htons (atoi (s));
+			local_port = validate_port (s);
 			log_debug ("binding to environment-specified port %d",
 				   ntohs (local_port));
 		} else {
@@ -791,7 +784,7 @@ main(int argc, char **argv) {
         /* Write new pid file. */
         if ((i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC, 0644)) >= 0) {
                 sprintf(pbuf, "%d\n", (int) getpid());
-                write(i, pbuf, strlen(pbuf));
+                IGNORE_RET (write(i, pbuf, strlen(pbuf)));
                 close(i);
         } else {
                 log_error("Can't create PID file %s: %m.", path_dhcpd_pid);
@@ -820,7 +813,7 @@ main(int argc, char **argv) {
                 open("/dev/null", O_RDWR);
                 log_perror = 0; /* No sense logging to /dev/null. */
 
-                chdir("/");
+       		IGNORE_RET (chdir("/"));
 	}
 #endif /* !DEBUG */
 

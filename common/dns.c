@@ -3,7 +3,7 @@
    Domain Name Service subroutines. */
 
 /*
- * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2001-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Nominum, Inc., see
+ * ``https://www.isc.org/''.  To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
 
@@ -688,6 +688,26 @@ ddns_update_fwd(struct data_string *ddns_fwd_name, struct iaddr ddns_addr,
 		updrec->r_opcode = DELETE;
 
 		ISC_LIST_APPEND(updqueue, updrec, r_link);
+
+
+		/*
+		 * With all other DHCID RR's deleted, add this client's
+		 * DHCID unconditionally (as update-conflict-detection is
+		 * disabled).
+		 */
+		updrec = minires_mkupdrec(S_UPDATE,
+					  (const char *)ddns_fwd_name->data,
+					  C_IN, T_DHCID, ttl);
+		if (!updrec) {
+			result = ISC_R_NOMEMORY;
+			goto error;
+		}
+ 
+		updrec->r_data = ddns_dhcid->data;
+		updrec->r_size = ddns_dhcid->len;
+		updrec->r_opcode = ADD;
+ 
+		ISC_LIST_APPEND (updqueue, updrec, r_link);
 	}
 
 
@@ -859,7 +879,7 @@ ddns_remove_fwd(struct data_string *ddns_fwd_name,
 
 
 	/*
-	 * A RR matches the expiring lease.
+	 * Address RR (A/AAAA) matches the expiring lease.
 	 */
 	updrec = minires_mkupdrec (S_PREREQ,
 				   (const char *)ddns_fwd_name -> data,
@@ -877,7 +897,7 @@ ddns_remove_fwd(struct data_string *ddns_fwd_name,
 
 
 	/*
-	 * Delete appropriate A RR.
+	 * Delete appropriate Address RR (A/AAAA).
 	 */
 	updrec = minires_mkupdrec (S_UPDATE,
 				   (const char *)ddns_fwd_name -> data,
@@ -926,20 +946,27 @@ ddns_remove_fwd(struct data_string *ddns_fwd_name,
 		minires_freeupdrec (updrec);
 	}
 
-	/* If the deletion of the A succeeded, and there are no A records
-	   left for this domain, then we can blow away the DHCID record
-	   as well.   We can't blow away the DHCID record above because
-	   it's possible that more than one A has been added to this
-	   domain name. */
+	/*
+	 * If the deletion of the desired address succeeded (its A or AAAA
+	 * RR was removed above), and there are zero other A or AAAA records
+	 * left for this domain, then we can delete the DHCID record as well.
+	 * We can't delete the DHCID record above because it's possible the
+	 * client has more than one valid address added to this domain name,
+	 * by this or other DHCP servers.
+	 *
+	 * Essentially, this final update is a cleanup operation that is only
+	 * intended to succeed after the last address has been removed from
+	 * DNS (which is only expected to happen after the client is not
+	 * reasonably in possession of those addresses).
+	 */
 	ISC_LIST_INIT (updqueue);
 
 	/*
 	 * A RR does not exist.
 	 */
-	updrec = minires_mkupdrec (S_PREREQ,
-				   (const char *)ddns_fwd_name -> data,
-				   C_IN, ddns_address_type, 0);
-	if (!updrec) {
+	updrec = minires_mkupdrec(S_PREREQ, (const char *)ddns_fwd_name->data,
+				  C_IN, T_A, 0);
+	if (updrec == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto error;
 	}
@@ -949,6 +976,23 @@ ddns_remove_fwd(struct data_string *ddns_fwd_name,
 	updrec->r_opcode = NXRRSET;
 
 	ISC_LIST_APPEND (updqueue, updrec, r_link);
+
+	/*
+	 * AAAA RR does not exist.
+	 */
+	updrec = minires_mkupdrec(S_PREREQ, (const char *)ddns_fwd_name->data,
+				  C_IN, T_AAAA, 0);
+
+	if (updrec == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto error;
+	}
+
+	updrec->r_data = NULL;
+	updrec->r_size = 0;
+	updrec->r_opcode = NXRRSET;
+
+	ISC_LIST_APPEND(updqueue, updrec, r_link);
 
 	/*
 	 * Delete appropriate DHCID RR.

@@ -3,7 +3,7 @@
    Find and identify the network interfaces. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -184,7 +184,7 @@ isc_result_t interface_initialize (omapi_object_t *ipo,
 #ifndef IF_NAMESIZE
 # if defined(LIFNAMSIZ)
 #  define IF_NAMESIZE	LIFNAMSIZ
-# elseif defined(IFNAMSIZ)
+# elif defined(IFNAMSIZ)
 #  define IF_NAMESIZE	IFNAMSIZ
 # else
 #  define IF_NAMESIZE	16
@@ -443,15 +443,17 @@ begin_iface_scan(struct iface_conf_list *ifaces) {
 	}
 
 #ifdef DHCPv6
-	ifaces->fp6 = fopen("/proc/net/if_inet6", "r");
-	if (ifaces->fp6 == NULL) {
-		log_error("Error opening '/proc/net/if_inet6' to "
-			  "list IPv6 interfaces; %m");
-		close(ifaces->sock);
-		ifaces->sock = -1;
-		fclose(ifaces->fp);
-		ifaces->fp = NULL;
-		return 0;
+	if (local_family == AF_INET6) {
+		ifaces->fp6 = fopen("/proc/net/if_inet6", "r");
+		if (ifaces->fp6 == NULL) {
+			log_error("Error opening '/proc/net/if_inet6' to "
+				  "list IPv6 interfaces; %m");
+			close(ifaces->sock);
+			ifaces->sock = -1;
+			fclose(ifaces->fp);
+			ifaces->fp = NULL;
+			return 0;
+		}
 	}
 #endif
 
@@ -720,7 +722,8 @@ next_iface(struct iface_info *info, int *err, struct iface_conf_list *ifaces) {
 	}
 #ifdef DHCPv6
 	if (!(*err)) {
-		return next_iface6(info, err, ifaces);
+		if (local_family == AF_INET6)
+			return next_iface6(info, err, ifaces);
 	}
 #endif
 	return 0;
@@ -736,8 +739,10 @@ end_iface_scan(struct iface_conf_list *ifaces) {
 	close(ifaces->sock);
 	ifaces->sock = -1;
 #ifdef DHCPv6
-	fclose(ifaces->fp6);
-	ifaces->fp6 = NULL;
+	if (local_family == AF_INET6) {
+		fclose(ifaces->fp6);
+		ifaces->fp6 = NULL;
+	}
 #endif
 }
 #else
@@ -1554,7 +1559,7 @@ isc_result_t dhcp_interface_signal_handler (omapi_object_t *h,
 	}
 
 	/* Try to find some inner object that can take the value. */
-	if (h -> inner && h -> inner -> type -> get_value) {
+	if (h -> inner && h -> inner -> type -> signal_handler) {
 		status = ((*(h -> inner -> type -> signal_handler))
 			  (h -> inner, name, ap));
 		if (status == ISC_R_SUCCESS)

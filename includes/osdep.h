@@ -3,7 +3,7 @@
    Operating system dependencies... */
 
 /*
- * Copyright (c) 2004-2005,2007-2008 by Internet Systems Consortium,
+ * Copyright (c) 2004-2005,2007-2009 by Internet Systems Consortium,
  *                                      Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
@@ -23,12 +23,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -83,7 +83,14 @@ typedef uint32_t u_int32_t;
     !defined (USE_NIT_RECEIVE) && \
     !defined (USE_DLPI_SEND) && \
     !defined (USE_DLPI_RECEIVE)
-#  define USE_DEFAULT_NETWORK
+/* Determine default socket API to USE. */
+# if defined(HAVE_BPF)
+#  define USE_BPF 1
+# elif defined(HAVE_LPF)
+#  define USE_LPF 1
+# elif defined(HAVE_DLPI)
+#  define USE_DLPI 1
+# endif
 #endif
 
 #if !defined (TIME_MAX)
@@ -107,6 +114,9 @@ typedef uint32_t u_int32_t;
 #ifdef USE_SOCKETS
 #  define USE_SOCKET_SEND
 #  define USE_SOCKET_RECEIVE
+#  if defined(HAVE_DLPI)
+#    define USE_DLPI_HWADDR
+#  endif
 #endif
 
 #ifdef USE_RAW_SOCKETS

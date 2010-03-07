@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2009 by Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -43,6 +43,7 @@ struct reply_state {
 	/* root level persistent state */
 	struct shared_network *shared;
 	struct host_decl *host;
+	struct subnet *subnet; /* Used to match fixed-addrs to subnet scopes. */
 	struct option_state *opt_state;
 	struct packet *packet;
 	struct data_string client_id;
@@ -955,8 +956,12 @@ try_client_v6_address(struct iasubopt **addr,
 		return ISC_R_FAILURE;
 	}
 
+	/*
+	 * The address is not covered by this (or possibly any) dynamic
+	 * range.
+	 */
 	if (!ipv6_in_pool(&tmp_addr, pool)) {
-		return ISC_R_FAILURE;
+		return ISC_R_ADDRNOTAVAIL;
 	}
 
 	if (lease6_exists(pool, &tmp_addr)) {
@@ -1382,6 +1387,15 @@ lease_to_client(struct data_string *reply_ret,
 					    reply.packet->options,
 					    reply.opt_state, &global_scope,
 					    reply.shared->group, root_group);
+
+		/* Bring in any configuration from a host record. */
+		if (reply.host != NULL)
+			execute_statements_in_scope(NULL, reply.packet, NULL,
+						    NULL, reply.packet->options,
+						    reply.opt_state,
+						    &global_scope,
+						    reply.host->group,
+						    reply.shared->group);
 	}
 
 	/*
@@ -1572,6 +1586,8 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 
 	/* Check & cache the fixed host record. */
 	if ((reply->host != NULL) && (reply->host->fixed_addr != NULL)) {
+		struct iaddr tmp_addr;
+
 		if (!evaluate_option_cache(&reply->fixed, NULL, NULL, NULL,
 					   NULL, NULL, &global_scope,
 					   reply->host->fixed_addr, MDL)) {
@@ -1586,6 +1602,14 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 			status = ISC_R_INVALIDARG;
 			goto cleanup;
 		}
+
+		/* Find the static lease's subnet. */
+		tmp_addr.len = 16;
+		memcpy(tmp_addr.iabuf, reply->fixed.data, 16);
+
+		if (find_grouped_subnet(&reply->subnet, reply->shared,
+					tmp_addr, MDL) == 0)
+			log_fatal("Impossible condition at %s:%d.", MDL);
 
 		reply->static_lease = ISC_TRUE;
 	} else
@@ -1643,7 +1667,9 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 		if (status == ISC_R_CANCELED)
 			break;
 
-		if ((status != ISC_R_SUCCESS) && (status != ISC_R_ADDRINUSE))
+		if ((status != ISC_R_SUCCESS) &&
+		    (status != ISC_R_ADDRINUSE) &&
+		    (status != ISC_R_ADDRNOTAVAIL))
 			goto cleanup;
 	}
 
@@ -1864,6 +1890,8 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 		iasubopt_dereference(&reply->lease, MDL);
 	if (reply->fixed.data != NULL)
 		data_string_forget(&reply->fixed, MDL);
+	if (reply->subnet != NULL)
+		subnet_dereference(&reply->subnet, MDL);
 
 	/*
 	 * ISC_R_CANCELED is a status code used by the addr processing to
@@ -2032,11 +2060,21 @@ reply_process_addr(struct reply_state *reply, struct option_cache *addr) {
 		    (reply->packet->dhcpv6_msg_type == DHCPV6_REBIND)) {
 			status = reply_process_try_addr(reply, &tmp_addr);
 
-			/* Either error out or skip this address. */
+			/*
+			 * If the address is in use, or isn't in any dynamic
+			 * range, continue as normal.  If any other error was
+			 * found, error out.
+			 */
 			if ((status != ISC_R_SUCCESS) && 
-			    (status != ISC_R_ADDRINUSE)) 
+			    (status != ISC_R_ADDRINUSE) &&
+			    (status != ISC_R_ADDRNOTAVAIL))
 				goto cleanup;
 
+			/*
+			 * If we didn't honor this lease, for solicit and
+			 * request we simply omit it from our answer.  For
+			 * rebind, we send it with zeroed lifetimes.
+			 */
 			if (reply->lease == NULL) {
 				if (reply->packet->dhcpv6_msg_type ==
 							DHCPV6_REBIND) {
@@ -2095,7 +2133,7 @@ reply_process_addr(struct reply_state *reply, struct option_cache *addr) {
 			log_fatal("Impossible condition at %s:%d.", MDL);
 
 		scope = &global_scope;
-		group = reply->host->group;
+		group = reply->subnet->group;
 	} else {
 		if (reply->lease == NULL)
 			log_fatal("Impossible condition at %s:%d.", MDL);
@@ -2705,7 +2743,7 @@ find_client_address(struct reply_state *reply) {
 
 		status = ISC_R_SUCCESS;
 		scope = &global_scope;
-		group = reply->host->group;
+		group = reply->subnet->group;
 		goto send_addr;
 	}
 
@@ -2778,10 +2816,25 @@ reply_process_is_addressed(struct reply_state *reply,
 	/* Initialize values we will cleanup. */
 	memset(&data, 0, sizeof(data));
 
-	/* Execute relevant options into root scope. */
+	/*
+	 * Bring configured options into the root packet level cache - start
+	 * with the lease's closest enclosing group (passed in by the caller
+	 * as 'group').
+	 */
 	execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
 				    reply->packet->options, reply->opt_state,
 				    scope, group, root_group);
+
+	/*
+	 * If there is a host record, over-ride with values configured there,
+	 * without re-evaluating configuration from the previously executed
+	 * group or its common enclosers.
+	 */
+	if (reply->host != NULL)
+		execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
+					    reply->packet->options,
+					    reply->opt_state, scope,
+					    reply->host->group, group);
 
 	/* Determine valid lifetime. */
 	if (reply->client_valid == 0)
@@ -2888,6 +2941,16 @@ reply_process_is_addressed(struct reply_state *reply,
 	execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
 				    reply->packet->options, reply->reply_ia,
 				    scope, group, root_group);
+
+	/*
+	 * And bring in host record configuration, if any, but not to overlap
+	 * the previous group or its common enclosers.
+	 */
+	if (reply->host != NULL)
+		execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
+					    reply->packet->options,
+					    reply->reply_ia, scope,
+					    reply->host->group, group);
 
       cleanup:
 	if (data.data != NULL)
@@ -3340,7 +3403,6 @@ static isc_result_t
 reply_process_prefix(struct reply_state *reply, struct option_cache *pref) {
 	u_int32_t pref_life, valid_life;
 	struct binding_scope **scope;
-	struct group *group;
 	struct iaddrcidrnet tmp_pref;
 	struct option_cache *oc;
 	struct data_string iapref, data;
@@ -3485,13 +3547,11 @@ reply_process_prefix(struct reply_state *reply, struct option_cache *pref) {
 			log_fatal("Impossible condition at %s:%d.", MDL);
 
 		scope = &global_scope;
-		group = reply->host->group;
 	} else {
 		if (reply->lease == NULL)
 			log_fatal("Impossible condition at %s:%d.", MDL);
 
 		scope = &reply->lease->scope;
-		group = reply->shared->group;
 	}
 
 	/*
@@ -3535,7 +3595,7 @@ reply_process_prefix(struct reply_state *reply, struct option_cache *pref) {
 			goto cleanup;
 	}
 
-	status = reply_process_is_prefixed(reply, scope, group);
+	status = reply_process_is_prefixed(reply, scope, reply->shared->group);
 	if (status != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -3647,13 +3707,7 @@ find_client_prefix(struct reply_state *reply) {
 	isc_result_t status = ISC_R_NORESOURCES;
 	struct iasubopt *prefix, *best_prefix = NULL;
 	struct binding_scope **scope;
-	struct group *group;
 	int i;
-
-	if (reply->host != NULL)
-		group = reply->host->group;
-	else
-		group = reply->shared->group;
 
 	if (reply->static_prefixes > 0) {
 		struct iaddrcidrnetlist *l;
@@ -3716,14 +3770,13 @@ find_client_prefix(struct reply_state *reply) {
 		log_fatal("Impossible condition at %s:%d.", MDL);
 
 	scope = &reply->lease->scope;
-	group = reply->shared->group;
 
 	send_pref.lo_addr.len = 16;
 	memcpy(send_pref.lo_addr.iabuf, &reply->lease->addr, 16);
 	send_pref.bits = (int) reply->lease->plen;
 
       send_pref:
-	status = reply_process_is_prefixed(reply, scope, group);
+	status = reply_process_is_prefixed(reply, scope, reply->shared->group);
 	if (status != ISC_R_SUCCESS)
 		return status;
 
@@ -3746,10 +3799,25 @@ reply_process_is_prefixed(struct reply_state *reply,
 	/* Initialize values we will cleanup. */
 	memset(&data, 0, sizeof(data));
 
-	/* Execute relevant options into root scope. */
+	/*
+	 * Bring configured options into the root packet level cache - start
+	 * with the lease's closest enclosing group (passed in by the caller
+	 * as 'group').
+	 */
 	execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
 				    reply->packet->options, reply->opt_state,
 				    scope, group, root_group);
+
+	/*
+	 * If there is a host record, over-ride with values configured there,
+	 * without re-evaluating configuration from the previously executed
+	 * group or its common enclosers.
+	 */
+	if (reply->host != NULL)
+		execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
+					    reply->packet->options,
+					    reply->opt_state, scope,
+					    reply->host->group, group);
 
 	/* Determine valid lifetime. */
 	if (reply->client_valid == 0)
@@ -3841,6 +3909,16 @@ reply_process_is_prefixed(struct reply_state *reply,
 	execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
 				    reply->packet->options, reply->reply_ia,
 				    scope, group, root_group);
+
+	/*
+	 * And bring in host record configuration, if any, but not to overlap
+	 * the previous group or its common enclosers.
+	 */
+	if (reply->host != NULL)
+		execute_statements_in_scope(NULL, reply->packet, NULL, NULL,
+					    reply->packet->options,
+					    reply->reply_ia, scope,
+					    reply->host->group, group);
 
       cleanup:
 	if (data.data != NULL)

@@ -3,7 +3,7 @@
    I/O dispatcher. */
 
 /*
- * Copyright (c) 2004,2007-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -165,6 +165,50 @@ isc_result_t omapi_register_io_object (omapi_object_t *h,
 
 	omapi_io_dereference(&obj, MDL);
 	return ISC_R_SUCCESS;
+}
+
+/* ReRegister an I/O handle so that we can do asynchronous I/O on it.
+ * If the handle doesn't exist we call the register routine to build it.
+ * if it does exist we change the functions associated with it, and
+ * repoke the fd code to make it happy.  Neither the objects nor the
+ * fd are allowed to have changed. */
+
+isc_result_t omapi_reregister_io_object (omapi_object_t *h,
+					 int (*readfd) (omapi_object_t *),
+					 int (*writefd) (omapi_object_t *),
+					 isc_result_t (*reader)
+					 	(omapi_object_t *),
+					 isc_result_t (*writer)
+					 	(omapi_object_t *),
+					 isc_result_t (*reaper)
+					 	(omapi_object_t *))
+{
+	omapi_io_object_t *obj;
+
+	if ((!h -> outer) || (h -> outer -> type != omapi_type_io_object)) {
+		/* If we don't have an object or if the type isn't what 
+		 * we expect do the normal registration (which will overwrite
+		 * an incorrect type, that's what we did historically, may
+		 * want to change that)
+		 */
+		return (omapi_register_io_object (h, readfd, writefd,
+						  reader, writer, reaper));
+	}
+
+	/* We have an io object of the correct type, try to update it */
+	/*sar*/
+	/* Should we validate that the fd matches the previous one?
+	 * It's suppossed to, that's a requirement, don't bother yet */
+
+	obj = (omapi_io_object_t *)h->outer;
+
+	obj -> readfd = readfd;
+	obj -> writefd = writefd;
+	obj -> reader = reader;
+	obj -> writer = writer;
+	obj -> reaper = reaper;
+	
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t omapi_unregister_io_object (omapi_object_t *h)
@@ -359,7 +403,10 @@ isc_result_t omapi_one_dispatch (omapi_object_t *wo,
 		/* We are dry now */ 
 		trigger_event(&rw_queue_empty);
 		/* Wait for a packet or a timeout... XXX */
-		count = select(max + 1, &rr, &ww, &xx, t ? &to : NULL);
+		r = rr;
+		w = ww;
+		x = xx;
+		count = select(max + 1, &r, &w, &x, t ? &to : NULL);
 	}
 
 	/* Get the current time... */

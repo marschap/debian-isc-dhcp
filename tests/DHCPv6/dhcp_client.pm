@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# Copyright (c) 2007 by Internet Systems Consortium, Inc. ("ISC")
+# Copyright (c) 2007,2009 by Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #   950 Charter Street
 #   Redwood City, CA 94063
 #   <info@isc.org>
-#   http://www.isc.org/
+#   https://www.isc.org/
 
 package dhcp_client;
 

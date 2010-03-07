@@ -3,7 +3,7 @@
    DHCP Protocol engine. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -1753,6 +1753,8 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 			}
 			if (h)
 				host_reference (&host, h, MDL);
+			if (hp != NULL)
+				host_dereference(&hp, MDL);
 		}
 		if (!host) {
 			find_hosts_by_haddr (&hp,
@@ -1766,9 +1768,9 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 			}
 			if (h)
 				host_reference (&host, h, MDL);
+			if (hp != NULL)
+				host_dereference(&hp, MDL);
 		}
-		if (hp)
-			host_dereference (&hp, MDL);
 	}
 
 	/* If we have a host_decl structure, run the options associated
@@ -2955,7 +2957,7 @@ relinquish_ackqueue(void)
 {
 	struct leasequeue *q, *n;
 	
-	for (q = ackqueue ; q ; q = n) {
+	for (q = ackqueue_head ; q ; q = n) {
 		n = q->next;
 		dfree(q, MDL);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,11 +18,11 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.2 2005/03/17 20:15:17 dhankins Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.2.786.3 2009/07/24 22:04:52 sar Exp $";
 #endif
 
 #include <sys/types.h>
@@ -70,6 +70,11 @@ ns_name_ntop(const u_char *src, char *dst, size_t dstsiz) {
 	cp = src;
 	dn = dst;
 	eom = dst + dstsiz;
+
+	if (dn >= eom) {
+		errno = EMSGSIZE;
+		return (-1);
+	}
 
 	while ((n = *cp++) != 0) {
 		if ((n & NS_CMPRSFLGS) != 0) {

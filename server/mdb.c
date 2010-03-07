@@ -3,7 +3,7 @@
    Server-specific in-memory database support. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -714,7 +714,9 @@ void new_address_range (cfile, low, high, subnet, pool, lpchain)
 	struct pool *pool;
 	struct lease **lpchain;
 {
+#if defined(COMPACT_LEASES)
 	struct lease *address_range;
+#endif
 	unsigned min, max, i;
 	char lowbuf [16], highbuf [16], netbuf [16];
 	struct shared_network *share = subnet -> shared_network;
@@ -1236,9 +1238,12 @@ int supersede_lease (comp, lease, commit, propogate, pimmediate)
 	/* Figure out which queue it's on. */
 	switch (comp -> binding_state) {
 	      case FTS_FREE:
-		lq = &comp -> pool -> free;
-		if (!(comp->flags & RESERVED_LEASE))
+		if (comp->flags & RESERVED_LEASE)
+			lq = &comp->pool->reserved;
+		else {
+			lq = &comp->pool->free;
 			comp->pool->free_leases--;
+		}
 
 #if defined(FAILOVER_PROTOCOL)
 		do_pool_check = 1;
@@ -1260,9 +1265,12 @@ int supersede_lease (comp, lease, commit, propogate, pimmediate)
 		break;
 
 	      case FTS_BACKUP:
-		lq = &comp -> pool -> backup;
-		if (!(comp->flags & RESERVED_LEASE))
+		if (comp->flags & RESERVED_LEASE)
+			lq = &comp->pool->reserved;
+		else {
+			lq = &comp->pool->backup;
 			comp->pool->backup_leases--;
+		}
 
 #if defined(FAILOVER_PROTOCOL)
 		do_pool_check = 1;
@@ -1454,6 +1462,21 @@ void make_binding_state_transition (struct lease *lease)
 	      lease -> binding_state == FTS_ACTIVE &&
 	      lease -> next_binding_state == FTS_RELEASED))) {
 #if defined (NSUPDATE)
+		/*
+		 * Note: ddns_removals() is also iterated when the lease
+		 * enters state 'released' in 'release_lease()'.  The below
+		 * is caught when a peer receives a BNDUPD from a failover
+		 * peer; it may not have received the client's release (it
+		 * may have been offline).
+		 *
+		 * We could remove the call from release_lease() because
+		 * it will also catch here on the originating server after the
+		 * peer acknowledges the state change.  However, there could
+		 * be many hours inbetween, and in this case we /know/ the
+		 * client is no longer using the lease when we receive the
+		 * release message.  This is not true of expiry, where the
+		 * peer may have extended the lease.
+		 */
 		ddns_removals(lease, NULL);
 #endif
 		if (lease -> on_release) {
@@ -2608,7 +2631,7 @@ extern int end;
 extern struct lease *lease_hunks;
 #endif
 
-void free_everything ()
+void free_everything(void)
 {
 	struct subnet *sc = (struct subnet *)0, *sn = (struct subnet *)0;
 	struct shared_network *nc = (struct shared_network *)0,
@@ -2619,11 +2642,7 @@ void free_everything ()
 		*in = (struct interface_info *)0;
 	struct class *cc = (struct class *)0, *cn = (struct class *)0;
 	struct collection *lp;
-	void *st = (shared_networks
-		    ? (shared_networks -> next
-		       ? shared_networks -> next -> next : 0) : 0);
 	int i;
-
 
 	/* Get rid of all the hash tables. */
 	if (host_hw_addr_hash)
@@ -2633,13 +2652,13 @@ void free_everything ()
 		host_free_hash_table (&host_uid_hash, MDL);
 	host_uid_hash = 0;
 	if (lease_uid_hash)
-		lease_free_hash_table (&lease_uid_hash, MDL);
+		lease_id_free_hash_table (&lease_uid_hash, MDL);
 	lease_uid_hash = 0;
 	if (lease_ip_addr_hash)
-		lease_free_hash_table (&lease_ip_addr_hash, MDL);
+		lease_ip_free_hash_table (&lease_ip_addr_hash, MDL);
 	lease_ip_addr_hash = 0;
 	if (lease_hw_addr_hash)
-		lease_free_hash_table (&lease_hw_addr_hash, MDL);
+		lease_id_free_hash_table (&lease_hw_addr_hash, MDL);
 	lease_hw_addr_hash = 0;
 	if (host_name_hash)
 		host_free_hash_table (&host_name_hash, MDL);
@@ -2745,7 +2764,15 @@ void free_everything ()
 	}
 
 	/* So are shared networks. */
+	/* XXX: this doesn't work presently, but i'm ok just filtering
+	 * it out of the noise (you get a bigger spike on the real leaks).
+	 * It would be good to fix this, but it is not a "real bug," so not
+	 * today.  This hack is incomplete, it doesn't trim out sub-values.
+	 */
 	if (shared_networks) {
+		shared_network_dereference (&shared_networks, MDL);
+	/* This is the old method (tries to free memory twice, broken) */
+	} else if (0) {
 	    shared_network_reference (&nn, shared_networks, MDL);
 	    do {
 		if (nn) {
@@ -2842,14 +2869,21 @@ void free_everything ()
 
 	universe_free_hash_table (&universe_hash, MDL);
 	for (i = 0; i < universe_count; i++) {
+#if 0
 		union {
 			const char *c;
 			char *s;
 		} foo;
+#endif
 		if (universes [i]) {
-			if (universes [i] -> hash)
-			    option_free_hash_table (&universes [i] -> hash,
-						    MDL);
+			if (universes[i]->name_hash)
+			    option_name_free_hash_table(
+						&universes[i]->name_hash,
+						MDL);
+			if (universes[i]->code_hash)
+			    option_code_free_hash_table(
+						&universes[i]->code_hash,
+						MDL);
 #if 0
 			if (universes [i] -> name > (char *)&end) {
 				foo.c = universes [i] -> name;
@@ -2868,7 +2902,9 @@ void free_everything ()
 	relinquish_free_binding_values ();
 	relinquish_free_option_caches ();
 	relinquish_free_packets ();
+#if defined(COMPACT_LEASES)
 	relinquish_lease_hunks ();
+#endif
 	relinquish_hash_bucket_hunks ();
 	omapi_type_relinquish ();
 }

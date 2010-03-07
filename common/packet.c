@@ -3,7 +3,7 @@
    Packet assembly code, originally contributed by Archie Cobbs. */
 
 /*
- * Copyright (c) 2004,2005,2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2005,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,7 +22,7 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This code was originally contributed by Archie Cobbs, and is still
  * very similar to that contribution, although the packet checksum code
@@ -134,6 +134,8 @@ void assemble_udp_ip_header (interface, buf, bufix,
 {
 	struct ip ip;
 	struct udphdr udp;
+
+	memset (&ip, 0, sizeof ip);
 
 	/* Fill out the IP header */
 	IP_V_SET (&ip, 4);

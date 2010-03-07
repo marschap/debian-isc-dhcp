@@ -3,7 +3,7 @@
    Common parser code for dhcpd and dhclient. */
 
 /*
- * Copyright (c) 2004-2008 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -22,12 +22,12 @@
  *   950 Charter Street
  *   Redwood City, CA 94063
  *   <info@isc.org>
- *   http://www.isc.org/
+ *   https://www.isc.org/
  *
  * This software has been written for Internet Systems Consortium
  * by Ted Lemon in cooperation with Vixie Enterprises and Nominum, Inc.
  * To learn more about Internet Systems Consortium, see
- * ``http://www.isc.org/''.  To learn more about Vixie Enterprises,
+ * ``https://www.isc.org/''.  To learn more about Vixie Enterprises,
  * see ``http://www.vix.com''.   To learn more about Nominum, Inc., see
  * ``http://www.nominum.com''.
  */
@@ -1757,9 +1757,18 @@ int parse_option_code_definition (cfile, option)
 	oldopt = NULL;
 	option_code_hash_lookup(&oldopt, option->universe->code_hash,
 				&option->code, 0, MDL);
-	if (oldopt) {
+	if (oldopt != NULL) {
+		/*
+		 * XXX: This illegalizes a configuration syntax that was
+		 * valid in 3.0.x, where multiple name->code mappings are
+		 * given, but only one code->name mapping survives.  It is
+		 * unclear what can or should be done at this point, but it
+		 * seems best to retain 3.0.x behaviour for upgrades to go
+		 * smoothly.
+		 *
 		option_name_hash_delete(option->universe->name_hash,
 					oldopt->name, 0, MDL);
+		 */
 		option_code_hash_delete(option->universe->code_hash,
 					&oldopt->code, 0, MDL);
 
@@ -5674,14 +5683,14 @@ int parse_warn (struct parse *cfile, const char *fmt, ...)
 #endif
 
 	if (log_perror) {
-		write (STDERR_FILENO, mbuf, strlen (mbuf));
-		write (STDERR_FILENO, "\n", 1);
-		write (STDERR_FILENO, cfile -> token_line,
-		       strlen (cfile -> token_line));
-		write (STDERR_FILENO, "\n", 1);
+		IGNORE_RET (write (STDERR_FILENO, mbuf, strlen (mbuf)));
+		IGNORE_RET (write (STDERR_FILENO, "\n", 1));
+		IGNORE_RET (write (STDERR_FILENO, cfile -> token_line,
+				   strlen (cfile -> token_line)));
+		IGNORE_RET (write (STDERR_FILENO, "\n", 1));
 		if (cfile -> lexchar < 81)
-			write (STDERR_FILENO, lexbuf, lix);
-		write (STDERR_FILENO, "^\n", 2);
+			IGNORE_RET (write (STDERR_FILENO, lexbuf, lix));
+		IGNORE_RET (write (STDERR_FILENO, "^\n", 2));
 	}
 
 	cfile -> warnings_occurred = 1;
