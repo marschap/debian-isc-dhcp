@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-1) UNRELEASED; urgency=low
+
+  * New Upstream Version
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 06 Mar 2010 18:14:11 -0800
+
 isc-dhcp (4.1.0-2) UNRELEASED; urgency=low
 
   * debian/README.Debian: update for current upstream version, specifically
