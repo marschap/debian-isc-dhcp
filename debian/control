@@ -176,7 +176,7 @@ Description: DHCP relay daemon (debugging symbols)
  Extra documentation can be found in the package isc-dhcp-common.
 
 Package: dhcp3-server
-Priority: extra
+Priority: optional
 Architecture: all
 Depends: isc-dhcp-server, ${misc:Depends}
 Description: ISC DHCP server (transitional package)
@@ -196,7 +196,7 @@ Description: ISC DHCP server (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-client
-Priority: extra
+Priority: important
 Architecture: all
 Depends: isc-dhcp-client, ${misc:Depends}
 Description: ISC DHCP server (transitional package)
@@ -217,7 +217,7 @@ Description: ISC DHCP server (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-relay
-Priority: extra
+Priority: optional
 Architecture: all
 Depends: isc-dhcp-relay, ${misc:Depends}
 Description: ISC DHCP relay (transitional package)
@@ -234,7 +234,7 @@ Description: ISC DHCP relay (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-common
-Priority: extra
+Priority: important
 Architecture: all
 Depends: isc-dhcp-common, ${misc:Depends}
 Description: ISC DHCP common files (transitional package)
@@ -247,7 +247,8 @@ Description: ISC DHCP common files (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-dev
-Priority: extra
+Priority: optional
+Section: devel
 Architecture: all
 Depends: isc-dhcp-dev, ${misc:Depends}
 Description: ISC DHCP development files (transitional package)

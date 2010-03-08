@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-2) UNRELEASED; urgency=low
+
+  * debian/control: make dhcp3-* packages match what the override file says
+
+ -- Andrew Pollock <apollock@debian.org>  Sun, 07 Mar 2010 20:09:33 -0800
+
 isc-dhcp (4.1.1-1) experimental; urgency=low
 
   * New Upstream Version
