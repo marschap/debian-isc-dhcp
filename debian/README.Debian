@@ -25,8 +25,6 @@ PLEASE NOTE: Upon upgrading isc-dhcp-client, dhclient is NOT restarted.
 Therefore, after upgrading, the version of dhclient running will still be from
 the previous version of isc-dhcp-client that was installed.
 
-PLEASE NOTE: DHCPv6 is not currently enabled because the package does not build successfully. See http://bugs.debian.org/549060
-
 The Debian ISC DHCP package is moving toward collaborative maintenance. If
 you're interested in assisting with the maintenance of the package, see
 http://alioth.debian.org/projects/pkg-dhcp

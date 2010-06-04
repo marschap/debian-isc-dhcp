@@ -45,8 +45,7 @@ patched-ldap/build-stamp:
 	./configure \
 		--prefix=$(DESTDIR)/usr \
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
-		--enable-ldap-conf --disable-ldap-casa \
-		--disable-dhcpv6 
+		--enable-ldap-conf --disable-ldap-casa
 		
 	for f in common ../minires ../dst ../omapip ../dhcpctl ../server; do \
 		cd $$f;\
