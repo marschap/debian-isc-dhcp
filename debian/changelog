@@ -1,3 +1,10 @@
+isc-dhcp (4.1.1-3) experimental; urgency=low
+
+  * debian/control: don't make the new packages conflict with the
+    old/transitional packages
+
+ -- Andrew Pollock <apollock@debian.org>  Sun, 06 Jun 2010 20:01:22 -0700
+
 isc-dhcp (4.1.1-2) experimental; urgency=low
 
   * debian/control: make dhcp3-* packages match what the override file says

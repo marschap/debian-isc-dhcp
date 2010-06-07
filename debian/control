@@ -11,7 +11,7 @@ Priority: optional
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), lsb-base, ${shlibs:Depends}, ${misc:Depends}
 Provides: dhcp3-server
-Conflicts: dhcp, dhcp3-server
+Conflicts: dhcp
 Replaces: dhcp3-server
 Suggests: isc-dhcp-server-ldap
 Description: ISC DHCP server for automatic IP address assignment
@@ -50,7 +50,7 @@ Priority: optional
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), isc-dhcp-server (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Provides: dhcp3-server-ldap
-Conflicts: dhcp, dhcp3-server, dhcp3-server-ldap
+Conflicts: dhcp
 Replaces: dhcp3-server-ldap
 Enhances: isc-dhcp-server
 Description: DHCP server able to use LDAP as backend
@@ -68,7 +68,6 @@ Package: isc-dhcp-common
 Architecture: any
 Section: net
 Provides: dhcp3-common
-Conflicts: dhcp3-common
 Replaces: dhcp3-common
 Depends: debianutils (>= 2.8.2), ${shlibs:Depends}, ${misc:Depends}
 Description: common files used by all the isc-dhcp* packages
@@ -80,7 +79,6 @@ Priority: optional
 Architecture: any
 Section: devel
 Provides: dhcp3-dev
-Conflicts: dhcp3-dev
 Replaces: dhcp3-dev
 Depends: libc6-dev, ${misc:Depends}
 Description: API for accessing and modifying the DHCP server and client state
@@ -92,7 +90,7 @@ Architecture: any
 Depends: debianutils (>= 2.8.2), ifupdown (>= 0.6.8+nmu3), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
 Provides: dhcp3-client
-Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), dhcp3-client
+Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2)
 Replaces: dhcp3-client
 Description: ISC DHCP client
  This is the client from the Internet Software Consortium's implementation of
