@@ -9,7 +9,7 @@
 # Should-Start:      $local_fs slapd
 # Should-Stop:       $local_fs slapd
 # Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
+# Default-Stop:
 # Short-Description: DHCP server
 # Description:       Dynamic Host Configuration Protocol Server
 ### END INIT INFO

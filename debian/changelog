@@ -1,3 +1,12 @@
+isc-dhcp (4.1.1-P1-2) experimental; urgency=low
+
+  * debian/isc-dhcp-{server,relay}.init: go back to not mentioning any
+    runlevels for Default-Stop
+  * debian/isc-dhcp-server.postinst: don't specify any runlevels for stop
+    scripts when invoking update-rc.d
+
+ -- Andrew Pollock <apollock@debian.org>  Mon, 07 Jun 2010 19:41:25 -0700
+
 isc-dhcp (4.1.1-P1-1) experimental; urgency=low
 
   * New Upstream Version

@@ -84,7 +84,7 @@ fi
 
 [ -x /sbin/restorecon ] && restorecon /var/lib/dhcp/dhcpd.leases
 
-update-rc.d isc-dhcp-server start 40 2 3 4 5 . stop 40 1 . >/dev/null
+update-rc.d isc-dhcp-server start 40 2 3 4 5 . >/dev/null
 
 # Init script could fail, since dhcp is unconfigured on a new install
 invoke-rc.d isc-dhcp-server start || true
