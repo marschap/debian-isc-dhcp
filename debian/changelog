@@ -4,8 +4,10 @@ isc-dhcp (4.1.1-P1-3) experimental; urgency=low
     update-rc.d stuff is done properly
   * debian/isc-dhcp-{relay,server}.{postinst,postrm}: remove calls to
     update-rc.d and invoke-rc.d, let dh_installinit handle it
+  * debian/isc-dhcp-server.init.d: add a start-time dependency on $named
+    (closes: #586035)
 
- -- Andrew Pollock <apollock@debian.org>  Tue, 15 Jun 2010 19:40:52 -0700
+ -- Andrew Pollock <apollock@debian.org>  Tue, 15 Jun 2010 20:14:33 -0700
 
 isc-dhcp (4.1.1-P1-2) experimental; urgency=low
 

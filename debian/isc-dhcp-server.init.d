@@ -6,7 +6,7 @@
 # Provides:          isc-dhcp-server
 # Required-Start:    $remote_fs $network $syslog
 # Required-Stop:     $remote_fs $network $syslog
-# Should-Start:      $local_fs slapd
+# Should-Start:      $local_fs slapd $named
 # Should-Stop:       $local_fs slapd
 # Default-Start:     2 3 4 5
 # Default-Stop:
