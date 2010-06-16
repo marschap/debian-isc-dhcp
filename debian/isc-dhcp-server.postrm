@@ -18,8 +18,6 @@ case "$1" in
 
 	# Remove init.d configuration file
 	rm -f /etc/default/isc-dhcp-server
-
-	update-rc.d isc-dhcp-server remove >/dev/null
 	;;
 
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)

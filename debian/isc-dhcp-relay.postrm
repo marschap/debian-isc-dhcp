@@ -5,8 +5,6 @@
 if [ "$1" = "purge" ]; then
     # Remove init.d configuration file
     rm -f /etc/default/isc-dhcp-relay
-
-    update-rc.d isc-dhcp-relay remove >/dev/null
 fi
 
 #DEBHELPER#

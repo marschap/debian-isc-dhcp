@@ -82,10 +82,6 @@ rm ${TMPFILE}
 
 # ------------------------- Debconf questions end ---------------------
 
-update-rc.d isc-dhcp-relay defaults > /dev/null
-
-invoke-rc.d isc-dhcp-relay start
-
 db_stop
 
 #DEBHELPER#
