@@ -1,6 +1,8 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 #
+
+set -e
 
 case "$1" in
     remove)
@@ -24,6 +26,11 @@ case "$1" in
 	# Nothing to do
 	;;
 esac
+
+init_script_error_handler()
+{
+	return 0
+}
 
 #DEBHELPER#
 

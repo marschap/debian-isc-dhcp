@@ -83,6 +83,11 @@ fi
 
 [ -x /sbin/restorecon ] && restorecon /var/lib/dhcp/dhcpd.leases
 
+init_script_error_handler()
+{
+	return 0
+}
+
 #DEBHELPER#
 
 exit 0

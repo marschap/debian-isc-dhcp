@@ -6,8 +6,10 @@ isc-dhcp (4.1.1-P1-3) experimental; urgency=low
     update-rc.d and invoke-rc.d, let dh_installinit handle it
   * debian/isc-dhcp-server.init.d: add a start-time dependency on $named
     (closes: #586035)
+  * debian/{rules,isc-dhcp-server.{prerm,postinst}}: ignore failure to start
+    the DHCP server
 
- -- Andrew Pollock <apollock@debian.org>  Tue, 15 Jun 2010 20:14:33 -0700
+ -- Andrew Pollock <apollock@debian.org>  Tue, 15 Jun 2010 23:20:30 -0700
 
 isc-dhcp (4.1.1-P1-2) experimental; urgency=low
 

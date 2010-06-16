@@ -9,7 +9,7 @@
 # Should-Start:      $local_fs
 # Should-Stop:       $local_fs
 # Default-Start:     2 3 4 5
-# Default-Stop:
+# Default-Stop:      0 1 6
 # Short-Description: DHCP relay
 # Description:       Dynamic Host Configuration Protocol Relay
 ### END INIT INFO

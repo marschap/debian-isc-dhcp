@@ -1,8 +1,13 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 #
 
-invoke-rc.d isc-dhcp-server stop
+set -e
+
+init_script_error_handler()
+{
+	return 0
+}
 
 #DEBHELPER#
 

@@ -146,7 +146,8 @@ binary-arch: build install
 	dh_installdocs -A debian/README.Debian -X doc/ja_JP.eucJP
 	dh_installdocs -pisc-dhcp-server-ldap contrib/dhcpd-conf-to-ldap.pl	
 	dh_installexamples -a
-	dh_installinit -a
+	dh_installinit -pisc-dhcp-server --error-handler=init_script_error_handler
+	dh_installinit -a -Nisc-dhcp-server
 	dh_installchangelogs
 	dh_installchangelogs -pisc-dhcp-server-ldap Changelog-LDAP 
 	dh_install -pisc-dhcp-server-ldap	
