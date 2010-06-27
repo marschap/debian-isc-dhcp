@@ -62,11 +62,9 @@ build-stamp: patched-ldap/build-stamp
 
 	dpatch deapply-until dhcp-4.1.0-ldap-code
 	
-# See http://bugs.debian.org/549060 for why DHCPv6 has to be disabled
 	./configure \
 		--prefix=$(DESTDIR)/usr \
-		--sysconfdir=$(DESTDIR)/etc/dhcp \
-		--disable-dhcpv6 
+		--sysconfdir=$(DESTDIR)/etc/dhcp
 	
 	$(MAKE) $(CROSS)
 
