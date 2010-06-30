@@ -99,7 +99,7 @@ install-stamp: build-stamp
 	$(INSTALL_FILE) -m 644 debian/dhclient.conf $(DESTDIR)/etc/dhcp
 
 	# udeb needs simplified dhclient script
-	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.udeb \
+	$(INSTALL_FILE) -m 755 `pwd`/debian/dhclient-script.$(DEB_HOST_ARCH_OS).udeb \
 		`pwd`/debian/isc-dhcp-client-udeb/sbin/dhclient-script
 
 	# Weird, weird Japanese manpages in weird, weird locations
