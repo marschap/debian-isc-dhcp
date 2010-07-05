@@ -32,8 +32,6 @@ else
 CFLAGS += -O2
 endif
 
-CFLAGS += -D_PATH_DHCPD_DB='"/var/lib/dhcp/dhcpd.leases"'
-CFLAGS += -D_PATH_DHCLIENT_DB='"/var/lib/dhcp/dhclient.leases"'
 CFLAGS += -D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
 CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
@@ -45,6 +43,10 @@ patched-ldap/build-stamp:
 	./configure \
 		--prefix=$(DESTDIR)/usr \
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
+		--with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
+		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
+		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
+		--with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
 		--enable-ldap-conf --disable-ldap-casa
 		
 	for f in common ../minires ../dst ../omapip ../dhcpctl ../server; do \
@@ -64,7 +66,11 @@ build-stamp: patched-ldap/build-stamp
 	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
-		--sysconfdir=$(DESTDIR)/etc/dhcp
+		--sysconfdir=$(DESTDIR)/etc/dhcp \
+		--with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
+		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
+		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
+		--with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases
 	
 	$(MAKE) $(CROSS)
 

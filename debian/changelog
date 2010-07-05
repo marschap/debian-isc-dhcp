@@ -1,3 +1,10 @@
+isc-dhcp (4.1.1-P1-6) experimental; urgency=low
+
+  * debian/rules: configure client to use correct path for DHCPv6 leases file
+    (closes: #587884)
+
+ -- Andrew Pollock <apollock@debian.org>  Fri, 02 Jul 2010 21:04:16 -0700
+
 isc-dhcp (4.1.1-P1-5) experimental; urgency=low
 
   * split out the udeb dhclient-script so there's one for Linux and one for
