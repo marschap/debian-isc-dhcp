@@ -1,6 +1,7 @@
 isc-dhcp (4.1.1-P1-8) UNRELEASED; urgency=low
 
   * debian/dhcp3-client.postrm: bring back to clean up cruft (closes: #588203)
+  * debian/dhcp3-server.postrm: bring back to clean up cruft
 
  -- Andrew Pollock <apollock@debian.org>  Mon, 05 Jul 2010 23:09:34 -0700
 
