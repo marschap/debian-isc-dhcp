@@ -2,7 +2,7 @@
 
 set -e
 
-if [ "$1" == "purge" ]; then
+if [ "$1" = "purge" ]; then
 	# Remove old lease database
 	rm -f /var/lib/dhcp3/dhclient.*leases*
 

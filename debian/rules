@@ -39,6 +39,11 @@ CFLAGS += -DNOMINUM
 
 patched-ldap/build-stamp:
 	dh_testdir
+
+	aclocal
+	autoconf
+	autoheader
+	automake --foreign --add-missing --copy
 	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
@@ -63,6 +68,11 @@ build: patch-stamp build-stamp
 build-stamp: patched-ldap/build-stamp
 
 	dpatch deapply-until dhcp-4.1.0-ldap-code
+
+	aclocal
+	autoconf
+	autoheader
+	automake --foreign --add-missing --copy
 	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
