@@ -1,4 +1,4 @@
-isc-dhcp (4.1.1-P1-8) UNRELEASED; urgency=low
+isc-dhcp (4.1.1-P1-8) unstable; urgency=low
 
   * debian/dhcp3-client.postrm: bring back to clean up cruft (closes: #588203)
   * debian/dhcp3-server.postrm: bring back to clean up cruft
@@ -8,7 +8,7 @@ isc-dhcp (4.1.1-P1-8) UNRELEASED; urgency=low
   * debian/control: build-depend on autoconf and automake
   * debian/control: bump Standards-Version (no changes)
 
- -- Andrew Pollock <apollock@debian.org>  Wed, 07 Jul 2010 23:24:31 -0700
+ -- Andrew Pollock <apollock@debian.org>  Wed, 14 Jul 2010 22:28:21 -0700
 
 isc-dhcp (4.1.1-P1-7) unstable; urgency=low
 
