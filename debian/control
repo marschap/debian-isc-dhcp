@@ -90,7 +90,7 @@ Architecture: any
 Depends: debianutils (>= 2.8.2), ifupdown (>= 0.6.8+nmu3), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
 Provides: dhcp3-client
-Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), resolvconf (<= 1.45)
+Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), resolvconf (<= 1.45), ifupdown (<< 0.6.8+nmu3)
 Replaces: dhcp3-client
 Description: ISC DHCP client
  This is the client from the Internet Software Consortium's implementation of
