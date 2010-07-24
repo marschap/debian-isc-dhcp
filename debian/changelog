@@ -5,8 +5,12 @@ isc-dhcp (4.1.1-P1-9) UNRELEASED; urgency=high
   * debian/control: rather than depend on the version of ifupdown that invokes
     dhclient correctly, conflict with older versions of ifupdown that do not
     (closes: #546883, #590092)
+  * Updated Russian debconf template translation (closes: #589252)
+  * Updated Swedish debconf template translation (closes: #589261)
+  * Updated French debconf template translation (closes: #589492)
+  * Updated German debconf template translation (closes: #589578)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 24 Jul 2010 10:12:00 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sat, 24 Jul 2010 10:17:29 -0700
 
 isc-dhcp (4.1.1-P1-8) unstable; urgency=low
 
