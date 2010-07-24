@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3 3.0.3-6\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2009-07-12 22:09-0700\n"
+"POT-Creation-Date: 2010-07-07 18:58-0700\n"
 "PO-Revision-Date: 2010-07-16 09:41+0100\n"
 "Last-Translator: Martin Bagge / brother <brother@bsnet.se>\n"
 "Language-Team: Swedish <debian-l10n-swedish@lists.debian.org>\n"
@@ -28,14 +28,22 @@ msgstr "Servrar dit denna DHCP-relay skall vidarebefordra förfrågningar till:"
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:2001
-msgid "Please enter the hostname or IP address of at least one DHCP server to which DHCP and BOOTP requests should be relayed."
-msgstr "Vänligen ange värdnamn eller ip-adress på åtminstone en DHCP-server till vilken DHCP och BOOTP-förfrågningar ska skickas vidare till."
+msgid ""
+"Please enter the hostname or IP address of at least one DHCP server to which "
+"DHCP and BOOTP requests should be relayed."
+msgstr ""
+"Vänligen ange värdnamn eller ip-adress på åtminstone en DHCP-server till "
+"vilken DHCP och BOOTP-förfrågningar ska skickas vidare till."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:2001
-msgid "You can specify multiple server names or IP addresses (in a space-separated list)."
-msgstr "Du kan specificera flera servernamn eller ip-adresser (genom att ange en blankstegsavgränsad lista)."
+msgid ""
+"You can specify multiple server names or IP addresses (in a space-separated "
+"list)."
+msgstr ""
+"Du kan specificera flera servernamn eller ip-adresser (genom att ange en "
+"blankstegsavgränsad lista)."
 
 #. Type: string
 #. Description
@@ -46,14 +54,26 @@ msgstr "Nätverksgränssnitt som DHCP-relay skall lyssna på:"
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:3001
-msgid "Please specify which network interface(s) the DHCP relay should attempt to configure. Multiple interface names should be entered as a space-separated list."
-msgstr "Vänligen ange vilket/vilka nätverksgränssnitt som DHCP vidarebefordringsdemonen skall försöka att konfigurera. Om flera gränssnittsnamn anges skall dessa separeras med mellanslag."
+msgid ""
+"Please specify which network interface(s) the DHCP relay should attempt to "
+"configure. Multiple interface names should be entered as a space-separated "
+"list."
+msgstr ""
+"Vänligen ange vilket/vilka nätverksgränssnitt som DHCP "
+"vidarebefordringsdemonen skall försöka att konfigurera. Om flera "
+"gränssnittsnamn anges skall dessa separeras med mellanslag."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:3001
-msgid "Leave this field blank to allow for automatic detection and configuration of network interfaces by the DHCP relay, in which case only broadcast interfaces will be used (if possible)."
-msgstr "Lämna detta fält tomt för att tillåta automatisk identifiering och konfiguration av nätverksgränssnitt av dhcp3-relay, vilket då innebära att endast nätverksgränssnitt med BROADCAST-flaggan kommer användas (om möjligt)."
+msgid ""
+"Leave this field blank to allow for automatic detection and configuration of "
+"network interfaces by the DHCP relay, in which case only broadcast "
+"interfaces will be used (if possible)."
+msgstr ""
+"Lämna detta fält tomt för att tillåta automatisk identifiering och "
+"konfiguration av nätverksgränssnitt av dhcp3-relay, vilket då innebära att "
+"endast nätverksgränssnitt med BROADCAST-flaggan kommer användas (om möjligt)."
 
 #. Type: string
 #. Description
@@ -82,13 +102,21 @@ msgstr "Manuell konfiguration krävs efter installationen"
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
+#, fuzzy
 #| msgid ""
 #| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#| "it by editing the file /etc/dhcp3/dhcpd.conf. Please note that the dhcpd."
+#| "conf supplied is just a sample, and must be adapted to the network "
 #| "environment."
-msgid "After the DHCP server is installed, you will need to manually configure it by editing the file /etc/dhcp3/dhcpd.conf. Please note that the dhcpd.conf supplied is just a sample, and must be adapted to the network environment."
-msgstr "Efter att DHCP-servern är installerad behöver du manuellt konfigurera den genom att ändra i filen /etc/isc-dhcp3/dhcpd.conf. Observera att dhcpd.conf-filen som skickas med endast är ett exempel och behöver ändras för att passa din nätverksmiljö."
+msgid ""
+"After the DHCP server is installed, you will need to manually configure it "
+"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
+"supplied is just a sample, and must be adapted to the network environment."
+msgstr ""
+"Efter att DHCP-servern är installerad behöver du manuellt konfigurera den "
+"genom att ändra i filen /etc/isc-dhcp3/dhcpd.conf. Observera att dhcpd.conf-"
+"filen som skickas med endast är ett exempel och behöver ändras för att passa "
+"din nätverksmiljö."
 
 #. Type: note
 #. Description
@@ -105,19 +133,30 @@ msgstr "Nätverksgränssnitt där DHCP-servern skall lyssna:"
 #. Type: string
 #. Description
 #: ../isc-dhcp-server.templates:3001
-msgid "Please specify on which network interface(s) the DHCP server should listen for DHCP requests. Multiple interface names should be entered as a space-separated list."
-msgstr "Vänligen ange vilket/vilka nätverksgränssnitt som DHCP-vidarebefordringsdemonen skall lyssna efter förfrågningar på. Om flera gränssnitt anges skall dessa vara separerade med mellanslag."
+msgid ""
+"Please specify on which network interface(s) the DHCP server should listen "
+"for DHCP requests. Multiple interface names should be entered as a space-"
+"separated list."
+msgstr ""
+"Vänligen ange vilket/vilka nätverksgränssnitt som DHCP-"
+"vidarebefordringsdemonen skall lyssna efter förfrågningar på. Om flera "
+"gränssnitt anges skall dessa vara separerade med mellanslag."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-server.templates:3001
-msgid "The interfaces will be automatically detected if this field is left blank."
-msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält lämnas tomt."
+msgid ""
+"The interfaces will be automatically detected if this field is left blank."
+msgstr ""
+"Nätverksgränssnitten kommer automatiskt identifieras om detta fält lämnas "
+"tomt."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "Icke-auktoritär version av DHCP server"
+
 #~ msgid "The version 3 DHCP server is non-authoritative by default."
 #~ msgstr "Version 3 av DHCP-servern är icke-auktoritär som standard."
+
 #~ msgid ""
 #~ "This means that if a client requests an address that the server knows "
 #~ "nothing about and the address is incorrect for that network segment, the "
@@ -132,6 +171,7 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "använda den addressen.) Om du vill ändra detta beetende måste du ange i "
 #~ "dhcpd.conf vilket nätverkssegment din server är auktoritär för med "
 #~ "direktivet 'authoritative'."
+
 #~ msgid "Change in default behaviour of the next-server directive"
 #~ msgstr "Ändra standarduppträdandet för direktivet next-server"
 
@@ -155,8 +195,10 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "server är din DHCP-server behöver du ställa in direktivet \"next-server\" "
 #~ "för att bekräfta detta. Se /usr/share/doc/isc-dhcp-server/NEWS.Debian.gz "
 #~ "och /usr/share/doc/dhcp3-server/RELNOTES.gz för mer information."
+
 #~ msgid "dhclient-script moved"
 #~ msgstr "dhclient-script har flyttats"
+
 #~| msgid ""
 #~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
 #~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
@@ -172,14 +214,17 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "längre registrerad som en konfigurationsfil. /etc/isc-dhcp/dhclient-"
 #~ "script verkar ha ändrats vid något tillfälle, så den filen har inte "
 #~ "tagits bort, men den används inte längre."
+
 #~ msgid ""
 #~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
 #~ "more information) instead of modifying dhclient-script."
 #~ msgstr ""
 #~ "Vänligen överväg att använda infrastrukturen för krokar (se dhclient-"
 #~ "script(8) för mer information) istället för att modifiera dhclient-script."
+
 #~ msgid "dhclient needs restarting"
 #~ msgstr "dhclient behöver startas om"
+
 #~ msgid ""
 #~ "As always, dhclient is not restarted on upgrade, so you are still running "
 #~ "the previous version of dhclient. You can restart it by doing an ifdown "
@@ -191,12 +236,14 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "genom att köra ifdown och ifup på de nätverksgränssnitt som är "
 #~ "konfigurerade att använda DHCP, eller genom att uttryckligen döda och "
 #~ "sedan starta upp dhclient igen."
+
 #~ msgid ""
 #~ "Naturally, you should exercise caution if you are managing a remote "
 #~ "server via an interface using DHCP."
 #~ msgstr ""
 #~ "Självklart bör du vidtaga försiktighetsåtgärder om du administrerar en "
 #~ "avlägsen server via ett nätverksgränssnitt som använder DHCP."
+
 #~| msgid ""
 #~| "Please enter the names of the network interfaces that dhcp3-relay should "
 #~| "attempt to configure, as a space-separated list."
@@ -206,6 +253,7 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ msgstr ""
 #~ "Vänligen ange namnen på de nätverksgränssnitt som dhcp3-relay skall "
 #~ "försöka konfigurera, separerade med mellanslag."
+
 #~| msgid ""
 #~| "Please enter a space-separated list of interfaces names (e.g. eth0)  on "
 #~| "which the server should answer DHCP requests."
@@ -215,6 +263,7 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ msgstr ""
 #~ "Vänligen ange en lista med nätverksgränssnitt (t.ex. eth0), avgränsade "
 #~ "med mellanslag, för vilka servern skall svara på DHCP-förfrågningar."
+
 #, fuzzy
 #~ msgid ""
 #~ "The names of the network interfaces that dhcrelay should attempt to "
@@ -228,6 +277,7 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "på kommandolinjen kommer dhcrelay att identifiera nätverkskortet, ta bort "
 #~ "ta bort nätverkskort utan broadcastflagga om möjligt och försöka "
 #~ "konfigurera varje kort."
+
 #~ msgid ""
 #~ "You can enter one or more valid interface names, like eth0. If you want "
 #~ "to serve DHCP request on more than one interface, please separate them "
@@ -238,6 +288,6 @@ msgstr "Nätverksgränssnitten kommer automatiskt identifieras om detta fält l�
 #~ "ta emot DHCP-förfrågningar på mer än ett kort, separera dom med "
 #~ "mellanslag. Om du vill att dhcpd ska själv fundera ut vilket kort, lämna "
 #~ "denna parameter blank."
+
 #~ msgid "On what network interfaces should the DHCP server listen?"
 #~ msgstr "På vilken nätverkskort ska DHCP-servern lyssna?"
-
