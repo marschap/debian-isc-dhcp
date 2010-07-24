@@ -143,7 +143,7 @@ Priority: optional
 Architecture: any
 Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Provides: dhcp3-relay
-Conflicts: dhcp-relay, dhcp3-relay
+Conflicts: dhcp-relay
 Replaces: dhcp3-relay
 Description: ISC DHCP relay daemon
  This is the relay from the Internet Software Consortium's implementation of

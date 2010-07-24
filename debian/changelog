@@ -1,3 +1,10 @@
+isc-dhcp (4.1.1-P1-9) UNRELEASED; urgency=high
+
+  * debian/control: really don't make the new packages conflict with the
+    old/transitional packages (closes: #590186)
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 24 Jul 2010 10:03:25 -0700
+
 isc-dhcp (4.1.1-P1-8) unstable; urgency=low
 
   * debian/dhcp3-client.postrm: bring back to clean up cruft (closes: #588203)
