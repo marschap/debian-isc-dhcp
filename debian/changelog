@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
+
+  * Updated Japanese debconf template translation (closes: #590239)
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 28 Aug 2010 19:23:50 -0700
+
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 
   * debian/control: really don't make the new packages conflict with the
