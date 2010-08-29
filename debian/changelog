@@ -6,8 +6,9 @@ isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
   * Updated Spanish debconf template translation (closes: #592173)
   * Updated Galacian debconf template translation (closes: #592810)
   * Updated Czech debconf template translation (closes: #593228)
+  * Updated Italian debconf template translation (closes: #593576)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 28 Aug 2010 19:40:14 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sat, 28 Aug 2010 19:41:22 -0700
 
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 
