@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: dhcp3 3.0.3-6\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2010-07-16 09:41+0100\n"
+"PO-Revision-Date: 2010-08-07 04:56+0100\n"
 "Last-Translator: Martin Bagge / brother <brother@bsnet.se>\n"
 "Language-Team: Swedish <debian-l10n-swedish@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
@@ -102,7 +102,6 @@ msgstr "Manuell konfiguration krävs efter installationen"
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
-#, fuzzy
 #| msgid ""
 #| "After the DHCP server is installed, you will need to manually configure "
 #| "it by editing the file /etc/dhcp3/dhcpd.conf. Please note that the dhcpd."
@@ -114,9 +113,9 @@ msgid ""
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
 "Efter att DHCP-servern är installerad behöver du manuellt konfigurera den "
-"genom att ändra i filen /etc/isc-dhcp3/dhcpd.conf. Observera att dhcpd.conf-"
+"genom att ändra i filen /etc/isc-dhcp/dhcpd.conf. Observera att dhcpd.conf-"
 "filen som skickas med endast är ett exempel och behöver ändras för att passa "
-"din nätverksmiljö."
+"den aktuella nätverksmiljön."
 
 #. Type: note
 #. Description
