@@ -16,10 +16,10 @@
 # Yuri Kozlov <yuray@komyakino.ru>, 2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: isc-dhcp 4.1.1-P1-7\n"
+"Project-Id-Version: isc-dhcp 4.1.1-P1-9\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2010-07-16 10:10+0400\n"
+"PO-Revision-Date: 2010-08-01 17:03+0400\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
@@ -27,8 +27,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: ru\n"
 "X-Generator: Lokalize 1.0\n"
-"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
-"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: string
 #. Description
@@ -111,7 +111,6 @@ msgstr "После установки требуется ручная настр
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
-#, fuzzy
 #| msgid ""
 #| "After the DHCP server is installed, you will need to manually configure "
 #| "it by editing the file /etc/dhcp3/dhcpd.conf. Please note that the dhcpd."
@@ -123,7 +122,7 @@ msgid ""
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
 "После того как DHCP-сервер установлен, вам нужно вручную настроить его, "
-"отредактировав файл /etc/dhcp3/dhcpd.conf. Обратите внимание, что "
+"отредактировав файл /etc/dhcp/dhcpd.conf. Обратите внимание, что "
 "устанавливается всего лишь пример файла dhcpd.conf, и его нужно адаптировать "
 "к существующей сети."
 
