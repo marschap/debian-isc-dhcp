@@ -10,8 +10,12 @@ isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
   * debian/dhcp3-server.postinst: reinstate, remove obsolete init script
     (closes: #594527)
   * debian/dhcp3-relay.postinst: reinstate, remove obsolete init script
+  * debian/control: make all of the transitional dummy packages Priority: extra
+    and Section: oldlibs (closes: #594339)
+  * debian/control: add iproute to dependencies of isc-dhcp-client
+  * Updated Portugeuse debconf template translation (closes: #597143)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 28 Aug 2010 21:09:11 -0700
+ -- Andrew Pollock <apollock@debian.org>  Tue, 21 Sep 2010 12:05:52 -0700
 
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 

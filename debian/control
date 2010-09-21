@@ -87,7 +87,7 @@ Description: API for accessing and modifying the DHCP server and client state
 
 Package: isc-dhcp-client
 Architecture: any
-Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), iproute, ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
 Provides: dhcp3-client
 Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), resolvconf (<= 1.45), ifupdown (<< 0.6.8+nmu3)
@@ -174,7 +174,8 @@ Description: DHCP relay daemon (debugging symbols)
  Extra documentation can be found in the package isc-dhcp-common.
 
 Package: dhcp3-server
-Priority: optional
+Priority: extra
+Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-server, ${misc:Depends}
 Description: ISC DHCP server (transitional package)
@@ -194,7 +195,8 @@ Description: ISC DHCP server (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-client
-Priority: important
+Priority: extra
+Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-client, ${misc:Depends}
 Description: ISC DHCP server (transitional package)
@@ -215,7 +217,8 @@ Description: ISC DHCP server (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-relay
-Priority: optional
+Priority: extra
+Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-relay, ${misc:Depends}
 Description: ISC DHCP relay (transitional package)
@@ -232,7 +235,8 @@ Description: ISC DHCP relay (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-common
-Priority: important
+Priority: extra
+Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-common, ${misc:Depends}
 Description: ISC DHCP common files (transitional package)
@@ -245,8 +249,8 @@ Description: ISC DHCP common files (transitional package)
  This dummy package may be safely removed after upgrading to squeeze
 
 Package: dhcp3-dev
-Priority: optional
-Section: devel
+Priority: extra
+Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-dev, ${misc:Depends}
 Description: ISC DHCP development files (transitional package)
