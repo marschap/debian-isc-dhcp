@@ -14,8 +14,9 @@ isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
     and Section: oldlibs (closes: #594339)
   * debian/control: add iproute to dependencies of isc-dhcp-client
   * Updated Portugeuse debconf template translation (closes: #597143)
+  * Added Danish debconf template translation (closes: #600748)
 
- -- Andrew Pollock <apollock@debian.org>  Tue, 21 Sep 2010 12:05:52 -0700
+ -- Andrew Pollock <apollock@debian.org>  Wed, 20 Oct 2010 15:15:55 -0700
 
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 
