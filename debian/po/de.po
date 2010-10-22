@@ -19,10 +19,10 @@ msgstr ""
 "PO-Revision-Date: 2010-07-18 21:01+0200\n"
 "Last-Translator: Erik Schanze <eriks@debian.org>\n"
 "Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: de\n"
 "X-Generator: KBabel 1.11.4\n"
 
 #. Type: string
@@ -38,9 +38,9 @@ msgid ""
 "Please enter the hostname or IP address of at least one DHCP server to which "
 "DHCP and BOOTP requests should be relayed."
 msgstr ""
-"Bitte geben Sie den Rechnernamen oder die IP-Adresse mindestens "
-"eines DHCP-Servers ein, zu dem die DHCP- und BOOTP-Anfragen "
-"weitergeleitet werden sollen."
+"Bitte geben Sie den Rechnernamen oder die IP-Adresse mindestens eines DHCP-"
+"Servers ein, zu dem die DHCP- und BOOTP-Anfragen weitergeleitet werden "
+"sollen."
 
 #. Type: string
 #. Description
@@ -49,16 +49,15 @@ msgid ""
 "You can specify multiple server names or IP addresses (in a space-separated "
 "list)."
 msgstr ""
-"Sie können mehrere Servernamen oder IP-Adressen (durch "
-"Leerzeichen getrennt) eingeben."
+"Sie können mehrere Servernamen oder IP-Adressen (durch Leerzeichen getrennt) "
+"eingeben."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:3001
 msgid "Interfaces the DHCP relay should listen on:"
 msgstr ""
-"Netzwerkschnittstellen, an denen der DHCP-Relay auf Anfragen lauschen "
-"soll:"
+"Netzwerkschnittstellen, an denen der DHCP-Relay auf Anfragen lauschen soll:"
 
 #. Type: string
 #. Description
@@ -68,9 +67,8 @@ msgid ""
 "configure. Multiple interface names should be entered as a space-separated "
 "list."
 msgstr ""
-"Bitte geben Sie die Netzwerkschnittstelle(n) ein, die der "
-"DHCP-Relay versuchen soll einzustellen. Mehrere "
-"Schnittstellennamen sollten in einer "
+"Bitte geben Sie die Netzwerkschnittstelle(n) ein, die der DHCP-Relay "
+"versuchen soll einzustellen. Mehrere Schnittstellennamen sollten in einer "
 "Liste, durch Leerzeichen getrennt, eingegeben werden."
 
 #. Type: string
@@ -81,10 +79,9 @@ msgid ""
 "network interfaces by the DHCP relay, in which case only broadcast "
 "interfaces will be used (if possible)."
 msgstr ""
-"Geben Sie hier nichts ein, falls der DHCP-Relay die "
-"Netzwerkschnittstellen automatisch erkennen und einstellen "
-"soll. Dabei werden nur Broadcast-Schnittstellen benutzt "
-"(falls möglich)."
+"Geben Sie hier nichts ein, falls der DHCP-Relay die Netzwerkschnittstellen "
+"automatisch erkennen und einstellen soll. Dabei werden nur Broadcast-"
+"Schnittstellen benutzt (falls möglich)."
 
 #. Type: string
 #. Description
@@ -118,10 +115,10 @@ msgid ""
 "by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
-"Nachdem der DHCP-Server installiert wurde, müssen Sie ihn "
-"manuell durch Anpassen der Datei /etc/dhcp/dhcpd.conf einrichten. "
-"Bitte beachten Sie, dass die mitgelieferte Datei dhcpd.conf nur "
-"ein Beispiel ist und an die Netzwerkumgebung angepasst werden muss."
+"Nachdem der DHCP-Server installiert wurde, müssen Sie ihn manuell durch "
+"Anpassen der Datei /etc/dhcp/dhcpd.conf einrichten. Bitte beachten Sie, dass "
+"die mitgelieferte Datei dhcpd.conf nur ein Beispiel ist und an die "
+"Netzwerkumgebung angepasst werden muss."
 
 #. Type: note
 #. Description
@@ -133,7 +130,8 @@ msgstr "Bitte richten Sie den DHCP-Server sofort nach der Installation ein."
 #. Description
 #: ../isc-dhcp-server.templates:3001
 msgid "Network interfaces on which the DHCP server should listen:"
-msgstr "Netzwerkschnittstelle, an der der DHCP-Server auf Anfragen warten soll:"
+msgstr ""
+"Netzwerkschnittstelle, an der der DHCP-Server auf Anfragen warten soll:"
 
 #. Type: string
 #. Description
@@ -143,16 +141,15 @@ msgid ""
 "for DHCP requests. Multiple interface names should be entered as a space-"
 "separated list."
 msgstr ""
-"Bitte geben Sie die Netzwerkschnittstelle(n) ein, an der bzw. "
-"denen der DHCP-Server auf DHCP-Anfragen lauschen soll. Mehrere "
-"Schnittstellennamen sollten in einer Liste, durch Leerzeichen "
-"getrennt, eingegeben werden."
+"Bitte geben Sie die Netzwerkschnittstelle(n) ein, an der bzw. denen der DHCP-"
+"Server auf DHCP-Anfragen lauschen soll. Mehrere Schnittstellennamen sollten "
+"in einer Liste, durch Leerzeichen getrennt, eingegeben werden."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-server.templates:3001
-msgid "The interfaces will be automatically detected if this field is left blank."
+msgid ""
+"The interfaces will be automatically detected if this field is left blank."
 msgstr ""
-"Die Schnittstellen werden automatisch erkannt, falls hier "
-"nichts eingegeben wird."
-
+"Die Schnittstellen werden automatisch erkannt, falls hier nichts eingegeben "
+"wird."

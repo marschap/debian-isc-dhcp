@@ -20,10 +20,10 @@ msgstr ""
 "PO-Revision-Date: 2010-07-25 14:19+0900\n"
 "Last-Translator: Hideki Yamane <henrich@debian.org>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ja\n"
 
 #. Type: string
 #. Description
@@ -48,8 +48,8 @@ msgid ""
 "You can specify multiple server names or IP addresses (in a space-separated "
 "list)."
 msgstr ""
-"サーバ名、または IP アドレスの複数指定が可能です (リストを空白で区切ってくださ"
-"い)。"
+"サーバ名、または IP アドレスの複数指定が可能です (リストを空白で区切ってくだ"
+"さい)。"
 
 #. Type: string
 #. Description
@@ -137,8 +137,8 @@ msgid ""
 "separated list."
 msgstr ""
 "どのネットワークインターフェイスで DHCP サーバは DHCP リクエストを待ち受ける"
-"のかを指定してください。複数のインターフェイス名は空白で区切ったリストで入"
-"力する必要があります。"
+"のかを指定してください。複数のインターフェイス名は空白で区切ったリストで入力"
+"する必要があります。"
 
 #. Type: string
 #. Description
@@ -146,4 +146,3 @@ msgstr ""
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "値が入力されなかった場合、インターフェイスは自動的に検出されます。"
-
