@@ -1,0 +1,21 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## no-libcrypto.dpatch by Simon McVittie <smcv@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' isc-dhcp-4.1.1-P1~/configure.ac isc-dhcp-4.1.1-P1/configure.ac
+--- isc-dhcp-4.1.1-P1~/configure.ac	2010-10-20 22:01:22.000000000 +0100
++++ isc-dhcp-4.1.1-P1/configure.ac	2010-10-20 22:06:38.046156633 +0100
+@@ -419,10 +419,6 @@
+ # Look for optional headers.
+ AC_CHECK_HEADERS(sys/socket.h net/if_dl.h net/if6.h regex.h)
+ 
+-# find an MD5 library
+-AC_SEARCH_LIBS(MD5_Init, [crypto])
+-AC_SEARCH_LIBS(MD5Init, [crypto])
+-
+ # Solaris needs some libraries for functions
+ AC_SEARCH_LIBS(socket, [socket])
+ AC_SEARCH_LIBS(inet_ntoa, [nsl])

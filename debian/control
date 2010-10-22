@@ -3,7 +3,7 @@ Section: net
 Priority: important
 Maintainer: Debian ISC DHCP maintainers <pkg-dhcp-devel@lists.alioth.debian.org>
 Uploaders: Andrew Pollock <apollock@debian.org>
-Build-Depends: debhelper (>> 7), dpkg-dev (>= 1.13.2), groff, dpatch, po-debconf, libldap2-dev, libssl-dev, autoconf, automake
+Build-Depends: debhelper (>> 7), dpkg-dev (>= 1.13.2), groff, dpatch, po-debconf, libldap2-dev, libssl-dev, autoconf, automake, pkg-config
 Standards-Version: 3.9.1
 
 Package: isc-dhcp-server

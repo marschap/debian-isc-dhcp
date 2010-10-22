@@ -2751,20 +2751,13 @@ diff -urNad isc-dhcp.orig/server/Makefile.am isc-dhcp/server/Makefile.am
  
  man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  EXTRA_DIST = $(man_MANS)
-diff -urNad isc-dhcp.orig/configure.ac isc-dhcp/configure.ac
---- isc-dhcp.orig/configure.ac	2009-12-30 10:56:15.000000000 +0100
-+++ isc-dhcp/configure.ac	2009-12-30 12:34:28.000000000 +0100
-@@ -389,8 +389,78 @@ AC_TRY_LINK(
+diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' isc-dhcp-4.1.1-P1~/configure.ac isc-dhcp-4.1.1-P1/configure.ac
+--- isc-dhcp-4.1.1-P1~/configure.ac	2010-10-20 22:14:33.694570303 +0100
++++ isc-dhcp-4.1.1-P1/configure.ac	2010-10-20 22:17:15.682086336 +0100
+@@ -419,6 +419,74 @@
+ # Look for optional headers.
  AC_CHECK_HEADERS(sys/socket.h net/if_dl.h net/if6.h regex.h)
  
- # find an MD5 library
-+saved_LIBS="$LIBS"
-+LIBS=""
- AC_SEARCH_LIBS(MD5_Init, [crypto])
- AC_SEARCH_LIBS(MD5Init, [crypto])
-+CRYPTO_LIBS="$LIBS"
-+LIBS="$saved_LIBS"
-+
 +AC_ARG_ENABLE(ldap-conf,
 +	AS_HELP_STRING([--enable-ldap-conf],
 +		[enable ldap configuration support (default is no)]))
@@ -2806,7 +2799,10 @@ diff -urNad isc-dhcp.orig/configure.ac isc-dhcp/configure.ac
 +		# should be possible to just link against libldap...
 +		# All this at least in case of openldap-2.4.x.
 +		#
-+		#PKG_CHECK_MODULES(OPENSSL, [openssl])
++		# However, if we're using something that uses libssl anyway,
++		# we should use libcrypto's MD5, not our own. So link libssl
++		# after all.
++		PKG_CHECK_MODULES(OPENSSL, [openssl])
 +		#if test "x$OPENSSL_LIBS" != x ; then
 +		#	# reset it, libcrypto is in OPENSSL_LIBS
 +		#	CRYPTO_LIBS=""
@@ -2825,14 +2821,14 @@ diff -urNad isc-dhcp.orig/configure.ac isc-dhcp/configure.ac
 +		])
 +	fi
 +fi
-+AC_SUBST(CRYPTO_LIBS)
 +AC_SUBST(LDAP_LIBS)
 +AC_SUBST(LDAP_CPPFLAGS)
 +AC_SUBST(OPENSSL_LIBS)
 +AC_SUBST(OPENSSL_CFLAGS)
- 
++
  # Solaris needs some libraries for functions
  AC_SEARCH_LIBS(socket, [socket])
+ AC_SEARCH_LIBS(inet_ntoa, [nsl])
 diff -urNad isc-dhcp.orig/server/ldap_casa.c isc-dhcp/server/ldap_casa.c
 --- isc-dhcp.orig/server/ldap_casa.c	2009-12-30 10:56:15.000000000 +0100
 +++ isc-dhcp/server/ldap_casa.c	2009-12-30 12:34:28.000000000 +0100
