@@ -21,8 +21,9 @@ isc-dhcp (4.1.1-P1-10) unstable; urgency=low
     (closes: #592361)
   * debian/control: added Vcs-Git and Vcs-Browser fields
   * debian/README.source: made a more explicit mention of how the build works
+  * Add debian/source/format (sticking with 1.0 for now)
 
- -- Andrew Pollock <apollock@debian.org>  Thu, 21 Oct 2010 21:41:51 -0700
+ -- Andrew Pollock <apollock@debian.org>  Thu, 21 Oct 2010 22:25:59 -0700
 
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 
