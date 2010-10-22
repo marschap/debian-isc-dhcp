@@ -1,4 +1,4 @@
-isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
+isc-dhcp (4.1.1-P1-10) unstable; urgency=low
 
   * Updated Japanese debconf template translation (closes: #590239)
   * Updated Russian debconf template translation (closes: #591240)
@@ -20,8 +20,9 @@ isc-dhcp (4.1.1-P1-10) UNRELEASED; urgency=low
   * Added patch from Simon McVittie to stop unnecessary linking with libcrypto
     (closes: #592361)
   * debian/control: added Vcs-Git and Vcs-Browser fields
+  * debian/README.source: made a more explicit mention of how the build works
 
- -- Andrew Pollock <apollock@debian.org>  Thu, 21 Oct 2010 21:21:07 -0700
+ -- Andrew Pollock <apollock@debian.org>  Thu, 21 Oct 2010 21:41:51 -0700
 
 isc-dhcp (4.1.1-P1-9) unstable; urgency=high
 
