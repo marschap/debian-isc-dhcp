@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-P1-11) unstable; urgency=low
+
+  * debian/control: make isc-dhcp-client's dependency on iproute Linux-only (closes: #601154)
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 23 Oct 2010 14:26:41 -0700
+
 isc-dhcp (4.1.1-P1-10) unstable; urgency=low
 
   * Updated Japanese debconf template translation (closes: #590239)
