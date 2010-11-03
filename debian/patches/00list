@@ -2,6 +2,10 @@
 dhclient-script-exit-status
 # emailed upstream
 fix_groff_warnings
+
+# Debian specific, not appropriate to send upstream
+fix_exit_hook_doc_manpage
+
 # I think this has been independently emailed upstream
 no_loopback_checksum
 
