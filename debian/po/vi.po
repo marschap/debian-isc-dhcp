@@ -1,48 +1,43 @@
-# Vietnamese Translation for DHCP3.
-# Copyright © 2007 Free Software Foundation, Inc.
-# Clytie Siddall <clytie@riverland.net.au>, 2005-2007.
+# Vietnamese Translation for ISC DHCP.
+# Copyright © 2010 Free Software Foundation, Inc.
+# Clytie Siddall <clytie@riverland.net.au>, 2005-2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dhcp3_3.0.4-14\n"
+"Project-Id-Version: isc-dhcp 4.1.1-P1-11\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2007-06-02 15:46+0930\n"
+"PO-Revision-Date: 2010-10-27 15:29+1030\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: LocFactoryEditor 1.6.3b1\n"
+"X-Generator: LocFactoryEditor 1.8\n"
 
-# msgid "DHCP servers to which the DHCP relay should forward requests to:"
+#: ../isc-dhcp-relay.templates:2001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:2001
 msgid "Servers the DHCP relay should forward requests to:"
-msgstr "Máy phục vụ DHCP tới chúng trình gửi tiếp DHCP nên tiếp các yêu cầu :"
+msgstr "Máy phục vụ tới đó trình gửi tiếp DHCP nên chuyển tiếp yêu cầu :"
 
-# msgid ""
-# The name or IP address of at least one DHCP server to which DHCP and 
+# The name or IP address of at least one DHCP server to which DHCP and
 # BOOTP requests should be relayed must be specified on the command line.
+#: ../isc-dhcp-relay.templates:2001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:2001
 msgid ""
 "Please enter the hostname or IP address of at least one DHCP server to which "
 "DHCP and BOOTP requests should be relayed."
 msgstr ""
-"Hãy nhập tên máy hay địa chỉ IP của ít nhất một máy phục vụ DHCP tới đó các "
-"yêu cầu kiểu DHCP và BOOTP nên được gởi tiếp."
+"Hãy nhập tên máy hoặc địa chỉ IP của ít nhất một máy phục vụ DHCP tới đó cần chuyển tiếp yêu cầu DHCP và BOOTP."
 
-# msgid ""
-# You can specify more than one server, just separate the server names (or 
+# You can specify more than one server, just separate the server names (or
 # IP addresses) with spaces.
+#: ../isc-dhcp-relay.templates:2001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:2001
 msgid ""
 "You can specify multiple server names or IP addresses (in a space-separated "
 "list)."
@@ -50,15 +45,15 @@ msgstr ""
 "Cũng có thể ghi rõ nhiều tên máy phục vụ hay địa chỉ IP, trong danh sách "
 "định giới bằng dấu cách."
 
+#: ../isc-dhcp-relay.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:3001
 msgid "Interfaces the DHCP relay should listen on:"
-msgstr "Giao diện trên chúng trình chuyển tiếp DHCP nên lắng nghe:"
+msgstr "Giao diện trên chúng trình gửi tiếp DHCP nên lắng nghe:"
 
+#: ../isc-dhcp-relay.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:3001
 msgid ""
 "Please specify which network interface(s) the DHCP relay should attempt to "
 "configure. Multiple interface names should be entered as a space-separated "
@@ -67,56 +62,48 @@ msgstr ""
 "Hãy ghi rõ những giao diện mạng nào trình gửi tiếp DHCP nên thử cấu hình. "
 "Nhiều tên giao diện nên được nhập trong danh sách định giới bằng dấu cách."
 
+#: ../isc-dhcp-relay.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:3001
 msgid ""
 "Leave this field blank to allow for automatic detection and configuration of "
 "network interfaces by the DHCP relay, in which case only broadcast "
 "interfaces will be used (if possible)."
 msgstr ""
-"Bỏ rỗng để cho phép khả năng tự động phát hiện và cấu hình giao diện mạng "
-"bởi trình gửi tiếp DHCP, trong trường hợp đó chỉ giao diện kiểu quảng bá sẽ "
-"được dùng (nếu có thể)."
+"Bỏ trống trường này để cho phép trình gửi tiếp DHCP tự động phát hiện và cấu hình giao diện mạng, trong trường hợp đó chỉ sử dụng giao diện kiểu quảng bá (nếu có thể)."
 
-# msgid "Additional options for the Daemon:"
+#: ../isc-dhcp-relay.templates:4001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:4001
 msgid "Additional options for the DHCP relay daemon:"
-msgstr "Tùy chọn thêm cho trình nền gửi tiếp DHCP:"
+msgstr "Tùy chọn bổ sung cho trình nền gửi tiếp DHCP:"
 
-# msgid ""
 # It is possible to specify additional options for the DHCP relay daemon.
+#: ../isc-dhcp-relay.templates:4001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:4001
 msgid "Please specify any additional options for the DHCP relay daemon."
-msgstr "Hãy ghi rõ tùy chọn thêm nào cho trình nền gởi tiếp DHCP."
+msgstr "Hãy ghi rõ tùy chọn bổ sung nào cho trình nền gửi tiếp DHCP."
 
-# msgid "example: \"-m replace\" or \"-a -D\""
+#: ../isc-dhcp-relay.templates:4001
 #. Type: string
 #. Description
-#: ../isc-dhcp-relay.templates:4001
 msgid "For example: '-m replace' or '-a -D'."
-msgstr "Thí dụ : « -m replace » (thay thế) hay « -a -D »."
+msgstr "Thí dụ : « -m replace » hay « -a -D »."
 
-# msgid "Manual configuration required after installation!"
+#: ../isc-dhcp-server.templates:2001
 #. Type: note
 #. Description
-#: ../isc-dhcp-server.templates:2001
 msgid "Manual configuration required after installation"
-msgstr "Cấu hình thủ công cần thiết sau khi cài đặt"
+msgstr "Sau khi cài đặt thì cũng cần cấu hình bằng tay"
 
-# msgid ""
-# After the DHCP server is installed you will need to manually configure it 
-# by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that a sample 
-# dhcpd.conf is supplied, but the configuration there is just a sample that 
+# After the DHCP server is installed you will need to manually configure it
+# by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that a sample
+# dhcpd.conf is supplied, but the configuration there is just a sample that
 # requires editing and customization to your own network environment.
+#: ../isc-dhcp-server.templates:2001
 #. Type: note
 #. Description
-#: ../isc-dhcp-server.templates:2001
-#, fuzzy
 #| msgid ""
 #| "After the DHCP server is installed, you will need to manually configure "
 #| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
@@ -127,170 +114,33 @@ msgid ""
 "by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
-"Sau khi cài đặt xong trình phục vụ DHCP, bạn cần phải tự cấu hình nó bằng "
-"cách sửa đổi tập tin </etc/isc-dhcp/dhcpd.conf>. Ghi chú rằng tập tin <dhcpd."
-"conf> có sẵn chỉ là mẫu, vẫn còn cần phải được áp dụng cho môi trường mạng."
+"Một khi cài đặt trình phục vụ DHCP thì bạn cần phải tự cấu hình nó bằng cách chỉnh sửa tập tin « /etc/dhcp/dhcpd.conf ». Ghi chú rằng tập tin « dhcpd.conf » có sẵn chỉ là một mẫu thí dụ mà bạn cần phải điều chỉnh để thích hợp với môi trường mạng."
 
+#: ../isc-dhcp-server.templates:2001
 #. Type: note
 #. Description
-#: ../isc-dhcp-server.templates:2001
 msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Hãy cấu hình trình phục vụ DHCP đúng sau khi cài đặt xong."
+msgstr "Một khi cài đặt thì hãy cấu hình trình phục vụ DHCP."
 
+#: ../isc-dhcp-server.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
 msgid "Network interfaces on which the DHCP server should listen:"
-msgstr "Giao diện mạng trên chúng trình phục vụ DHCP nên lắng nghe:"
+msgstr "Giao diện mạng nào trên đó trình phục vụ DHCP nên lắng nghe:"
 
+#: ../isc-dhcp-server.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
 "separated list."
 msgstr ""
-"Hãy ghi rõ trên những giao diện mạng nào trình phục vụ DHCP nên lắng nghe "
-"yêu cầu DHCP. Nhiều tên giao diện nên được nhập trong danh sách định giới "
-"bằng dấu cách."
+"Hãy ghi rõ trên những giao diện mạng nào trình phục vụ DHCP nên lắng nghe yêu cầu DHCP. Nhiều tên giao diện nên được nhập trong danh sách định giới bằng dấu cách."
 
+#: ../isc-dhcp-server.templates:3001
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
-msgstr "Bỏ rỗng nên tự động phát hiện giao diện."
-
-#~ msgid "Non-authoritative version of DHCP server"
-#~ msgstr "Phiên bản trình phục vụ DHCP không có thẩm quyền"
-
-# msgid "The version 3 DHCP server is now non-authoritative by default."
-#~ msgid "The version 3 DHCP server is non-authoritative by default."
-#~ msgstr "Trình phục vụ DHCP phiên bản 3 có thẩm quyền theo mặc định."
-
-# msgid ""
-# This means that if a client requests an address that the server knows 
-# nothing about and the address is incorrect for that network segment, the 
-# server will _not_ send a DHCPNAK (which tells the client it should stop 
-# using the address.) If you want to change this behavior, you must 
-# explicitly state in dhcpd.conf what network segments your server is 
-# authoritative for using the 'authoritative' statement.
-#~ msgid ""
-#~ "This means that if a client requests an address that the server knows "
-#~ "nothing about and the address is incorrect for that network segment, the "
-#~ "server will _not_ send a DHCPNAK (which tells the client it should stop "
-#~ "using the address). If you want to change this behavior, you must "
-#~ "explicitly state in dhcpd.conf what network segments your server is "
-#~ "authoritative for using the 'authoritative' statement."
-#~ msgstr ""
-#~ "Có nghĩa là nếu trình khách yêu cầu một địa chỉ la, địa chỉ cũng không "
-#~ "đúng cho đoạn mạng này, trình phục vụ DHCP sẽ _không_ gởi DHCPNAK (mà báo "
-#~ "trình khách thôi dùng địa chỉ đó). Muốn thay đổi ứng xử này thì phải ghi "
-#~ "dứt khoát vào tập tin <dhcpd.conf> những đoạn mạng cho chúng trình phục "
-#~ "vụ của bạn có thẩm quyền, bằng cách sử dụng câu lệnh « authoratitive »."
-
-#~ msgid "Change in default behaviour of the next-server directive"
-#~ msgstr ""
-#~ "Thay đổi ứng xử mặc định của chỉ thị 'next-server' (máy phục vụ kế tiếp)"
-
-#, fuzzy
-#~| msgid ""
-#~| "From version 3.0.3, the DHCP server's default value of the next-server "
-#~| "directive has changed. If you are network booting clients, and your TFTP "
-#~| "server is your DHCP server, you need to explicitly set a next-server "
-#~| "directive to state this. Please see /usr/share/doc/isc-dhcp-server/NEWS."
-#~| "Debian.gz and /usr/share/doc/isc-dhcp-common/RELNOTES.gz for more "
-#~| "information."
-#~ msgid ""
-#~ "From version 3.0.3, the DHCP server's default value of the next-server "
-#~ "directive has changed. If you are network booting clients, and your TFTP "
-#~ "server is your DHCP server, you need to explicitly set a next-server "
-#~ "directive to state this. Please see /usr/share/doc/dhcp3-server/NEWS."
-#~ "Debian.gz and /usr/share/doc/dhcp3-common/RELNOTES.gz for more "
-#~ "information."
-#~ msgstr ""
-#~ "Kể từ phiên bản 3.0.3, giá trị mặc định của chỉ thị máy phục vụ kế tiếp "
-#~ "đã thay đổi cho mỗi máy phục vụ DHCP. Nếu bạn khởi động trình khách qua "
-#~ "mạng, và máy phục vụ TFTP cũng là máy phục vụ DHCP, bạn cần phải đặt "
-#~ "riêng một chỉ thị 'next-server' để ghi như thế. Hãy xem tài liệu tin tức "
-#~ "</usr/share/doc/dhcp3-server/NEWS.Debian> và tài liệu ghi chú phát hành </"
-#~ "usr/share/doc/dhcp3-server/RELNOTES.gz> để tìm thông tin thêm."
-
-# msgid "dhclient-script has moved!"
-#~ msgid "dhclient-script moved"
-#~ msgstr "dhclient-script đã di chuyển"
-
-# msgid ""
-# As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer a 
-# conffile. /etc/isc-dhcp/dhclient-script appears to have been modified at 
-# some point, so it has not been removed, however it is no longer being 
-# used.
-#, fuzzy
-#~| msgid ""
-#~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-#~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
-#~| "appears to have been modified at some point, so it has not been removed. "
-#~| "However it is no longer being used."
-#~ msgid ""
-#~ "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
-#~ "registered as a configuration file. /etc/dhcp3/dhclient-script appears to "
-#~ "have been modified at some point, so it has not been removed. However it "
-#~ "is no longer being used."
-#~ msgstr ""
-#~ "Kể từ phiên bản 3.0.4-2, « dhclient-script » được cài đặt vào thư mục « /"
-#~ "sbin », cũng không còn được đăng ký lại là tập tin cấu hình. Có vẻ là « /"
-#~ "etc/dhcp3/dhclient-script » bị sửa đổi vào điểm thời nào : vì thế nó chưa "
-#~ "bị gỡ bỏ ; cũng không còn được dùng lại."
-
-#~ msgid ""
-#~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
-#~ "more information) instead of modifying dhclient-script."
-#~ msgstr ""
-#~ "Khuyên bạn dùng hạ tầng cơ sở « hook » (xem « dhclient-script » để tìm thêm "
-#~ "thông tin) thay vào sửa đổi « dhclient-script »."
-
-#~ msgid "dhclient needs restarting"
-#~ msgstr "dhclient cần phải được khởi chạy lại"
-
-#~ msgid ""
-#~ "As always, dhclient is not restarted on upgrade, so you are still running "
-#~ "the previous version of dhclient. You can restart it by doing an ifdown "
-#~ "and ifup on the interface(s) that are configured to use DHCP, or by "
-#~ "explicitly killing and restarting dhclient."
-#~ msgstr ""
-#~ "dhclient không được khởi chạy lại khi nâng cấp, vì thế bạn vẫn còn chạy "
-#~ "phiên bản dhclient trước. Cũng có thể khởi chạy lại bằng cách làm « ifdown "
-#~ "» và « ifup » trên mỗi giao diện được cấu hình để sử dụng DHCP, hoặc bằng "
-#~ "cách buộc kết thúc và khởi chạy lại dhclient một cách dứt khoát."
-
-#~ msgid ""
-#~ "Naturally, you should exercise caution if you are managing a remote "
-#~ "server via an interface using DHCP."
-#~ msgstr "Cũng cần phải cẩn thận khi quản lý máy phục vụ từ xa bằng DHCP."
-
-#~ msgid ""
-#~ "The names of the network interfaces that dhcrelay should attempt to "
-#~ "configure may be specified on the command line using the -i option. If no "
-#~ "interface names are specified on the command line dhcrelay will identify "
-#~ "all network interfaces, elimininating non-broadcast interfaces if "
-#~ "possible, and attempt to configure each interface."
-#~ msgstr ""
-#~ "Các tên giao diện mạng mà trình dhcrelay nên thử cấu hình có thể được xác "
-#~ "định trên dòng lệnh bằng tùy chọn « -l ». Không ghi rõ tên nào thì trình "
-#~ "dhcrelay sẽ nhận diện mọi giao diện mạng, loại trừ các giao diện khác "
-#~ "kiểu quảng bá nếu có thể, và cố gắng cấu hình mỗi giao diện."
-
-#~ msgid ""
-#~ "You can enter one or more valid interface names, like eth0. If you want "
-#~ "to serve DHCP request on more than one interface, please separate them "
-#~ "with spaces. If you want dhcpd to figure out the interface leave this "
-#~ "parameter blank."
-#~ msgstr ""
-#~ "Có thể nhập một hay nhiều tên giao diện hợp lệ, v.d. « eth0 ». Muốn phục "
-#~ "vụ yêu cầu DHCP trên nhiều giao diện thì định giới những tên giao diện "
-#~ "bằng dấu cách. Nếu bạn muốn trình nền dhcpd tính giao diện đúng, bỏ rỗng "
-#~ "tham số này."
-
-#~ msgid "On what network interfaces should the DHCP server listen?"
-#~ msgstr "Máy phục vụ DHCP nên lắng nghe trên những giao diện mạng nào?"
+msgstr "Bỏ trống trường này thì tự động phát hiện giao diện."

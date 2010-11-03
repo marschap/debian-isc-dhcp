@@ -2,8 +2,9 @@ isc-dhcp (4.1.1-P1-12) UNRELEASED; urgency=low
 
   * Updated patch to correct groff warnings in man pages, to be more
     anatomically correct (thanks to Colin Watson) (closes: #602114)
+  * Updated Vietnamese debconf template translation (closes: #601535)
 
- -- Andrew Pollock <apollock@debian.org>  Tue, 02 Nov 2010 22:57:59 -0700
+ -- Andrew Pollock <apollock@debian.org>  Tue, 02 Nov 2010 23:07:04 -0700
 
 isc-dhcp (4.1.1-P1-11) unstable; urgency=low
 
