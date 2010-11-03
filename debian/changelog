@@ -1,3 +1,10 @@
+isc-dhcp (4.1.1-P1-12) UNRELEASED; urgency=low
+
+  * Updated patch to correct groff warnings in man pages, to be more
+    anatomically correct (thanks to Colin Watson) (closes: #602114)
+
+ -- Andrew Pollock <apollock@debian.org>  Tue, 02 Nov 2010 22:57:59 -0700
+
 isc-dhcp (4.1.1-P1-11) unstable; urgency=low
 
   * debian/control: make isc-dhcp-client's dependency on iproute Linux-only
