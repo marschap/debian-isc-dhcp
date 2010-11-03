@@ -4,7 +4,7 @@ isc-dhcp (4.1.1-P1-12) UNRELEASED; urgency=low
     anatomically correct (thanks to Colin Watson) (closes: #602114)
   * Updated Vietnamese debconf template translation (closes: #601535)
   * Added patch that came from Ubuntu by way of Colin Watson to update
-    dhclient-script(8) to mention the exit hook functionality (closes: #602114)
+    dhclient-script(8) to mention the exit hook functionality (closes: #469203)
 
  -- Andrew Pollock <apollock@debian.org>  Tue, 02 Nov 2010 23:12:28 -0700
 
