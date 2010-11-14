@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-P1-13) unstable; urgency=low
+
+  * Updated Spanish debconf template translation (closes: #603122)
+
+ -- Andrew Pollock <apollock@debian.org>  Sun, 14 Nov 2010 13:16:13 -0800
+
 isc-dhcp (4.1.1-P1-12) unstable; urgency=low
 
   * Updated patch to correct groff warnings in man pages, to be more

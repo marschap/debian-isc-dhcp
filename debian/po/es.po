@@ -32,7 +32,7 @@ msgstr ""
 "Project-Id-Version: dhcp3\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2010-08-08 01:44+0200\n"
+"PO-Revision-Date: 2010-11-11 02:56+0100\n"
 "Last-Translator: Javier Fernández-Sanguino <jfs@debian.org>\n"
 "Language-Team: Debian l10n spanish <debian-l10n-spanish@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
@@ -130,17 +130,11 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
-#, fuzzy
 msgid ""
 "After the DHCP server is installed, you will need to manually configure it "
 "by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
 "supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"Después de instalar el servidor de DHCP necesitará configurarlo manualmente "
-"editando el fichero «/etc/dhcp/dhcpd.conf». Tenga en cuenta que se "
-"proporciona un fichero dhcpd.conf de ejemplo, pero que la configuración que "
-"lleva es sólo un ejemplo que debe personalizarse para que se adapte a su "
-"propio entorno de red."
+msgstr "Después de instalar el servidor de DHCP necesitará configurarlo manualmente editando el fichero «/etc/dhcp/dhcpd.conf». Tenga en cuenta que se proporciona un fichero dhcpd.conf de ejemplo, pero que la configuración que lleva es sólo un ejemplo que debe personalizar para que se adapte a su propio entorno de red."
 
 #. Type: note
 #. Description
