@@ -9,6 +9,9 @@ fix_exit_hook_doc_manpage
 # I think this has been independently emailed upstream
 no_loopback_checksum
 
+# Backported from 4.1.2
+CVE-2010-3611
+
 # must be applied before the LDAP stuff
 no-libcrypto
 

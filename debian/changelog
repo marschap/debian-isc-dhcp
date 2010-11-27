@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-P1-14) unstable; urgency=low
+
+  * Backport fix for CVE-2010-3611 from 4.1.2
+
+ -- Andrew Pollock <apollock@debian.org>  Fri, 19 Nov 2010 20:54:19 -0800
+
 isc-dhcp (4.1.1-P1-13) unstable; urgency=low
 
   * Updated Spanish debconf template translation (closes: #603122)
