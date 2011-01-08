@@ -12,15 +12,19 @@
 
 # The alias handling in here probably still sucks. -mdz
 
+# update /etc/resolv.conf based on received values
 make_resolv_conf() {
     local new_resolv_conf
+
     if [ -n "$new_domain_search" ] || [ -n "$new_domain_name" ] ||
        [ -n "$new_domain_name_servers" ]; then
         new_resolv_conf=/etc/resolv.conf.dhclient-new
         rm -f $new_resolv_conf
+
         if [ -n "$new_domain_name" ]; then
             echo domain ${new_domain_name%% *} >>$new_resolv_conf
         fi
+
         if [ -n "$new_domain_search" ]; then
             #new_domain_search="${new_domain_search% }"
             if [ -n "$new_domain_name" ]; then
@@ -39,6 +43,7 @@ make_resolv_conf() {
         elif [ -n "$new_domain_name" ]; then
             echo "search ${new_domain_name}" >> $new_resolv_conf
         fi
+
         if [ -n "$new_domain_name_servers" ]; then
             for nameserver in $new_domain_name_servers; do
                 echo nameserver $nameserver >>$new_resolv_conf
@@ -46,12 +51,14 @@ make_resolv_conf() {
         else # keep 'old' nameservers
             sed -n /^\w*[Nn][Aa][Mm][Ee][Ss][Ee][Rr][Vv][Ee][Rr]/p /etc/resolv.conf >>$new_resolv_conf
         fi
+
         chown --reference=/etc/resolv.conf $new_resolv_conf
         chmod --reference=/etc/resolv.conf $new_resolv_conf
         mv -f $new_resolv_conf /etc/resolv.conf
     fi
 }
 
+# run given script
 run_hook() {
     local script
     local exit_status
@@ -62,7 +69,6 @@ run_hook() {
         . $script "$@"
     fi
 
-
     if [ -n "$exit_status" ] && [ "$exit_status" -ne 0 ]; then
         logger -p daemon.err "$script returned non-zero exit status $exit_status"
         save_exit_status=$exit_status
@@ -71,6 +77,7 @@ run_hook() {
     return $exit_status
 }
 
+# run scripts in given directory
 run_hookdir() {
     local dir
     local exit_status
@@ -104,6 +111,8 @@ exit_with_hooks() {
     exit $exit_status
 }
 
+
+# set up some variables for DHCPv4 handlers below
 if [ -n "$new_broadcast_address" ]; then
     new_broadcast_arg="broadcast $new_broadcast_address"
 fi
@@ -147,16 +156,16 @@ case "$reason" in
         # The DHCP client is requesting that an interface be
         # configured as required in order to send packets prior to
         # receiving an actual address. - dhclient-script(8)
-
         if [ -n "$alias_ip_address" ]; then
             # Bring down alias interface. Its routes will disappear too.
             ifconfig $interface:0- inet 0
         fi
+
         ifconfig $interface inet 0 up
 
         ;;
-    BOUND|RENEW|REBIND|REBOOT)
 
+    BOUND|RENEW|REBIND|REBOOT)
         if [ -n "$old_host_name" ] && [ -n "$new_host_name" ] &&
            [ "$old_host_name" != "$new_host_name" ]; then
             hostname "$new_host_name"
@@ -173,13 +182,11 @@ case "$reason" in
             # IP address changed. Bringing down the interface will delete all routes,
             # and clear the ARP cache.
             ifconfig $interface inet 0
-
         fi
 
         if [ -z "$old_ip_address" ] ||
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
-
             ifconfig $interface inet $new_ip_address $new_subnet_arg \
                 $new_broadcast_arg $mtu_arg
 
