@@ -9,18 +9,18 @@ make_resolv_conf() {
         if [ -n "$new_domain_name" ]; then
             echo domain ${new_domain_name%% *} >>$new_resolv_conf
         fi
-	if [ -n "$new_domain_search" ]; then
-		new_domain_search="${new_domain_search% }"
-	    if [ -n "$new_domain_name" ]; then
-	    	new_domain_search="$new_domain_name $new_domain_search"
-	    fi
-	    echo "search ${new_domain_search}" >> $new_resolv_conf
-	elif [ -n "$new_domain_name" ]; then
-		echo "search ${new_domain_name}" >> $new_resolv_conf
-	fi
+        if [ -n "$new_domain_search" ]; then
+            new_domain_search="${new_domain_search% }"
+            if [ -n "$new_domain_name" ]; then
+                new_domain_search="$new_domain_name $new_domain_search"
+            fi
+            echo "search ${new_domain_search}" >> $new_resolv_conf
+        elif [ -n "$new_domain_name" ]; then
+            echo "search ${new_domain_name}" >> $new_resolv_conf
+        fi
         if [ -n "$new_domain_name_servers" ]; then
-                   for nameserver in $new_domain_name_servers; do
-                       echo nameserver $nameserver >>$new_resolv_conf
+            for nameserver in $new_domain_name_servers; do
+                echo nameserver $nameserver >>$new_resolv_conf
             done
         else # keep 'old' nameservers
             sed -n /^\w*[Nn][Aa][Mm][Ee][Ss][Ee][Rr][Vv][Ee][Rr]/p /etc/resolv.conf >>$new_resolv_conf
@@ -129,10 +129,10 @@ case "$reason" in
         ;;
     BOUND|RENEW|REBIND|REBOOT)
 
-	if [ -n "$old_host_name" -a -n "$host_name" -a \
-     	     "$host_name" != "$old_host_name" ]; then
-    	    hostname "$new_host_name"
-	fi
+        if [ -n "$old_host_name" -a -n "$host_name" -a \
+             "$host_name" != "$old_host_name" ]; then
+            hostname "$new_host_name"
+        fi
 
         if [ -n "$old_ip_address" -a -n "$alias_ip_address" -a \
              "$alias_ip_address" != "$old_ip_address" ]; then
@@ -149,12 +149,12 @@ case "$reason" in
             ifconfig $interface inet 0 down
         fi
 
-	# point to point
-	if [ "$new_subnet_mask" == "255.255.255.255" ]; then
-		for router in $new_routers; do
-	    	    route add $router $new_ip_address
-		done
-	fi
+        # point to point
+        if [ "$new_subnet_mask" == "255.255.255.255" ]; then
+            for router in $new_routers; do
+                route add $router $new_ip_address
+            done
+        fi
 
         if [ -z "$old_ip_address" -o "$old_ip_address" != "$new_ip_address" -o \
             "$reason" = "BOUND" -o "$reason" = "REBOOT" ]; then
@@ -204,7 +204,7 @@ case "$reason" in
         fi
 
         ;;
-	
+
     TIMEOUT)
         if [ -n "$alias_ip_address" ]; then
             ifconfig $interface inet -alias $alias_ip_address > /dev/null 2>&1
@@ -220,11 +220,11 @@ case "$reason" in
         if [ -z "$first_router" ] || ping -q -c 1 $first_router; then
             if [ "$new_ip_address" != "$alias_ip_address" -a \
                 -n "$alias_ip_address" ]; then
-	        ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
-	        route add $alias_ip_address 127.0.0.1
+                ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+                route add $alias_ip_address 127.0.0.1
             fi
-	    route add $new_ip_address 127.1 >/dev/null 2>&1
-	    
+            route add $new_ip_address 127.1 >/dev/null 2>&1
+
             for router in $new_routers; do
                 route add default $router $metric_arg
             done

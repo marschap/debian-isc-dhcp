@@ -44,14 +44,14 @@ fi
 if [ -n "$old_broadcast_address" ]; then
     old_broadcast_arg="broadcast $old_broadcast_address"
 fi
-    
+
 # Execute the operation
 case "$reason" in
     MEDIUM|ARPCHECK|ARPSEND)
         # Do nothing
         ;;
     PREINIT)
-	ip link set $interface up
+        ip link set $interface up
 
         # We need to give the kernel some time to get the interface up.
         sleep 1
@@ -59,7 +59,7 @@ case "$reason" in
     BOUND|RENEW|REBIND|REBOOT)
 
         set_hostname
-        
+
         if [ -n "$old_ip_address" ] && \
              [ "$old_ip_address" != "$new_ip_address" ]; then
             # IP address changed. Bringing down the interface will delete all routes,
@@ -76,7 +76,7 @@ case "$reason" in
             [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
 
             ip link set $interface up
-	    ip addr flush dev $interface
+            ip addr flush dev $interface
             ip addr add $new_ip_address$new_mask $new_broadcast_arg dev $interface
 
             for router in $new_routers; do

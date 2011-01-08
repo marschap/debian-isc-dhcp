@@ -44,15 +44,15 @@ fi
 if [ -n "$old_broadcast_address" ]; then
     old_broadcast_arg="broadcast $old_broadcast_address"
 fi
-    
+
 # Execute the operation
 case "$reason" in
     MEDIUM|ARPCHECK|ARPSEND)
         # Do nothing
         ;;
     PREINIT)
-	ifconfig $interface inet 0.0.0.0 netmask 0.0.0.0 \
-	    broadcast 255.255.255.255 up
+        ifconfig $interface inet 0.0.0.0 netmask 0.0.0.0 \
+            broadcast 255.255.255.255 up
 
         # We need to give the kernel some time to get the interface up.
         sleep 1
@@ -60,29 +60,29 @@ case "$reason" in
     BOUND|RENEW|REBIND|REBOOT)
 
         set_hostname
-        
+
         if [ -n "$old_ip_address" ] && \
              [ "$old_ip_address" != "$new_ip_address" ]; then
             # IP address changed. Bringing down the interface will delete all routes,
             # and clear the ARP cache.
-	    ifconfig $interface inet -alias $old_ip_address $medium
-	    route delete $old_ip_address 127.1 >/dev/null 2>&1
-	    ifconfig $interface inet 0 down
+            ifconfig $interface inet -alias $old_ip_address $medium
+            route delete $old_ip_address 127.1 >/dev/null 2>&1
+            ifconfig $interface inet 0 down
         fi
 
         if [ -n "$new_interface_mtu" ]; then
-	    ifconfig $interface mtu $new_interface_mtu || true
+            ifconfig $interface mtu $new_interface_mtu || true
         fi
 
         if [ -z "$old_ip_address" ] || [ "$old_ip_address" != "$new_ip_address" ] || \
             [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
 
-	    ifconfig $interface inet $new_ip_address $new_subnet_arg \
-	        $new_broadcast_arg $medium $mtu_arg
-	    route add $new_ip_address 127.1 $metric_arg >/dev/null 2>&1 || true
-	    for router in $new_routers; do
-	        route add default $router >/dev/null 2>&1
-	    done
+            ifconfig $interface inet $new_ip_address $new_subnet_arg \
+                $new_broadcast_arg $medium $mtu_arg
+            route add $new_ip_address 127.1 $metric_arg >/dev/null 2>&1 || true
+            for router in $new_routers; do
+                route add default $router >/dev/null 2>&1
+            done
         fi
 
         make_resolv_conf
@@ -98,15 +98,15 @@ case "$reason" in
 
     EXPIRE|FAIL|RELEASE|STOP)
         if [ -n "$old_ip_address" ]; then
-	    route delete $old_ip_address 127.1 >/dev/null 2>&1
+            route delete $old_ip_address 127.1 >/dev/null 2>&1
             # Shut down interface, which will delete routes and clear arp cache.
-	    ifconfig $interface inet 0 down
+            ifconfig $interface inet 0 down
         fi
 
         ;;
 
     TIMEOUT)
-	ifconfig $interface down
+        ifconfig $interface down
 
         ;;
 esac
