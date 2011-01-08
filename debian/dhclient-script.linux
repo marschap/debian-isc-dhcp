@@ -23,12 +23,13 @@ make_resolv_conf() {
 	    #new_domain_search="${new_domain_search% }"
 	    if [ "$new_domain_name" ]; then
 		domain_in_search_list=""
-		for domain in "$new_domain_search"; do
-			if [ "$domain" = "$new_domain_name" ]; then
-				domain_in_search="Yes"
+		for domain in $new_domain_search; do
+			if [ "$domain" = "${new_domain_name}" ] ||
+			if [ "$domain" = "${new_domain_name}" ]; then
+				domain_in_search_list="Yes"
 			fi
 		done
-		if [ ! "$domain_in_search" ]; then
+		if [ -z "$domain_in_search_list" ]; then
 	    		new_domain_search="$new_domain_name $new_domain_search"
 		fi
 	    fi
