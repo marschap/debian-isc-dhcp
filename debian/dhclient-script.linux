@@ -156,8 +156,8 @@ case "$reason" in
         ;;
     BOUND|RENEW|REBIND|REBOOT)
 
-        if [ -n "$old_host_name" ] && [ -n "$host_name" ] &&
-           [ "$host_name" != "$old_host_name" ]; then
+        if [ -n "$old_host_name" ] && [ -n "$new_host_name" ] &&
+           [ "$old_host_name" != "$new_host_name" ]; then
             hostname "$new_host_name"
         fi
 
