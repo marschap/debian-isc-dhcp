@@ -3,8 +3,9 @@
 # Based on Linux and FreeBSD scripts.
 
 make_resolv_conf() {
-    if [ -n "$new_domain_name" -o -n "$new_domain_name_servers" ]; then
-        local new_resolv_conf=/etc/resolv.conf.dhclient-new
+    local new_resolv_conf
+    if [ -n "$new_domain_name" ] || [ -n "$new_domain_name_servers" ]; then
+        new_resolv_conf=/etc/resolv.conf.dhclient-new
         rm -f $new_resolv_conf
         if [ -n "$new_domain_name" ]; then
             echo domain ${new_domain_name%% *} >>$new_resolv_conf
@@ -32,8 +33,9 @@ make_resolv_conf() {
 }
 
 run_hook() {
-    local script="$1"
+    local script
     local exit_status
+    script="$1"
     shift	# discard the first argument, then the rest are the script's
 
     if [ -f $script ]; then
@@ -50,8 +52,9 @@ run_hook() {
 }
 
 run_hookdir() {
-    local dir="$1"
+    local dir
     local exit_status
+    dir="$1"
     shift	# See run_hook
 
     if [ -d "$dir" ]; then
@@ -129,19 +132,19 @@ case "$reason" in
         ;;
     BOUND|RENEW|REBIND|REBOOT)
 
-        if [ -n "$old_host_name" -a -n "$host_name" -a \
-             "$host_name" != "$old_host_name" ]; then
+        if [ -n "$old_host_name" ] && [ -n "$host_name" ] &&
+           [ "$host_name" != "$old_host_name" ]; then
             hostname "$new_host_name"
         fi
 
-        if [ -n "$old_ip_address" -a -n "$alias_ip_address" -a \
-             "$alias_ip_address" != "$old_ip_address" ]; then
+        if [ -n "$old_ip_address" ] && [ -n "$alias_ip_address" ] &&
+           [ "$alias_ip_address" != "$old_ip_address" ]; then
             # Possible new alias. Remove old alias.
             ifconfig $interface inet -alias $alias_ip_address > /dev/null 2>&1
             route delete $alias_ip_address 127.0.0.1 > /dev/null 2>&1
         fi
-        if [ -n "$old_ip_address" -a \
-             "$old_ip_address" != "$new_ip_address" ]; then
+        if [ -n "$old_ip_address" ] &&
+           [ "$old_ip_address" != "$new_ip_address" ]; then
             ifconfig $interface inet -alias $old_ip_address $medium
             route delete $old_ip_address 127.1 >/dev/null 2>&1
             # IP address changed. Bringing down the interface will delete all other
@@ -150,14 +153,15 @@ case "$reason" in
         fi
 
         # point to point
-        if [ "$new_subnet_mask" == "255.255.255.255" ]; then
+        if [ "$new_subnet_mask" = "255.255.255.255" ]; then
             for router in $new_routers; do
                 route add $router $new_ip_address
             done
         fi
 
-        if [ -z "$old_ip_address" -o "$old_ip_address" != "$new_ip_address" -o \
-            "$reason" = "BOUND" -o "$reason" = "REBOOT" ]; then
+        if [ -z "$old_ip_address" ] ||
+           [ "$old_ip_address" != "$new_ip_address" ] ||
+           [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
 
             ifconfig $interface inet $new_ip_address $new_subnet_arg \
                 $new_broadcast_arg $medium $mtu_arg
@@ -174,8 +178,8 @@ case "$reason" in
             fi
         fi
 
-        if [ "$new_ip_address" != "$alias_ip_address" -a -n "$alias_ip_address" ];
-            then
+        if [ -n "$alias_ip_address" ] &&
+           [ "$new_ip_address" != "$alias_ip_address" ]; then
             ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
             route add $alias_ip_address 127.0.0.1
         fi
@@ -218,8 +222,8 @@ case "$reason" in
         first_router="$1"
 
         if [ -z "$first_router" ] || ping -q -c 1 $first_router; then
-            if [ "$new_ip_address" != "$alias_ip_address" -a \
-                -n "$alias_ip_address" ]; then
+            if [ -n "$alias_ip_address" ] &&
+               [ "$new_ip_address" != "$alias_ip_address" ]; then
                 ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
                 route add $alias_ip_address 127.0.0.1
             fi

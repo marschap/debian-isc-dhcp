@@ -11,8 +11,9 @@ set -e
 # Modified for Debian.  Matt Zimmerman and Eloy Paris, December 2003
 
 make_resolv_conf() {
+    local new_resolv_conf
     if [ -n "$new_domain_name" ] || [ -n "$new_domain_name_servers" ]; then
-        local new_resolv_conf=/etc/resolv.conf.dhclient-new
+        new_resolv_conf=/etc/resolv.conf.dhclient-new
         rm -f $new_resolv_conf
         if [ -n "$new_domain_name" ]; then
             echo "search $new_domain_name" >>$new_resolv_conf
@@ -25,7 +26,8 @@ make_resolv_conf() {
 }
 
 set_hostname() {
-    local current_hostname=$(cat /proc/sys/kernel/hostname)
+    local current_hostname
+    current_hostname=$(cat /proc/sys/kernel/hostname)
     if [ -z "$current_hostname" ] || [ "$current_hostname" = "(none)" ]; then
         echo "$new_host_name" > /proc/sys/kernel/hostname
     fi
@@ -60,8 +62,8 @@ case "$reason" in
 
         set_hostname
 
-        if [ -n "$old_ip_address" ] && \
-             [ "$old_ip_address" != "$new_ip_address" ]; then
+        if [ -n "$old_ip_address" ] &&
+           [ "$old_ip_address" != "$new_ip_address" ]; then
             # IP address changed. Bringing down the interface will delete all routes,
             # and clear the ARP cache.
             ip addr del $old_ip_address$old_mask $old_broadcast_arg dev $interface
@@ -72,8 +74,9 @@ case "$reason" in
             ip link set $interface mtu $new_interface_mtu || true
         fi
 
-        if [ -z "$old_ip_address" ] || [ "$old_ip_address" != "$new_ip_address" ] || \
-            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
+        if [ -z "$old_ip_address" ] ||
+           [ "$old_ip_address" != "$new_ip_address" ] ||
+           [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
 
             ip link set $interface up
             ip addr flush dev $interface
