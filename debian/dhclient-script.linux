@@ -14,7 +14,8 @@
 
 make_resolv_conf() {
     local new_resolv_conf
-    if [ "$new_domain_name" ] || [ "$new_domain_name_servers" ]; then
+    if [ -n "$new_domain_search" ] || [ -n "$new_domain_name" ] ||
+       [ -n "$new_domain_name_servers" ]; then
         new_resolv_conf=/etc/resolv.conf.dhclient-new
         rm -f $new_resolv_conf
         if [ "$new_domain_name" ]; then
