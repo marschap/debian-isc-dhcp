@@ -11,6 +11,8 @@ no_loopback_checksum
 
 # Backported from 4.1.2
 CVE-2010-3611
+# Ported from 4.1-ESV
+CVE-2011-0413
 
 # must be applied before the LDAP stuff
 no-libcrypto
