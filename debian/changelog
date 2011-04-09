@@ -1,3 +1,12 @@
+isc-dhcp (4.1.1-P1-16.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Fix cve-2011-0997: remote code execution vulnerability in dhclient
+    (closes: #621099).
+  * Fix ftbfs with 'ld --no-as-needed' (closes: #602312).
+
+ -- Michael Gilbert <michael.s.gilbert@gmail.com>  Sat, 09 Apr 2011 10:57:14 -0400
+
 isc-dhcp (4.1.1-P1-16) unstable; urgency=high
 
   * Patch by Raphael Geissert from 4.1-ESV for CVE-2011-0413 (closes: #611217)

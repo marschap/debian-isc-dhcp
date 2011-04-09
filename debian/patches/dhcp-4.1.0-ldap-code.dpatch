@@ -2754,7 +2754,7 @@ diff -urNad isc-dhcp.orig/server/Makefile.am isc-dhcp/server/Makefile.am
 diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' isc-dhcp-4.1.1-P1~/configure.ac isc-dhcp-4.1.1-P1/configure.ac
 --- isc-dhcp-4.1.1-P1~/configure.ac	2010-10-20 22:14:33.694570303 +0100
 +++ isc-dhcp-4.1.1-P1/configure.ac	2010-10-20 22:17:15.682086336 +0100
-@@ -419,6 +419,74 @@
+@@ -419,6 +419,75 @@
  # Look for optional headers.
  AC_CHECK_HEADERS(sys/socket.h net/if_dl.h net/if6.h regex.h)
  
@@ -2775,6 +2775,7 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
 +	AC_SEARCH_LIBS([ber_init], [ldap], [
 +		LDAP_LIBS="-lldap"
 +	],[
++               AS_UNSET([ac_cv_search_ber_init])
 +		AC_SEARCH_LIBS([ber_init], [lber], [
 +			LDAP_LIBS="-lldap -llber"
 +		], [
