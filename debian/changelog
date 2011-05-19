@@ -2,7 +2,8 @@ isc-dhcp (4.1.1-P1-17) unstable; urgency=low
 
   * Incorporate and acknowledge NMU
   * Apply a multitude of patches from Peter Marschall (closes: #609408)
-    - fix domain_name in domain_search check in dhclient-script (closes: #567141)
+    - fix domain_name in domain_search check in dhclient-script 
+      (closes: #567141)
     - fix indentation in dhclient-script to improve readability
     - remove bashisms from dhclient-script
     - fix setting of hostname in dhclient-script
