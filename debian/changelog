@@ -14,8 +14,9 @@ isc-dhcp (4.1.1-P1-17) unstable; urgency=low
     - expand the variables reported by the debug hooks
     - remove unused variables from dhclient-script
     - convert the Linux dhclient-script to use iproute2 (closes: #275653)
+  * debian/control: bumped Standards-Version (no changes)
 
- -- Andrew Pollock <apollock@debian.org>  Wed, 18 May 2011 22:18:40 -0700
+ -- Andrew Pollock <apollock@debian.org>  Wed, 18 May 2011 23:02:44 -0700
 
 isc-dhcp (4.1.1-P1-16.1) unstable; urgency=high
 

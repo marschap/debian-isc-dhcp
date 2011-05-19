@@ -6,7 +6,7 @@ Uploaders: Andrew Pollock <apollock@debian.org>
 Vcs-Git: git://git.debian.org/pkg-dhcp/isc-dhcp.git
 Vcs-Browser: http://git.debian.org/?p=pkg-dhcp/isc-dhcp.git;a=summary
 Build-Depends: debhelper (>> 7), dpkg-dev (>= 1.13.2), groff, dpatch, po-debconf, libldap2-dev, libssl-dev, autoconf, automake, pkg-config
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 
 Package: isc-dhcp-server
 Priority: optional
