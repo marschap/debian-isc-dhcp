@@ -1,3 +1,9 @@
+isc-dhcp (4.1.1-P1-18) unstable; urgency=low
+
+  * debian/control: fix short description for dhcp3-client package
+
+ -- Andrew Pollock <apollock@debian.org>  Fri, 10 Jun 2011 08:25:18 -0700
+
 isc-dhcp (4.1.1-P1-17) unstable; urgency=low
 
   * Incorporate and acknowledge NMU

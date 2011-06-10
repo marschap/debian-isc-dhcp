@@ -201,7 +201,7 @@ Priority: extra
 Section: oldlibs
 Architecture: all
 Depends: isc-dhcp-client, ${misc:Depends}
-Description: ISC DHCP server (transitional package)
+Description: ISC DHCP client (transitional package)
  This is the client from the Internet Software Consortium's implementation of
  DHCP. For more information visit http://www.isc.org.
  .
