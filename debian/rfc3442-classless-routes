@@ -49,9 +49,9 @@ if [ "$RUN" = "yes" ]; then
 				esac
 
 				if [ "$net_length" -eq 32 ]; then
-					/sbin/route add -host "${net_address}" gw "${gateway}"
+					ip -4 route add "${net_address}" via "${gateway}"
 				else
-					/sbin/route add -net "${net_address}/${net_length}" gw "${gateway}"
+					ip -4 route add "${net_address}/${net_length}" via "${gateway}"
 				fi
 			done
 		fi
