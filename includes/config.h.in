@@ -22,6 +22,15 @@
 /* Define to include Failover Protocol support. */
 #undef FAILOVER_PROTOCOL
 
+/* Define to nothing if C supports flexible array members, and to 1 if it does
+   not. That way, with a declaration like `struct s { int n; double
+   d[FLEXIBLE_ARRAY_MEMBER]; };', the struct hack can be used with pre-C99
+   compilers. When computing the size of such an object, don't use 'sizeof
+   (struct s)' as it overestimates the size. Use 'offsetof (struct s, d)'
+   instead. Don't use 'offsetof (struct s, d[0])', as this doesn't work with
+   MSVC and with C++ compilers. */
+#undef FLEXIBLE_ARRAY_MEMBER
+
 /* Define to 1 to use the Berkeley Packet Filter interface code. */
 #undef HAVE_BPF
 
@@ -124,6 +133,12 @@
 /* Define to include server activity tracing support. */
 #undef TRACING
 
+/* Define to 1 to use the standard BSD socket API. */
+#undef USE_SOCKETS
+
+/* Define to 1 to enable IPv4 packet info support. */
+#undef USE_V4_PKTINFO
+
 /* Version number of package */
 #undef VERSION
 
@@ -166,6 +181,9 @@
 /* File for dhcpd process information. */
 #undef _PATH_DHCPD_PID
 
+/* File for dhcrelay6 process information. */
+#undef _PATH_DHCRELAY6_PID
+
 /* File for dhcrelay process information. */
 #undef _PATH_DHCRELAY_PID
 
@@ -180,6 +198,11 @@
    <pthread.h>, or <semaphore.h> is not used. If the typedef was allowed, the
    #define below would cause a syntax error. */
 #undef _UINT32_T
+
+/* Define for Solaris 2.5.1 so the uint64_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef was allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT64_T
 
 /* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
    <pthread.h>, or <semaphore.h> is not used. If the typedef was allowed, the
@@ -205,6 +228,10 @@
    such a type exists and the standard includes do not define it. */
 #undef int32_t
 
+/* Define to the type of a signed integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int64_t
+
 /* Define to the type of a signed integer type of width exactly 8 bits if such
    a type exists and the standard includes do not define it. */
 #undef int8_t
@@ -214,6 +241,9 @@
 
 /* Define a type for 32-bit unsigned integers. */
 #undef u_int32_t
+
+/* Define a type for 64-bit unsigned integers. */
+#undef u_int64_t
 
 /* Define a type for 8-bit unsigned integers. */
 #undef u_int8_t
@@ -225,6 +255,10 @@
 /* Define to the type of an unsigned integer type of width exactly 32 bits if
    such a type exists and the standard includes do not define it. */
 #undef uint32_t
+
+/* Define to the type of an unsigned integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint64_t
 
 /* Define to the type of an unsigned integer type of width exactly 8 bits if
    such a type exists and the standard includes do not define it. */

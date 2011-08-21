@@ -4,7 +4,8 @@
    protocol... */
 
 /*
- * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -257,6 +258,7 @@ void dmalloc_dump_outstanding ()
 	struct dmalloc_preamble *dp;
 #if defined(DEBUG_MALLOC_POOL)
 	unsigned char *foo;
+	int i;
 #endif
 
 	if (!dmalloc_cutoff_point)
@@ -526,7 +528,7 @@ isc_result_t omapi_object_allocate (omapi_object_t **o,
 		
 		/* Sanity check. */
 		if (tsize < sizeof (omapi_object_t))
-			return ISC_R_INVALIDARG;
+			return DHCP_R_INVALIDARG;
 		
 		foo = dmalloc (tsize, file, line);
 		if (!foo)
@@ -561,7 +563,7 @@ isc_result_t omapi_object_reference (omapi_object_t **r,
 				     const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
@@ -569,7 +571,7 @@ isc_result_t omapi_object_reference (omapi_object_t **r,
 			   file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -588,14 +590,14 @@ isc_result_t omapi_object_dereference (omapi_object_t **h,
 	omapi_object_t *p, *hp;
 
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -609,7 +611,7 @@ isc_result_t omapi_object_dereference (omapi_object_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -682,6 +684,13 @@ isc_result_t omapi_object_dereference (omapi_object_t **h,
 /*			if (!hp -> type -> freer) */
 				rc_register (file, line, h, hp,
 					     0, 1, hp -> type -> rc_flag);
+			if (handle_reference) {
+				if (omapi_handle_clear(hp->handle) != 
+				    ISC_R_SUCCESS) {
+					log_debug("Attempt to clear null "
+						  "handle pointer");
+				}
+			}
 			if (hp -> type -> destroy)
 				(*(hp -> type -> destroy)) (hp, file, line);
 			if (hp -> type -> freer)
@@ -727,7 +736,7 @@ isc_result_t omapi_buffer_reference (omapi_buffer_t **r,
 				     const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
@@ -735,7 +744,7 @@ isc_result_t omapi_buffer_reference (omapi_buffer_t **r,
 			   file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -748,14 +757,14 @@ isc_result_t omapi_buffer_dereference (omapi_buffer_t **h,
 				       const char *file, int line)
 {
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -769,7 +778,7 @@ isc_result_t omapi_buffer_dereference (omapi_buffer_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 
@@ -807,7 +816,7 @@ isc_result_t omapi_typed_data_new (const char *file, int line,
 		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
 		if (len < val) {
 			va_end(l);
-			return ISC_R_INVALIDARG;
+			return DHCP_R_INVALIDARG;
 		}
 		break;
 	      case omapi_datatype_data:
@@ -815,7 +824,7 @@ isc_result_t omapi_typed_data_new (const char *file, int line,
 		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
 		if (len < val) {
 			va_end(l);
-			return ISC_R_INVALIDARG;
+			return DHCP_R_INVALIDARG;
 		}
 		break;
 	      case omapi_datatype_object:
@@ -824,7 +833,7 @@ isc_result_t omapi_typed_data_new (const char *file, int line,
 		break;
 	      default:
 		va_end (l);
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 	}
 	va_end (l);
 
@@ -863,14 +872,14 @@ isc_result_t omapi_typed_data_reference (omapi_typed_data_t **r,
 					 const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): reference store into non-null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -883,14 +892,14 @@ isc_result_t omapi_typed_data_dereference (omapi_typed_data_t **h,
 					   const char *file, int line)
 {
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -904,7 +913,7 @@ isc_result_t omapi_typed_data_dereference (omapi_typed_data_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -936,7 +945,7 @@ isc_result_t omapi_data_string_new (omapi_data_string_t **d, unsigned len,
 
 	nlen = OMAPI_DATA_STRING_EMPTY_SIZE + len;
 	if (nlen < len)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 	new = dmalloc (nlen, file, line);
 	if (!new)
 		return ISC_R_NOMEMORY;
@@ -950,14 +959,14 @@ isc_result_t omapi_data_string_reference (omapi_data_string_t **r,
 					  const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): reference store into non-null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -970,14 +979,14 @@ isc_result_t omapi_data_string_dereference (omapi_data_string_t **h,
 					    const char *file, int line)
 {
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -991,7 +1000,7 @@ isc_result_t omapi_data_string_dereference (omapi_data_string_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 
@@ -1021,7 +1030,7 @@ isc_result_t omapi_value_reference (omapi_value_t **r,
 				    const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
@@ -1029,7 +1038,7 @@ isc_result_t omapi_value_reference (omapi_value_t **r,
 			   file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -1042,14 +1051,14 @@ isc_result_t omapi_value_dereference (omapi_value_t **h,
 				      const char *file, int line)
 {
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -1063,7 +1072,7 @@ isc_result_t omapi_value_dereference (omapi_value_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -1103,7 +1112,7 @@ isc_result_t omapi_addr_list_reference (omapi_addr_list_t **r,
 					  const char *file, int line)
 {
 	if (!h || !r)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (*r) {
 #if defined (POINTER_DEBUG)
@@ -1111,7 +1120,7 @@ isc_result_t omapi_addr_list_reference (omapi_addr_list_t **r,
 			   file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	*r = h;
@@ -1124,14 +1133,14 @@ isc_result_t omapi_addr_list_dereference (omapi_addr_list_t **h,
 					    const char *file, int line)
 {
 	if (!h)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (!*h) {
 #if defined (POINTER_DEBUG)
 		log_error ("%s(%d): dereference of null pointer!", file, line);
 		abort ();
 #else
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 	
@@ -1145,7 +1154,7 @@ isc_result_t omapi_addr_list_dereference (omapi_addr_list_t **h,
 		abort ();
 #else
 		*h = 0;
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 #endif
 	}
 

@@ -3,7 +3,7 @@
    Common parser code for dhcpd and dhclient. */
 
 /*
- * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -372,13 +372,6 @@ parse_ip6_addr(struct parse *cfile, struct iaddr *addr) {
 
 	char v6[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 	int v6_len;
-
-        if (local_family != AF_INET6) {
-                parse_warn(cfile, "IPv6 addresses are only available "
-				  "in DHCPv6 mode.");
-                skip_to_semi(cfile);
-                return 0;
-        }
 
 	/*
 	 * First token is non-raw. This way we eat any whitespace before 
@@ -889,9 +882,10 @@ void convert_num (cfile, buf, str, base, size)
 
 /*
  * date :== NUMBER NUMBER SLASH NUMBER SLASH NUMBER 
- *		NUMBER COLON NUMBER COLON NUMBER SEMI |
+ *		NUMBER COLON NUMBER COLON NUMBER |
  *          NUMBER NUMBER SLASH NUMBER SLASH NUMBER 
- *		NUMBER COLON NUMBER COLON NUMBER NUMBER SEMI |
+ *		NUMBER COLON NUMBER COLON NUMBER NUMBER |
+ *          EPOCH NUMBER |
  *	    NEVER
  *
  * Dates are stored in UTC or with a timezone offset; first number is day
@@ -900,7 +894,10 @@ void convert_num (cfile, buf, str, base, size)
  * optional.
  */
 
-/* just parse the date */
+/*
+ * just parse the date
+ * any trailing semi must be consumed by the caller of this routine
+ */
 TIME 
 parse_date_core(cfile)
 	struct parse *cfile;
@@ -909,157 +906,171 @@ parse_date_core(cfile)
 	int tzoff, wday, year, mon, mday, hour, min, sec;
 	const char *val;
 	enum dhcp_token token;
-	static int months [11] = { 31, 59, 90, 120, 151, 181,
-					  212, 243, 273, 304, 334 };
+	static int months[11] = { 31, 59, 90, 120, 151, 181,
+				  212, 243, 273, 304, 334 };
 
-	/* Day of week, or "never"... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	/* "never", "epoch" or day of week */
+	token = peek_token(&val, NULL, cfile);
 	if (token == NEVER) {
-		if (!parse_semi (cfile))
-			return 0;
-		return MAX_TIME;
+		token = next_token(&val, NULL, cfile); /* consume NEVER */
+		return(MAX_TIME);
 	}
 
 	/* This indicates 'local' time format. */
 	if (token == EPOCH) {
-		token = next_token(&val, NULL, cfile);
+		token = next_token(&val, NULL, cfile); /* consume EPOCH */
+		token = peek_token(&val, NULL, cfile);
 
 		if (token != NUMBER) {
-			parse_warn(cfile, "Seconds since epoch expected.");
 			if (token != SEMI)
-				skip_to_semi(cfile);
-			return (TIME)0;
+				token = next_token(&val, NULL, cfile);
+			parse_warn(cfile, "Seconds since epoch expected.");
+			return((TIME)0);
 		}
 
+		token = next_token(&val, NULL, cfile); /* consume number */
 		guess = atoi(val);
 
-		if (!parse_semi(cfile))
-			return (TIME)0;
-
-		return guess;
+		return((TIME)guess);
 	}
 
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric day of week expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric day of week expected.");
+		return((TIME)0);
 	}
-	wday = atoi (val);
+	token = next_token(&val, NULL, cfile); /* consume day of week */
+	wday = atoi(val);
 
 	/* Year... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric year expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric year expected.");
+		return((TIME)0);
 	}
+	token = next_token(&val, NULL, cfile); /* consume year */
 
 	/* Note: the following is not a Y2K bug - it's a Y1.9K bug.   Until
 	   somebody invents a time machine, I think we can safely disregard
 	   it.   This actually works around a stupid Y2K bug that was present
 	   in a very early beta release of dhcpd. */
-	year = atoi (val);
+	year = atoi(val);
 	if (year > 1900)
 		year -= 1900;
 
 	/* Slash separating year from month... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != SLASH) {
-		parse_warn (cfile,
-			    "expected slash separating year from month.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile,
+			   "expected slash separating year from month.");
+		return((TIME)0);
 	}
+	token = next_token(&val, NULL, cfile); /* consume SLASH */
 
 	/* Month... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric month expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric month expected.");
+		return((TIME)0);
 	}
-	mon = atoi (val) - 1;
+	token = next_token(&val, NULL, cfile); /* consume month */	
+	mon = atoi(val) - 1;
 
 	/* Slash separating month from day... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != SLASH) {
-		parse_warn (cfile,
-			    "expected slash separating month from day.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile,
+			   "expected slash separating month from day.");
+		return((TIME)0);
 	}
+	token = next_token(&val, NULL, cfile); /* consume SLASH */
 
 	/* Day of month... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric day of month expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric day of month expected.");
+		return((TIME)0);
 	}
-	mday = atoi (val);
+	token = next_token(&val, NULL, cfile); /* consume day of month */
+	mday = atoi(val);
 
 	/* Hour... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric hour expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric hour expected.");
+		return((TIME)0);
 	}
-	hour = atoi (val);
+	token = next_token(&val, NULL, cfile); /* consume hour */
+	hour = atoi(val);
 
 	/* Colon separating hour from minute... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != COLON) {
-		parse_warn (cfile,
-			    "expected colon separating hour from minute.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile,
+			   "expected colon separating hour from minute.");
+		return((TIME)0);
 	}
+	token = next_token(&val, NULL, cfile); /* consume colon */
 
 	/* Minute... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric minute expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric minute expected.");
+		return((TIME)0);
 	}
-	min = atoi (val);
+	token = next_token(&val, NULL, cfile); /* consume minute */
+	min = atoi(val);
 
 	/* Colon separating minute from second... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != COLON) {
-		parse_warn (cfile,
-			    "expected colon separating minute from second.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile,
+			   "expected colon separating minute from second.");
+		return((TIME)0);
 	}
+	token = next_token(&val, NULL, cfile); /* consume colon */
 
 	/* Second... */
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token != NUMBER) {
-		parse_warn (cfile, "numeric second expected.");
 		if (token != SEMI)
-			skip_to_semi (cfile);
-		return (TIME)0;
+			token = next_token(&val, NULL, cfile);
+		parse_warn(cfile, "numeric second expected.");
+		return((TIME)0);
 	}
-	sec = atoi (val);
+	token = next_token(&val, NULL, cfile); /* consume second */
+	sec = atoi(val);
 
-	token = peek_token (&val, (unsigned *)0, cfile);
+	tzoff = 0;
+	token = peek_token(&val, NULL, cfile);
 	if (token == NUMBER) {
-		token = next_token (&val, (unsigned *)0, cfile);
-		tzoff = atoi (val);
-	} else
-		tzoff = 0;
+		token = next_token(&val, NULL, cfile); /* consume tzoff */
+		tzoff = atoi(val);
+	} else if (token != SEMI) {
+		token = next_token(&val, NULL, cfile);
+		parse_warn(cfile,
+			   "Time zone offset or semicolon expected.");
+		return((TIME)0);
+	}
 
 	/* Guess the time value... */
 	guess = ((((((365 * (year - 70) +	/* Days in years since '70 */
@@ -1082,21 +1093,25 @@ parse_date_core(cfile)
 	   is reread), the error could accumulate into something
 	   significant. */
 
-	return guess;
+	return((TIME)guess);
 }
 
-/* Wrapper to consume the semicolon after the date */
+/*
+ * Wrapper to consume the semicolon after the date
+ * :== date semi
+ */
+
 TIME 
 parse_date(cfile)
        struct parse *cfile;
 {
-       int guess;
+       TIME guess;
        guess = parse_date_core(cfile);
 
        /* Make sure the date ends in a semicolon... */
        if (!parse_semi(cfile))
-               return 0;
-       return guess;
+	       return((TIME)0);
+       return(guess);
 }
 
 
@@ -1121,7 +1136,7 @@ parse_option_name (cfile, allocate, known, opt)
 	unsigned code;
 
 	if (opt == NULL)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	token = next_token (&val, (unsigned *)0, cfile);
 	if (!is_identifier (token)) {
@@ -1129,7 +1144,7 @@ parse_option_name (cfile, allocate, known, opt)
 			    "expecting identifier after option keyword.");
 		if (token != SEMI)
 			skip_to_semi (cfile);
-		return ISC_R_BADPARSE;
+		return DHCP_R_BADPARSE;
 	}
 	uname = dmalloc (strlen (val) + 1, MDL);
 	if (!uname)
@@ -1146,7 +1161,7 @@ parse_option_name (cfile, allocate, known, opt)
 			parse_warn (cfile, "expecting identifier after '.'");
 			if (token != SEMI)
 				skip_to_semi (cfile);
-			return ISC_R_BADPARSE;
+			return DHCP_R_BADPARSE;
 		}
 
 		/* Look up the option name hash table for the specified
@@ -3309,6 +3324,33 @@ int parse_boolean_expression (expr, cfile, lose)
 	return 1;
 }
 
+/* boolean :== ON SEMI | OFF SEMI | TRUE SEMI | FALSE SEMI */
+
+int parse_boolean (cfile)
+	struct parse *cfile;
+{
+	enum dhcp_token token;
+	const char *val;
+	int rv;
+
+	token = next_token (&val, (unsigned *)0, cfile);
+	if (!strcasecmp (val, "true")
+	    || !strcasecmp (val, "on"))
+		rv = 1;
+	else if (!strcasecmp (val, "false")
+		 || !strcasecmp (val, "off"))
+		rv = 0;
+	else {
+		parse_warn (cfile,
+			    "boolean value (true/false/on/off) expected");
+		skip_to_semi (cfile);
+		return 0;
+	}
+	parse_semi (cfile);
+	return rv;
+}
+
+
 /*
  * data_expression :== SUBSTRING LPAREN data-expression COMMA
  *					numeric-expression COMMA
@@ -3374,7 +3416,7 @@ int parse_numeric_expression (expr, cfile, lose)
 	}
 	return 1;
 }
-
+#if defined (NSUPDATE_OLD)
 /*
  * dns-expression :==
  *	UPDATE LPAREN ns-class COMMA ns-type COMMA data-expression COMMA
@@ -3409,7 +3451,7 @@ int parse_dns_expression (expr, cfile, lose)
 	}
 	return 1;
 }
-
+#endif /* NSUPDATE_OLD */
 /* Parse a subexpression that does not contain a binary operator. */
 
 int parse_non_binary (expr, cfile, lose, context)
@@ -3423,10 +3465,12 @@ int parse_non_binary (expr, cfile, lose, context)
 	struct collection *col;
 	struct expression *nexp, **ep;
 	int known;
+	char *cptr;
+#if defined (NSUPDATE_OLD)
 	enum expr_op opcode;
 	const char *s;
-	char *cptr;
 	unsigned long u;
+#endif 
 	isc_result_t status;
 	unsigned len;
 
@@ -3459,10 +3503,12 @@ int parse_non_binary (expr, cfile, lose, context)
 
 	      case TOKEN_NOT:
 		token = next_token (&val, (unsigned *)0, cfile);
+#if defined(NSUPDATE_OLD)
 		if (context == context_dns) {
 			token = peek_token (&val, (unsigned *)0, cfile);
 			goto not_exists;
 		}
+#endif
 		if (!expression_allocate (expr, MDL))
 			log_fatal ("can't allocate expression");
 		(*expr) -> op = expr_not;
@@ -3506,8 +3552,10 @@ int parse_non_binary (expr, cfile, lose, context)
 		break;
 
 	      case EXISTS:
+#if defined(NSUPDATE_OLD)
 		if (context == context_dns)
 			goto ns_exists;
+#endif
 		token = next_token (&val, (unsigned *)0, cfile);
 		if (!expression_allocate (expr, MDL))
 			log_fatal ("can't allocate expression");
@@ -3821,6 +3869,7 @@ int parse_non_binary (expr, cfile, lose, context)
 			goto norparen;
 		break;
 
+#if defined(NSUPDATE_OLD)
 		/* dns-update and dns-delete are present for historical
 		   purposes, but are deprecated in favor of ns-update
 		   in combination with update, delete, exists and not
@@ -4098,7 +4147,7 @@ int parse_non_binary (expr, cfile, lose, context)
 		if (token != RPAREN)
 			goto norparen;
 		break;
-
+#endif /* NSUPDATE_OLD */
 	      case OPTION:
 	      case CONFIG_OPTION:
 		if (!expression_allocate (expr, MDL))
@@ -4175,6 +4224,7 @@ int parse_non_binary (expr, cfile, lose, context)
 		(*expr) -> op = expr_host_decl_name;
 		break;
 
+#if defined(NSUPDATE_OLD)
 	      case UPDATED_DNS_RR:
 		token = next_token (&val, (unsigned *)0, cfile);
 
@@ -4211,7 +4261,7 @@ int parse_non_binary (expr, cfile, lose, context)
 			log_fatal ("can't allocate variable name.");
 		strcpy ((*expr) -> data.variable, s);
 		break;
-
+#endif /* NSUPDATE_OLD */
 	      case PACKET:
 		token = next_token (&val, (unsigned *)0, cfile);
 		if (!expression_allocate (expr, MDL))
@@ -4423,7 +4473,7 @@ int parse_non_binary (expr, cfile, lose, context)
 		goto ns_const;
 
 	      case NS_NOTAUTH:
-		known = ISC_R_NOTAUTH;
+		known = DHCP_R_NOTAUTH;
 		goto ns_const;
 
 	      case NS_NOTIMP:
@@ -4431,31 +4481,31 @@ int parse_non_binary (expr, cfile, lose, context)
 		goto ns_const;
 
 	      case NS_NOTZONE:
-		known = ISC_R_NOTZONE;
+		known = DHCP_R_NOTZONE;
 		goto ns_const;
 
 	      case NS_NXDOMAIN:
-		known = ISC_R_NXDOMAIN;
+		known = DHCP_R_NXDOMAIN;
 		goto ns_const;
 
 	      case NS_NXRRSET:
-		known = ISC_R_NXRRSET;
+		known = DHCP_R_NXRRSET;
 		goto ns_const;
 
 	      case NS_REFUSED:
-		known = ISC_R_REFUSED;
+		known = DHCP_R_REFUSED;
 		goto ns_const;
 
 	      case NS_SERVFAIL:
-		known = ISC_R_SERVFAIL;
+		known = DHCP_R_SERVFAIL;
 		goto ns_const;
 
 	      case NS_YXDOMAIN:
-		known = ISC_R_YXDOMAIN;
+		known = DHCP_R_YXDOMAIN;
 		goto ns_const;
 
 	      case NS_YXRRSET:
-		known = ISC_R_YXRRSET;
+		known = DHCP_R_YXRRSET;
 		goto ns_const;
 
 	      case BOOTING:
@@ -4508,6 +4558,47 @@ int parse_non_binary (expr, cfile, lose, context)
 			log_fatal ("can't allocate variable name");
 		strcpy ((*expr) -> data.variable, val);
 		token = next_token (&val, (unsigned *)0, cfile);
+		if (token != RPAREN)
+			goto norparen;
+		break;
+
+		/* This parses 'gethostname()'. */
+	      case GETHOSTNAME:
+		token = next_token(&val, NULL, cfile);
+		if (!expression_allocate(expr, MDL))
+			log_fatal("can't allocate expression");
+		(*expr)->op = expr_gethostname;
+
+		token = next_token(NULL, NULL, cfile);
+		if (token != LPAREN)
+			goto nolparen;
+
+		token = next_token(NULL, NULL, cfile);
+		if (token != RPAREN)
+			goto norparen;
+		break;
+
+	      case GETHOSTBYNAME:
+		token = next_token(&val, NULL, cfile);
+
+		token = next_token(NULL, NULL, cfile);
+		if (token != LPAREN)
+			goto nolparen;
+
+		/* The argument is a quoted string. */
+		token = next_token(&val, NULL, cfile);
+		if (token != STRING) {
+			parse_warn(cfile, "Expecting quoted literal: "
+					  "\"foo.example.com\"");
+			skip_to_semi(cfile);
+			*lose = 1;
+			return 0;
+		}
+		if (!make_host_lookup(expr, val))
+			log_fatal("Error creating gethostbyname() internal "
+				  "record. (%s:%d)", MDL);
+
+		token = next_token(NULL, NULL, cfile);
 		if (token != RPAREN)
 			goto norparen;
 		break;
@@ -4925,14 +5016,34 @@ struct option *option;
 			fmt = option->format;
 
 		/* 'a' means always uniform */
-		if ((fmt[0] != 'Z') && (tolower((int)fmt[1]) == 'a')) 
+		if ((fmt[0] != 'Z') && (tolower((unsigned char)fmt[1]) == 'a')) 
 			uniform = 1;
 
 		do {
 			if ((*fmt == 'A') || (*fmt == 'a'))
 				break;
-			if (*fmt == 'o')
+			if (*fmt == 'o') {
+				/* consume the optional flag */
+				fmt++;
 				continue;
+			}
+
+			if (fmt[1] == 'o') {
+				/*
+				 * A value for the current format is
+				 * optional - check to see if the next
+				 * token is a semi-colon if so we don't
+				 * need to parse it and doing so would
+				 * consume the semi-colon which our
+				 * caller is expecting to parse
+				 */
+				token = peek_token(&val, (unsigned *)0,
+						   cfile);
+				if (token == SEMI) {
+					fmt++;
+					continue;
+				}
+			}
 
 			tmp = *expr;
 			*expr = NULL;
@@ -5058,6 +5169,7 @@ int parse_option_token (rv, cfile, fmt, expr, uniform, lookups)
 	unsigned len;
 	struct iaddr addr;
 	int compress;
+	isc_boolean_t freeval = ISC_FALSE;
 	const char *f, *g;
 	struct enumeration_value *e;
 
@@ -5141,6 +5253,7 @@ int parse_option_token (rv, cfile, fmt, expr, uniform, lookups)
 			return 0;
 		}
 		len = strlen (val);
+		freeval = ISC_TRUE;
 		goto make_string;
 
 	      case 't': /* Text string... */
@@ -5157,6 +5270,10 @@ int parse_option_token (rv, cfile, fmt, expr, uniform, lookups)
 		if (!make_const_data (&t, (const unsigned char *)val,
 				      len, 1, 1, MDL))
 			log_fatal ("No memory for concatenation");
+		if (freeval == ISC_TRUE) {
+			dfree((char *)val, MDL);
+			freeval = ISC_FALSE;
+		}
 		break;
 		
 	      case 'N':

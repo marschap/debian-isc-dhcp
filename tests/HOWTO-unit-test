@@ -150,4 +150,4 @@ Other static or runtime testing is always an option. For instance, you
 can use valgrind to check for memory leaks.
 
 
-$Id: HOWTO-unit-test,v 1.2 2007/11/16 11:04:12 shane Exp $
+$Id: HOWTO-unit-test,v 1.2 2007-11-16 11:04:12 shane Exp $

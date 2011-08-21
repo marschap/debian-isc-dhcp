@@ -3,7 +3,8 @@
    Examine and modify omapi objects. */
 
 /*
- * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2001-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -32,13 +33,15 @@
  * ``http://www.nominum.com''.
  */
 
+#include "config.h"
+
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <isc-dhcp/result.h>
+//#include "result.h"
 #include <syslog.h>
 #include "dhcpctl.h"
 #include "dhcpd.h"
@@ -96,6 +99,7 @@ main(int argc, char **argv) {
 	char buf[1024];
 	char s1[1024];
 	int connected = 0;
+	char hex_buf[1025];
 
 	for (i = 1; i < argc; i++) {
 		usage(argv[0]);
@@ -157,10 +161,10 @@ main(int argc, char **argv) {
 			    break;
 				
 			  case omapi_datatype_data:
-			    printf ("%s\n",
-				    print_hex_1 (v -> value -> u.buffer.len,
-						 v -> value -> u.buffer.value,
-						 60));
+			    print_hex_or_string(v->value->u.buffer.len,
+						v->value->u.buffer.value,
+						sizeof(hex_buf), hex_buf);
+			    printf("%s\n", hex_buf);
 			    break;
 			    
 			  case omapi_datatype_object:
@@ -186,11 +190,11 @@ main(int argc, char **argv) {
 		    break;
 		    
 		  case END_OF_FILE:
-		  case EOL:
+		  case ENDOFLINE: /* EOL: */
 		    break;
 		    
 		  case TOKEN_HELP:
-		  case '?':
+	          case QUESTIONMARK: /* '?': */
 		    printf ("Commands:\n");
 		    printf ("  port <server omapi port>\n");
 		    printf ("  server <server address>\n");
@@ -310,20 +314,31 @@ main(int argc, char **argv) {
 		    break;
 
 		  case KEY:
-		    token = next_token (&val, (unsigned *)0, cfile);
-		    if (!is_identifier (token)) {
-			    printf ("usage: key <name> <value>\n");
-			    skip_to_semi (cfile);
-			    break;
+		    token = peek_token(&val, (unsigned *)0, cfile);
+		    if (token == STRING) {
+			    token = next_token (&val, (unsigned *)0, cfile);
+			    if (!is_identifier (token)) {
+				    printf ("usage: key <name> <value>\n");
+				    skip_to_semi (cfile);
+				    break;
+			    }
+			    s = dmalloc (strlen (val) + 1, MDL);
+			    if (!s) {
+				    printf ("no memory for key name.\n");
+				    skip_to_semi (cfile);
+				    break;
+			    }
+			    strcpy (s, val);
+		    } else {
+			    s = parse_host_name(cfile);
+			    if (s == NULL) {
+				    printf ("usage: key <name> <value>\n");
+				    skip_to_semi(cfile);
+				    break;
+			    }
 		    }
-		    s = dmalloc (strlen (val) + 1, MDL);
-		    if (!s) {
-			    printf ("no memory for key name.\n");
-			    skip_to_semi (cfile);
-			    break;
-		    }
-		    strcpy (s, val);
 		    name = s;
+
 		    memset (&secret, 0, sizeof secret);
 		    if (!parse_base64 (&secret, cfile)) {
 			    skip_to_semi (cfile);

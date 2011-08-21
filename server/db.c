@@ -3,7 +3,7 @@
    Persistent database management routines for DHCPD... */
 
 /*
- * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -54,7 +54,7 @@ write_binding_scope(FILE *db_file, struct binding *bnd, char *prepend) {
 	char *s;
 
 	if ((db_file == NULL) || (bnd == NULL) || (prepend == NULL))
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (bnd->value->type == binding_data) {
 		if (bnd->value->value.data.data != NULL) {
@@ -167,6 +167,20 @@ int write_lease (lease)
 			     [lease -> next_binding_state - 1])
 			  : "abandoned")) < 0)
                         ++errors;
+
+	/*
+	 * In this case, if the rewind state is not present in the lease file,
+	 * the reader will use the current binding state as the most
+	 * conservative (safest) state.  So if the in-memory rewind state is
+	 * for some reason invalid, the best thing to do is not to write a
+	 * state and let the reader take on a safe state.
+	 */
+	if ((lease->binding_state != lease->rewind_binding_state) &&
+	    (lease->rewind_binding_state > 0) &&
+	    (lease->rewind_binding_state <= FTS_LAST) &&
+	    (fprintf(db_file, "\n  rewind binding state %s;",
+		     binding_state_names[lease->rewind_binding_state-1])) < 0)
+			++errors;
 
 	if (lease->flags & RESERVED_LEASE)
 		if (fprintf(db_file, "\n  reserved;") < 0)
@@ -580,11 +594,11 @@ write_ia(const struct ia_xx *ia) {
 			    binding_state) < 0) {
 			goto error_exit;
 		}
-		if (fprintf(db_file, "    preferred-life %u\n",
+		if (fprintf(db_file, "    preferred-life %u;\n",
 			    (unsigned)iasubopt->prefer) < 0) {
 			goto error_exit;
 		}
-		if (fprintf(db_file, "    max-life %u\n",
+		if (fprintf(db_file, "    max-life %u;\n",
 			    (unsigned)iasubopt->valid) < 0) {
 			goto error_exit;
 		}
