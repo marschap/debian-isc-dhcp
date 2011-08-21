@@ -3,7 +3,8 @@
    Data Link Provider Interface (DLPI) network interface code. */
 
 /*
- * Copyright (c) 2004,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -124,7 +125,7 @@
 # endif
 
 #if defined(USE_DLPI_PFMOD) || defined(USE_DLPI_RAW)
-static int strioctl PROTO ((int fd, int cmd, int timeout, int len, char *dp));
+static int strioctl (int fd, int cmd, int timeout, int len, char *dp);
 #endif
 
 #define DLPI_MAXDLBUF		8192	/* Buffer size */
@@ -132,46 +133,44 @@ static int strioctl PROTO ((int fd, int cmd, int timeout, int len, char *dp));
 #define DLPI_DEVDIR		"/dev/"	/* Device directory */
 
 static int dlpiopen(const char *ifname);
-static int dlpiunit PROTO ((char *ifname));
-static int dlpiinforeq PROTO ((int fd));
-static int dlpiphysaddrreq PROTO ((int fd, unsigned long addrtype));
-static int dlpiattachreq PROTO ((int fd, unsigned long ppa));
-static int dlpibindreq PROTO ((int fd, unsigned long sap, unsigned long max_conind,
-			       unsigned long service_mode, unsigned long conn_mgmt,
-			       unsigned long xidtest));
+static int dlpiunit (char *ifname);
+static int dlpiinforeq (int fd);
+static int dlpiphysaddrreq (int fd, unsigned long addrtype);
+static int dlpiattachreq (int fd, unsigned long ppa);
+static int dlpibindreq (int fd, unsigned long sap, unsigned long max_conind,
+			unsigned long service_mode, unsigned long conn_mgmt,
+			unsigned long xidtest);
 #if defined(UNUSED_DLPI_INTERFACE)
 /* These functions are unused at present, but may be used at a later date.
  * defined out to avoid compiler warnings about unused static functions.
  */
-static int dlpidetachreq PROTO ((int fd));
-static int dlpiunbindreq PROTO ((int fd));
+static int dlpidetachreq (int fd);
+static int dlpiunbindreq (int fd);
 #endif
-static int dlpiokack PROTO ((int fd, char *bufp));
-static int dlpiinfoack PROTO ((int fd, char *bufp));
-static int dlpiphysaddrack PROTO ((int fd, char *bufp));
-static int dlpibindack PROTO ((int fd, char *bufp));
+static int dlpiokack (int fd, char *bufp);
+static int dlpiinfoack (int fd, char *bufp);
+static int dlpiphysaddrack (int fd, char *bufp);
+static int dlpibindack (int fd, char *bufp);
 #if defined(USE_DLPI_SEND) || defined(USE_DLPI_RECEIVE)
 /* These functions are not used if we're only sourcing the get_hw_addr()
  * function (for USE_SOCKETS).
  */
-static int dlpiunitdatareq PROTO ((int fd, unsigned char *addr,
-				   int addrlen, unsigned long minpri,
-				   unsigned long maxpri, unsigned char *data,
-				   int datalen));
-static int dlpiunitdataind PROTO ((int fd,
-				   unsigned char *dstaddr,
-				   unsigned long *dstaddrlen,
-				   unsigned char *srcaddr,
-				   unsigned long *srcaddrlen,
-				   unsigned long *grpaddr,
-				   unsigned char *data,
-				   int datalen));
+static int dlpiunitdatareq (int fd, unsigned char *addr, int addrlen, 
+			    unsigned long minpri, unsigned long maxpri, 
+			    unsigned char *data, int datalen);
+static int dlpiunitdataind (int fd,
+			    unsigned char *dstaddr,
+			    unsigned long *dstaddrlen,
+			    unsigned char *srcaddr,
+			    unsigned long *srcaddrlen,
+			    unsigned long *grpaddr,
+			    unsigned char *data,
+			    int datalen);
 #endif /* !USE_DLPI_HWADDR: USE_DLPI_SEND || USE_DLPI_RECEIVE */
-static int	expected PROTO ((unsigned long prim, union DL_primitives *dlp,
-				  int msgflags));
-static int	strgetmsg PROTO ((int fd, struct strbuf *ctlp,
-				  struct strbuf *datap, int *flagsp,
-				  char *caller));
+static int expected (unsigned long prim, union DL_primitives *dlp, 
+		     int msgflags);
+static int strgetmsg (int fd, struct strbuf *ctlp, struct strbuf *datap,
+		      int *flagsp, char *caller);
 
 /* Reinitializes the specified interface after an address change.   This
    is not required for packet-filter APIs. */
@@ -540,6 +539,9 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
 		return send_fallback (interface, packet, raw,
 				      len, from, to, hto);
 
+	if (hto == NULL && interface->anycast_mac_addr.hlen)
+		hto = &interface->anycast_mac_addr;
+
 	dbuflen = 0;
 
 	/* Assemble the headers... */
@@ -595,7 +597,7 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
           else 
              memcpy ( phys, interface -> dlpi_broadcast_addr.hbuf, 
               interface -> dlpi_broadcast_addr.hlen);
-           
+
           if (sap_len < 0) { 
              memcpy ( dstaddr, phys, phys_len);
              memcpy ( (char *) &dstaddr [phys_len], sap, ABS (sap_len));
@@ -978,7 +980,7 @@ static int dlpibindack (fd, bufp)
 	
 	dlp = (union DL_primitives *)ctl.buf;
 	
-	if (!expected (DL_BIND_ACK, dlp, flags) < 0) {
+	if (expected (DL_BIND_ACK, dlp, flags) == -1) {
 		return -1;
 	}
 	
@@ -1012,7 +1014,7 @@ static int dlpiokack (fd, bufp)
 	
 	dlp = (union DL_primitives *)ctl.buf;
 	
-	if (!expected (DL_OK_ACK, dlp, flags) < 0) {
+	if (expected (DL_OK_ACK, dlp, flags) == -1) {
 		return -1;
 	}
 	
@@ -1046,7 +1048,7 @@ static int dlpiinfoack (fd, bufp)
 	
 	dlp = (union DL_primitives *) ctl.buf;
 	
-	if (!expected (DL_INFO_ACK, dlp, flags) < 0) {
+	if (expected (DL_INFO_ACK, dlp, flags) == -1) {
 		return -1;
 	}
 	
@@ -1080,7 +1082,7 @@ int dlpiphysaddrack (fd, bufp)
 
 	dlp = (union DL_primitives *)ctl.buf;
 	
-	if (!expected (DL_PHYS_ADDR_ACK, dlp, flags) < 0) {
+	if (expected (DL_PHYS_ADDR_ACK, dlp, flags) == -1) {
 		return -1;
 	}
 
@@ -1161,16 +1163,7 @@ static int dlpiunitdataind (fd, daddr, daddrlen,
 
 	result = getmsg (fd, &ctl, &data, &flags);
 
-	/*
-	 * The getmsg() manpage says:
-	 *
-	 * "On successful completion, a non-negative value is returned."
-	 *
-	 * This suggests that if MOREDATA or MORECTL are set, we error?
-	 * This seems to be safe as it never seems to happen.  Still,
-	 * set a log message, so we know if it ever starts happening.
-	 */
-	if (result != 0) {
+	if (result < 0) {
 		log_debug("dlpiunitdataind: %m");
 		return -1;
 	}
@@ -1222,15 +1215,15 @@ static int expected (prim, dlp, msgflags)
 {
 	if (msgflags != RS_HIPRI) {
 		/* Message was not M_PCPROTO */
-		return 0;
+		return -1;
 	}
 
-	if (dlp -> dl_primitive != prim) {
+	if (dlp->dl_primitive != prim) {
 		/* Incorrect/unexpected return message */
-		return 0;
+		return -1;
 	}
 	
-	return 1;
+	return 0;
 }
 
 /*

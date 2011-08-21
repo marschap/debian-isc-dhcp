@@ -331,6 +331,11 @@ static struct option dhcpv6_options[] = {
 	{ "relay-msg", "X",			&dhcpv6_universe,  9, 1 },
 
 	/* Option code 10 is curiously unassigned. */
+	/* 
+	 * In draft-ietf-dhc-dhcpv6-25 there were two OPTION_CLIENT_MSG and
+	 * OPTION_SERVER_MSG options. They were eventually unified as
+	 * OPTION_RELAY_MSG, hence no option with value of 10. 
+	 */
 #if 0
 	/* XXX: missing suitable atoms for the auth option.  We may want
 	 * to 'virtually encapsulate' this option a la the fqdn option
@@ -843,14 +848,14 @@ option_reference(struct option **dest, struct option *src,
 	         const char * file, int line)
 {
 	if (!dest || !src)
-	        return ISC_R_INVALIDARG;
+	        return DHCP_R_INVALIDARG;
 
 	if (*dest) {
 #if defined(POINTER_DEBUG)
 	        log_fatal("%s(%d): reference store into non-null pointer!",
 	                  file, line);
 #else
-	        return ISC_R_INVALIDARG;
+	        return DHCP_R_INVALIDARG;
 #endif
 	}
 
@@ -864,13 +869,13 @@ int
 option_dereference(struct option **dest, const char *file, int line)
 {
 	if (!dest)
-	        return ISC_R_INVALIDARG;
+	        return DHCP_R_INVALIDARG;
 
 	if (!*dest) {
 #if defined (POINTER_DEBUG)
 	        log_fatal("%s(%d): dereference of null pointer!", file, line);
 #else
-	        return ISC_R_INVALIDARG;
+	        return DHCP_R_INVALIDARG;
 #endif
 	}
 
@@ -878,7 +883,7 @@ option_dereference(struct option **dest, const char *file, int line)
 #if defined (POINTER_DEBUG)
 	        log_fatal("%s(%d): dereference of <= 0 refcnt!", file, line);
 #else
-	        return ISC_R_INVALIDARG;
+	        return DHCP_R_INVALIDARG;
 #endif
 	}
 

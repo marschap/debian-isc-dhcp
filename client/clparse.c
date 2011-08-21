@@ -3,7 +3,7 @@
    Parser for dhclient config and lease files... */
 
 /*
- * Copyright (c) 2004-2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -128,6 +128,16 @@ isc_result_t read_client_conf ()
 	top_level_config.retry_interval = 300;
 	top_level_config.backoff_cutoff = 15;
 	top_level_config.initial_interval = 3;
+
+	/*
+	 * RFC 2131, section 4.4.1 specifies that the client SHOULD wait a
+	 * random time between 1 and 10 seconds. However, we choose to not
+	 * implement this default. If user is inclined to really have that
+	 * delay, he is welcome to do so, using 'initial-delay X;' parameter
+	 * in config file.
+	 */
+	top_level_config.initial_delay = 0;
+
 	top_level_config.bootp_policy = P_ACCEPT;
 	top_level_config.script_name = path_dhclient_script;
 	top_level_config.requested_options = default_requested_options;
@@ -209,7 +219,7 @@ int read_client_conf_file (const char *name, struct interface_info *ip,
 	const char *val;
 	int token;
 	isc_result_t status;
-	
+
 	if ((file = open (name, O_RDONLY)) < 0)
 		return uerr2isc (errno);
 
@@ -226,7 +236,7 @@ int read_client_conf_file (const char *name, struct interface_info *ip,
 	} while (1);
 	token = next_token (&val, (unsigned *)0, cfile);
 	status = (cfile -> warnings_occurred
-		  ? ISC_R_BADPARSE
+		  ? DHCP_R_BADPARSE
 		  : ISC_R_SUCCESS);
 	end_parse (&cfile);
 	return status;
@@ -554,6 +564,17 @@ void parse_client_statement (cfile, ip, config)
 		}
 		return;
 
+	      case ANYCAST_MAC:
+		token = next_token(&val, NULL, cfile);
+		if (ip != NULL) {
+			parse_hardware_param(cfile, &ip->anycast_mac_addr);
+		} else {
+			parse_warn(cfile, "anycast mac address parameter "
+				   "not allowed here.");
+			skip_to_semi (cfile);
+		}
+		return;
+
 	      case REQUEST:
 		token = next_token (&val, (unsigned *)0, cfile);
 		if (config -> requested_options == default_requested_options)
@@ -632,6 +653,11 @@ void parse_client_statement (cfile, ip, config)
 	      case INITIAL_INTERVAL:
 		token = next_token (&val, (unsigned *)0, cfile);
 		parse_lease_time (cfile, &config -> initial_interval);
+		return;
+
+	      case INITIAL_DELAY:
+		token = next_token (&val, (unsigned *)0, cfile);
+		parse_lease_time (cfile, &config -> initial_delay);
 		return;
 
 	      case SCRIPT:
@@ -1510,12 +1536,12 @@ parse_client6_lease_statement(struct parse *cfile)
 static struct dhc6_ia *
 parse_client6_ia_na_statement(struct parse *cfile)
 {
-	struct data_string id;
 	struct option_cache *oc = NULL;
 	struct dhc6_ia *ia;
 	struct dhc6_addr **addr;
 	const char *val;
-	int token, no_semi;
+	int token, no_semi, len;
+	u_int8_t buf[5];
 
 	ia = dmalloc(sizeof(*ia), MDL);
 	if (ia == NULL) {
@@ -1526,20 +1552,11 @@ parse_client6_ia_na_statement(struct parse *cfile)
 	ia->ia_type = D6O_IA_NA;
 
 	/* Get IAID. */
-	memset(&id, 0, sizeof(id));
-	if (parse_cshl(&id, cfile)) {
-		if (id.len == 4)
-			memcpy(ia->iaid, id.data, 4);
-		else {
-			parse_warn(cfile, "Expecting IAID of length 4, got %d.",
-				   id.len);
-			skip_to_semi(cfile);
-			dfree(ia, MDL);
-			return NULL;
-		}
-		data_string_forget(&id, MDL);
+	len = parse_X(cfile, buf, 5);
+	if (len == 4) {
+		memcpy(ia->iaid, buf, 4);
 	} else {
-		parse_warn(cfile, "Expecting IAID.");
+		parse_warn(cfile, "Expecting IAID of length 4, got %d.", len);
 		skip_to_semi(cfile);
 		dfree(ia, MDL);
 		return NULL;
@@ -1647,12 +1664,12 @@ parse_client6_ia_na_statement(struct parse *cfile)
 static struct dhc6_ia *
 parse_client6_ia_ta_statement(struct parse *cfile)
 {
-	struct data_string id;
 	struct option_cache *oc = NULL;
 	struct dhc6_ia *ia;
 	struct dhc6_addr **addr;
 	const char *val;
-	int token, no_semi;
+	int token, no_semi, len;
+	u_int8_t buf[5];
 
 	ia = dmalloc(sizeof(*ia), MDL);
 	if (ia == NULL) {
@@ -1663,20 +1680,11 @@ parse_client6_ia_ta_statement(struct parse *cfile)
 	ia->ia_type = D6O_IA_TA;
 
 	/* Get IAID. */
-	memset(&id, 0, sizeof(id));
-	if (parse_cshl(&id, cfile)) {
-		if (id.len == 4)
-			memcpy(ia->iaid, id.data, 4);
-		else {
-			parse_warn(cfile, "Expecting IAID of length 4, got %d.",
-				   id.len);
-			skip_to_semi(cfile);
-			dfree(ia, MDL);
-			return NULL;
-		}
-		data_string_forget(&id, MDL);
+	len = parse_X(cfile, buf, 5);
+	if (len == 4) {
+		memcpy(ia->iaid, buf, 4);
 	} else {
-		parse_warn(cfile, "Expecting IAID.");
+		parse_warn(cfile, "Expecting IAID of length 4, got %d.", len);
 		skip_to_semi(cfile);
 		dfree(ia, MDL);
 		return NULL;
@@ -1764,12 +1772,12 @@ parse_client6_ia_ta_statement(struct parse *cfile)
 static struct dhc6_ia *
 parse_client6_ia_pd_statement(struct parse *cfile)
 {
-	struct data_string id;
 	struct option_cache *oc = NULL;
 	struct dhc6_ia *ia;
 	struct dhc6_addr **pref;
 	const char *val;
-	int token, no_semi;
+	int token, no_semi, len;
+	u_int8_t buf[5];
 
 	ia = dmalloc(sizeof(*ia), MDL);
 	if (ia == NULL) {
@@ -1780,20 +1788,11 @@ parse_client6_ia_pd_statement(struct parse *cfile)
 	ia->ia_type = D6O_IA_PD;
 
 	/* Get IAID. */
-	memset(&id, 0, sizeof(id));
-	if (parse_cshl(&id, cfile)) {
-		if (id.len == 4)
-			memcpy(ia->iaid, id.data, 4);
-		else {
-			parse_warn(cfile, "Expecting IAID of length 4, got %d.",
-				   id.len);
-			skip_to_semi(cfile);
-			dfree(ia, MDL);
-			return NULL;
-		}
-		data_string_forget(&id, MDL);
+	len = parse_X(cfile, buf, 5);
+	if (len == 4) {
+		memcpy(ia->iaid, buf, 4);
 	} else {
-		parse_warn(cfile, "Expecting IAID.");
+		parse_warn(cfile, "Expecting IAID of length 4, got %d.", len);
 		skip_to_semi(cfile);
 		dfree(ia, MDL);
 		return NULL;
@@ -2234,4 +2233,3 @@ int parse_allow_deny (oc, cfile, flag)
 	skip_to_semi (cfile);
 	return 0;
 }
-

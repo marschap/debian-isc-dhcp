@@ -3,7 +3,7 @@
    DHCP Client. */
 
 /*
- * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -37,6 +37,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <limits.h>
+#include <dns/result.h>
 
 TIME default_lease_time = 43200; /* 12 hours... */
 TIME max_lease_time = 86400; /* 24 hours... */
@@ -46,6 +47,9 @@ const char *path_dhclient_db = NULL;
 const char *path_dhclient_pid = NULL;
 static char path_dhclient_script_array[] = _PATH_DHCLIENT_SCRIPT;
 char *path_dhclient_script = path_dhclient_script_array;
+
+/* False (default) => we write and use a pid file */
+isc_boolean_t no_pid_file = ISC_FALSE;
 
 int dhcp_max_agent_option_packet_length = 0;
 
@@ -57,13 +61,14 @@ struct in_addr inaddr_any;
 struct sockaddr_in sockaddr_broadcast;
 struct in_addr giaddr;
 struct data_string default_duid;
+int duid_type = 0;
 
 /* ASSERT_STATE() does nothing now; it used to be
    assert (state_is == state_shouldbe). */
 #define ASSERT_STATE(state_is, state_shouldbe) {}
 
-static const char copyright[] = 
-"Copyright 2004-2010 Internet Systems Consortium.";
+static const char copyright[] =
+"Copyright 2004-2011 Internet Systems Consortium.";
 static const char arr [] = "All rights reserved.";
 static const char message [] = "Internet Systems Consortium DHCP Client";
 static const char url [] = 
@@ -88,6 +93,12 @@ void run_stateless(int exit_mode);
 static void usage(void);
 
 static isc_result_t write_duid(struct data_string *duid);
+static void add_reject(struct packet *packet);
+
+static int check_domain_name(const char *ptr, size_t len, int dots);
+static int check_domain_name_list(const char *ptr, size_t len, int dots);
+static int check_option_values(struct universe *universe, unsigned int opt,
+			       const char *ptr, size_t len);
 
 int
 main(int argc, char **argv) {
@@ -134,6 +145,12 @@ main(int argc, char **argv) {
 #if !(defined(DEBUG) || defined(__CYGWIN32__))
 	setlogmask(LOG_UPTO(LOG_INFO));
 #endif
+
+	/* Set up the isc and dns library managers */
+	status = dhcp_context_create();
+	if (status != ISC_R_SUCCESS)
+		log_fatal("Can't initialize context: %s",
+			  isc_result_totext(status));
 
 	/* Set up the OMAPI. */
 	status = omapi_init();
@@ -185,6 +202,8 @@ main(int argc, char **argv) {
 				usage();
 			path_dhclient_pid = argv[i];
 			no_dhclient_pid = 1;
+		} else if (!strcmp(argv[i], "--no-pid")) {
+			no_pid_file = ISC_TRUE;
 		} else if (!strcmp(argv[i], "-cf")) {
 			if (++i == argc)
 				usage();
@@ -270,6 +289,21 @@ main(int argc, char **argv) {
 				wanted_ia_na = 0;
 			}
 			wanted_ia_pd++;
+		} else if (!strcmp(argv[i], "-D")) {
+			if (local_family_set && (local_family == AF_INET)) {
+				usage();
+			}
+			local_family_set = 1;
+			local_family = AF_INET6;
+			if (++i == argc)
+				usage();
+			if (!strcasecmp(argv[i], "LL")) {
+				duid_type = DUID_LL;
+			} else if (!strcasecmp(argv[i], "LLT")) {
+				duid_type = DUID_LLT;
+			} else {
+				usage();
+			}
 #endif /* DHCPv6 */
 		} else if (!strcmp(argv[i], "-v")) {
 			quiet = 0;
@@ -359,8 +393,13 @@ main(int argc, char **argv) {
 			log_fatal("%s: %s", path, strerror(errno));
 	}
 
-	/* first kill off any currently running client */
-	if (release_mode || exit_mode) {
+	/*
+	 * See if we should  kill off any currently running client
+	 * we don't try to kill it off if the user told us not
+	 * to write a pid file - we assume they are controlling
+	 * the process in some other fashion.
+	 */
+	if ((release_mode || exit_mode) && (no_pid_file == ISC_FALSE)) {
 		FILE *pidfd;
 		pid_t oldpid;
 		long temp;
@@ -522,7 +561,7 @@ main(int argc, char **argv) {
 					    sizeof seed], sizeof seed);
 		seed += junk;
 	}
-	srandom(seed + cur_time);
+	srandom(seed + cur_time + (unsigned)getpid());
 
 	/* Start a configuration state machine for each interface. */
 #ifdef DHCPv6
@@ -572,13 +611,28 @@ main(int argc, char **argv) {
 					do_release(client);
 				else {
 					client->state = S_INIT;
-					/* Set up a timeout to start the
-					 * initialization process.
-					 */
-					tv.tv_sec = cur_time + random() % 5;
-					tv.tv_usec = 0;
-					add_timeout(&tv, state_reboot,
-						    client, 0, 0);
+
+					if (top_level_config.initial_delay>0)
+					{
+						tv.tv_sec = 0;
+						if (top_level_config.
+						    initial_delay>1)
+							tv.tv_sec = cur_time
+							+ random()
+							% (top_level_config.
+							   initial_delay-1);
+						tv.tv_usec = random()
+							% 1000000;
+						/*
+						 * this gives better
+						 * distribution than just
+						 *whole seconds
+						 */
+						add_timeout(&tv, state_reboot,
+						            client, 0, 0);
+					} else {
+						state_reboot(client);
+					}
 				}
 			}
 		}
@@ -651,16 +705,17 @@ static void usage()
 	log_info(arr);
 	log_info(url);
 
-	log_error("Usage: dhclient %s %s",
+
+	log_fatal("Usage: dhclient "
 #ifdef DHCPv6
-		  "[-4|-6] [-SNTP1dvrx] [-nw] [-p <port>]",
+		  "[-4|-6] [-SNTP1dvrx] [-nw] [-p <port>] [-D LL|LLT]\n"
 #else /* DHCPv6 */
-		  "[-1dvrx] [-nw] [-p <port>]",
+		  "[-1dvrx] [-nw] [-p <port>]\n"
 #endif /* DHCPv6 */
-		  "[-s server]");
-	log_error("                [-cf config-file] [-lf lease-file]%s",
-		  "[-pf pid-file] [-e VAR=val]");
-	log_fatal("                [-sf script-file] [interface]");
+		  "                [-s server-addr] [-cf config-file] "
+		  "[-lf lease-file]\n"
+		  "                [-pf pid-file] [--no-pid] [-e VAR=val]\n"
+		  "                [-sf script-file] [interface]");
 }
 
 void run_stateless(int exit_mode)
@@ -1027,21 +1082,34 @@ void dhcpack (packet)
 	} else
 			client -> new -> expiry = 0;
 
-	if (!client -> new -> expiry) {
+	if (client->new->expiry == 0) {
+		struct timeval tv;
+
 		log_error ("no expiry time on offered lease.");
-		/* XXX this is going to be bad - if this _does_
-		   XXX happen, we should probably dynamically
-		   XXX disqualify the DHCP server that gave us the
-		   XXX bad packet from future selections and
-		   XXX then go back into the init state. */
-		state_init (client);
+
+		/* Quench this (broken) server.  Return to INIT to reselect. */
+		add_reject(packet);
+
+		/* 1/2 second delay to restart at INIT. */
+		tv.tv_sec = cur_tv.tv_sec;
+		tv.tv_usec = cur_tv.tv_usec + 500000;
+
+		if (tv.tv_usec >= 1000000) {
+			tv.tv_sec++;
+			tv.tv_usec -= 1000000;
+		}
+
+		add_timeout(&tv, state_init, client, 0, 0);
 		return;
 	}
 
-	/* A number that looks negative here is really just very large,
-	   because the lease expiry offset is unsigned. */
-	if (client -> new -> expiry < 0)
-		client -> new -> expiry = TIME_MAX;
+	/*
+	 * A number that looks negative here is really just very large,
+	 * because the lease expiry offset is unsigned.
+	 */
+	if (client->new->expiry < 0)
+		client->new->expiry = TIME_MAX;
+
 	/* Take the server-provided renewal time if there is one. */
 	oc = lookup_option (&dhcp_universe, client -> new -> options,
 			    DHO_DHCP_RENEWAL_TIME);
@@ -1152,8 +1220,10 @@ void bind_lease (client)
 		return;
 	}
 
-	/* Write out the new lease. */
-	write_client_lease (client, client -> new, 0, 0);
+	/* Write out the new lease if it has been long enough. */
+	if (!client->last_write ||
+	    (cur_time - client->last_write) >= MIN_LEASE_WRITE)
+		write_client_lease(client, client->new, 0, 0);
 
 	/* Replace the old active lease with the new one. */
 	if (client -> active)
@@ -1162,9 +1232,10 @@ void bind_lease (client)
 	client -> new = (struct client_lease *)0;
 
 	/* Set up a timeout to start the renewal process. */
-	tv . tv_sec = client -> active -> renewal;
-	tv . tv_usec = 0;
-	add_timeout (&tv, state_bound, client, 0, 0);
+	tv.tv_sec = client->active->renewal;
+	tv.tv_usec = ((client->active->renewal - cur_tv.tv_sec) > 1) ?
+			random() % 1000000 : cur_tv.tv_usec;
+	add_timeout(&tv, state_bound, client, 0, 0);
 
 	log_info ("bound to %s -- renewal in %ld seconds.",
 	      piaddr (client -> active -> address),
@@ -1172,9 +1243,10 @@ void bind_lease (client)
 	client -> state = S_BOUND;
 	reinitialize_interfaces ();
 	go_daemon ();
+#if defined (NSUPDATE)
 	if (client->config->do_forward_update)
-		dhclient_schedule_updates(client, &client->active->address,
-					  1);
+		dhclient_schedule_updates(client, &client->active->address, 1);
+#endif
 }
 
 /* state_bound is called when we've successfully bound to a particular
@@ -1304,7 +1376,7 @@ void dhcp (packet)
 	struct packet *packet;
 {
 	struct iaddrmatchlist *ap;
-	void (*handler) PROTO ((struct packet *));
+	void (*handler) (struct packet *);
 	const char *type;
 	char addrbuf[4*16];
 	char maskbuf[4*16];
@@ -1527,15 +1599,15 @@ void dhcpoffer (packet)
 	/* If the selecting interval has expired, go immediately to
 	   state_selecting().  Otherwise, time out into
 	   state_selecting at the select interval. */
-	if (stop_selecting <= 0)
+	if (stop_selecting <= cur_tv.tv_sec)
 		state_selecting (client);
 	else {
-		tv . tv_sec = stop_selecting;
-		tv . tv_usec = 0;
-		add_timeout (&tv, state_selecting, client, 0, 0);
-		cancel_timeout (send_discover, client);
+		tv.tv_sec = stop_selecting;
+		tv.tv_usec = cur_tv.tv_usec;
+		add_timeout(&tv, state_selecting, client, 0, 0);
+		cancel_timeout(send_discover, client);
 	}
-	log_info ("%s", obuf);
+	log_info("%s", obuf);
 }
 
 /* Allocate a client_lease structure and initialize it from the parameters
@@ -1835,9 +1907,15 @@ void send_discover (cpp)
 			      inaddr_any, &sockaddr_broadcast,
 			      (struct hardware *)0);
 
-	tv . tv_sec = cur_time + client -> interval;
-	tv . tv_usec = 0;
-	add_timeout (&tv, send_discover, client, 0, 0);
+	/*
+	 * If we used 0 microseconds here, and there were other clients on the
+	 * same network with a synchronized local clock (ntp), and a similar
+	 * zero-microsecond-scheduler behavior, then we could be participating
+	 * in a sub-second DOS ttck.
+	 */
+	tv.tv_sec = cur_tv.tv_sec + client->interval;
+	tv.tv_usec = client->interval > 1 ? random() % 1000000 : cur_tv.tv_usec;
+	add_timeout(&tv, send_discover, client, 0, 0);
 }
 
 /* state_panic gets called if we haven't received any offers in a preset
@@ -1885,9 +1963,12 @@ void state_panic (cpp)
 				log_info ("bound: renewal in %ld %s.",
 					  (long)(client -> active -> renewal -
 						 cur_time), "seconds");
-				tv . tv_sec = client -> active -> renewal;
-				tv . tv_usec = 0;
-				add_timeout (&tv, state_bound, client, 0, 0);
+				tv.tv_sec = client->active->renewal;
+				tv.tv_usec = ((client->active->renewal -
+						    cur_time) > 1) ?
+						random() % 1000000 :
+						cur_tv.tv_usec;
+				add_timeout(&tv, state_bound, client, 0, 0);
 			    } else {
 				client -> state = S_BOUND;
 				log_info ("bound: immediate renewal.");
@@ -1943,11 +2024,11 @@ void state_panic (cpp)
 		script_write_params (client, "alias_", client -> alias);
 	script_go (client);
 	client -> state = S_INIT;
-	tv . tv_sec = cur_time +
-		     ((client -> config -> retry_interval + 1) / 2 +
-		      (random () % client -> config -> retry_interval));
-	tv . tv_usec = 0;
-	add_timeout (&tv, state_init, client, 0, 0);
+	tv.tv_sec = cur_tv.tv_sec + ((client->config->retry_interval + 1) / 2 +
+		    (random() % client->config->retry_interval));
+	tv.tv_usec = ((tv.tv_sec - cur_tv.tv_sec) > 1) ?
+			random() % 1000000 : cur_tv.tv_usec;
+	add_timeout(&tv, state_init, client, 0, 0);
 	go_daemon ();
 }
 
@@ -2102,9 +2183,10 @@ void send_request (cpp)
 				      from, &destination,
 				      (struct hardware *)0);
 
-	tv . tv_sec = cur_time + client -> interval;
-	tv . tv_usec = 0;
-	add_timeout (&tv, send_request, client, 0, 0);
+	tv.tv_sec = cur_tv.tv_sec + client->interval;
+	tv.tv_usec = ((tv.tv_sec - cur_tv.tv_sec) > 1) ?
+			random() % 1000000 : cur_tv.tv_usec;
+	add_timeout(&tv, send_request, client, 0, 0);
 }
 
 void send_decline (cpp)
@@ -2586,6 +2668,9 @@ void rewrite_client_leases ()
 				write_client6_lease(client,
 						    client->active_lease,
 						    1, 0);
+
+			/* Reset last_write after rewrites. */
+			client->last_write = 0;
 		}
 	}
 
@@ -2604,6 +2689,9 @@ void rewrite_client_leases ()
 				write_client6_lease(client,
 						    client->active_lease,
 						    1, 0);
+
+			/* Reset last_write after rewrites. */
+			client->last_write = 0;
 		}
 	}
 	fflush (leaseFile);
@@ -2662,7 +2750,7 @@ write_duid(struct data_string *duid)
 	int stat;
 
 	if ((duid == NULL) || (duid->len <= 2))
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (leaseFile == NULL) {	/* XXX? */
 		leaseFile = fopen(path_dhclient_db, "w");
@@ -2710,7 +2798,7 @@ write_client6_lease(struct client_state *client, struct dhc6_lease *lease,
 	}
 
 	if (client == NULL || lease == NULL)
-		return ISC_R_INVALIDARG;
+		return DHCP_R_INVALIDARG;
 
 	if (leaseFile == NULL) {	/* XXX? */
 		leaseFile = fopen(path_dhclient_db, "w");
@@ -2947,12 +3035,15 @@ int write_client_lease (client, lease, rewrite, makesure)
 	if (fflush(leaseFile) != 0)
 		errors++;
 
+	client->last_write = cur_time;
+
 	if (!errors && makesure) {
 		if (fsync (fileno (leaseFile)) < 0) {
 			log_info ("write_client_lease: %m");
 			return 0;
 		}
 	}
+
 	return errors ? 0 : 1;
 }
 
@@ -3010,13 +3101,24 @@ void client_option_envadd (struct option_cache *oc,
 		if (data.len) {
 			char name [256];
 			if (dhcp_option_ev_name (name, sizeof name,
-						 oc -> option)) {
-				client_envadd (es -> client, es -> prefix,
-					       name, "%s",
-					       (pretty_print_option
-						(oc -> option,
-						 data.data, data.len,
-						 0, 0)));
+						 oc->option)) {
+				const char *value;
+				size_t length;
+				value = pretty_print_option(oc->option,
+							    data.data,
+							    data.len, 0, 0);
+				length = strlen(value);
+
+				if (check_option_values(oc->option->universe,
+							oc->option->code,
+							value, length) == 0) {
+					client_envadd(es->client, es->prefix,
+						      name, "%s", value);
+				} else {
+					log_error("suspect value in %s "
+						  "option - discarded",
+						  name);
+				}
 				data_string_forget (&data, MDL);
 			}
 		}
@@ -3094,12 +3196,32 @@ void script_write_params (client, prefix, lease)
 		data_string_forget (&data, MDL);
 	}
 
-	if (lease -> filename)
-		client_envadd (client,
-			       prefix, "filename", "%s", lease -> filename);
-	if (lease -> server_name)
-		client_envadd (client, prefix, "server_name",
-			       "%s", lease -> server_name);
+	if (lease->filename) {
+		if (check_option_values(NULL, DHO_ROOT_PATH,
+					lease->filename,
+					strlen(lease->filename)) == 0) {
+			client_envadd(client, prefix, "filename",
+				      "%s", lease->filename);
+		} else {
+			log_error("suspect value in %s "
+				  "option - discarded",
+				  lease->filename);
+		}
+	}
+
+	if (lease->server_name) {
+		if (check_option_values(NULL, DHO_HOST_NAME,
+					lease->server_name,
+					strlen(lease->server_name)) == 0 ) {
+			client_envadd (client, prefix, "server_name",
+				       "%s", lease->server_name);
+		} else {
+			log_error("suspect value in %s "
+				  "option - discarded",
+				  lease->server_name);
+		}
+	}
+				
 
 	for (i = 0; i < lease -> options -> universe_count; i++) {
 		option_space_foreach ((struct packet *)0, (struct lease *)0,
@@ -3312,6 +3434,11 @@ void write_client_pid_file ()
 	FILE *pf;
 	int pfdesc;
 
+	/* nothing to do if the user doesn't want a pid file */
+	if (no_pid_file == ISC_TRUE) {
+		return;
+	}
+
 	pfdesc = open (path_dhclient_pid, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
 	if (pfdesc < 0) {
@@ -3320,9 +3447,10 @@ void write_client_pid_file ()
 	}
 
 	pf = fdopen (pfdesc, "w");
-	if (!pf)
+	if (!pf) {
+		close(pfdesc);
 		log_error ("Can't fdopen %s: %m", path_dhclient_pid);
-	else {
+	} else {
 		fprintf (pf, "%ld\n", (long)getpid ());
 		fclose (pf);
 	}
@@ -3478,7 +3606,6 @@ isc_result_t dhclient_interface_startup_hook (struct interface_info *interface)
 {
 	struct interface_info *ip;
 	struct client_state *client;
-	struct timeval tv;
 
 	/* This code needs some rethinking.   It doesn't test against
 	   a signal name, and it just kind of bulls into doing something
@@ -3516,13 +3643,9 @@ isc_result_t dhclient_interface_startup_hook (struct interface_info *interface)
 		if (ip -> flags & INTERFACE_RUNNING)
 			continue;
 		ip -> flags |= INTERFACE_RUNNING;
-		for (client = ip -> client; client; client = client -> next) {
-			client -> state = S_INIT;
-			/* Set up a timeout to start the initialization
-			   process. */
-			tv . tv_sec = cur_time + random () % 5;
-			tv . tv_usec = 0;
-			add_timeout (&tv, state_reboot, client, 0, 0);
+		for (client = ip->client ; client ; client = client->next) {
+			client->state = S_INIT;
+			state_reboot(client);
 		}
 	}
 	return ISC_R_SUCCESS;
@@ -3556,6 +3679,75 @@ static void shutdown_exit (void *foo)
 	exit (0);
 }
 
+#if defined (NSUPDATE)
+/*
+ * If the first query fails, the updater MUST NOT delete the DNS name.  It
+ * may be that the host whose lease on the server has expired has moved
+ * to another network and obtained a lease from a different server,
+ * which has caused the client's A RR to be replaced. It may also be
+ * that some other client has been configured with a name that matches
+ * the name of the DHCP client, and the policy was that the last client
+ * to specify the name would get the name.  In this case, the DHCID RR
+ * will no longer match the updater's notion of the client-identity of
+ * the host pointed to by the DNS name.
+ *   -- "Interaction between DHCP and DNS"
+ */
+
+/* The first and second stages are pretty similar so we combine them */
+void
+client_dns_remove_action(dhcp_ddns_cb_t *ddns_cb,
+			 isc_result_t    eresult)
+{
+
+	isc_result_t result;
+
+	if ((eresult == ISC_R_SUCCESS) &&
+	    (ddns_cb->state == DDNS_STATE_REM_FW_YXDHCID)) {
+		/* Do the second stage of the FWD removal */
+		ddns_cb->state = DDNS_STATE_REM_FW_NXRR;
+
+		result = ddns_modify_fwd(ddns_cb);
+		if (result == ISC_R_SUCCESS) {
+			return;
+		}
+	}
+
+	/* If we are done or have an error clean up */
+	ddns_cb_free(ddns_cb, MDL);
+	return;
+}
+
+void
+client_dns_remove(struct client_state *client,
+		  struct iaddr        *addr)
+{
+	dhcp_ddns_cb_t *ddns_cb;
+	isc_result_t result;
+
+	/* if we have an old ddns request for this client, cancel it */
+	if (client->ddns_cb != NULL) {
+		ddns_cancel(client->ddns_cb);
+		client->ddns_cb = NULL;
+	}
+	
+	ddns_cb = ddns_cb_alloc(MDL);
+	if (ddns_cb != NULL) {
+		ddns_cb->address = *addr;
+		ddns_cb->timeout = 0;
+
+		ddns_cb->state = DDNS_STATE_REM_FW_YXDHCID;
+		ddns_cb->flags = DDNS_UPDATE_ADDR;
+		ddns_cb->cur_func = client_dns_remove_action;
+
+		result = client_dns_update(client, ddns_cb);
+
+		if (result != ISC_R_TIMEDOUT) {
+			ddns_cb_free(ddns_cb, MDL);
+		}
+	}
+}
+#endif
+
 isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 				     control_object_state_t newstate)
 {
@@ -3576,9 +3768,12 @@ isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 		  case server_shutdown:
 		    if (client -> active &&
 			client -> active -> expiry > cur_time) {
-			    if (client -> config -> do_forward_update)
-				    client_dns_update(client, 0, 0,
-						    &client->active->address);
+#if defined (NSUPDATE)
+			    if (client->config->do_forward_update) {
+				    client_dns_remove(client,
+						      &client->active->address);
+			    }
+#endif
 			    do_release (client);
 		    }
 		    break;
@@ -3595,78 +3790,143 @@ isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 	}
 
 	if (newstate == server_shutdown) {
-		tv . tv_sec = cur_tv . tv_sec + 1;
-		tv . tv_usec = cur_tv . tv_usec;
-		add_timeout (&tv, shutdown_exit, 0, 0, 0);
+		tv.tv_sec = cur_tv.tv_sec;
+		tv.tv_usec = cur_tv.tv_usec + 1;
+		add_timeout(&tv, shutdown_exit, 0, 0, 0);
 	}
 	return ISC_R_SUCCESS;
 }
 
-/* Schedule updates to retry occasionally until it no longer times out.
+#if defined (NSUPDATE)
+/*
+ * Called after a timeout if the DNS update failed on the previous try.
+ * Starts the retry process.  If the retry times out it will schedule
+ * this routine to run again after a 10x wait.
  */
 void
-dhclient_schedule_updates(struct client_state *client, struct iaddr *addr,
-			  int offset)
+client_dns_update_timeout (void *cp)
 {
-	struct dns_update_state *ustate;
-	struct timeval tv;
+	dhcp_ddns_cb_t *ddns_cb = (dhcp_ddns_cb_t *)cp;
+	struct client_state *client = (struct client_state *)ddns_cb->lease;
+	isc_result_t status = ISC_R_FAILURE;
 
-	if (!client->config->do_forward_update)
-		return;
+	if ((client != NULL) &&
+	    ((client->active != NULL) ||
+	     (client->active_lease != NULL)))
+		status = client_dns_update(client, ddns_cb);
 
-	ustate = dmalloc(sizeof(*ustate), MDL);
-
-	if (ustate != NULL) {
-		ustate->client = client;
-		ustate->address = *addr;
-		ustate->dns_update_timeout = 1;
-
-		tv.tv_sec = cur_time + offset;
-		tv.tv_usec = 0;
-		add_timeout(&tv, client_dns_update_timeout,
-			    ustate, NULL, NULL);
-	} else {
-		log_error("Unable to allocate dns update state for %s.",
-			  piaddr(*addr));
+	/*
+	 * A status of timedout indicates that we started the update and
+	 * have released control of the control block.  Any other status
+	 * indicates that we should clean up the control block.  We either
+	 * got a success which indicates that we didn't really need to
+	 * send an update or some other error in which case we weren't able
+	 * to start the update process.  In both cases we still own
+	 * the control block and should free it.
+	 */
+	if (status != ISC_R_TIMEDOUT) {
+		if (client != NULL) {
+			client->ddns_cb = NULL;
+		}
+		ddns_cb_free(ddns_cb, MDL);
 	}
 }
 
-/* Called after a timeout if the DNS update failed on the previous try.
-   Retries the update, and if it times out, schedules a retry after
-   ten times as long of a wait. */
+/*
+ * If the first query succeeds, the updater can conclude that it
+ * has added a new name whose only RRs are the A and DHCID RR records.
+ * The A RR update is now complete (and a client updater is finished,
+ * while a server might proceed to perform a PTR RR update).
+ *   -- "Interaction between DHCP and DNS"
+ *
+ * If the second query succeeds, the updater can conclude that the current
+ * client was the last client associated with the domain name, and that
+ * the name now contains the updated A RR. The A RR update is now
+ * complete (and a client updater is finished, while a server would
+ * then proceed to perform a PTR RR update).
+ *   -- "Interaction between DHCP and DNS"
+ *
+ * If the second query fails with NXRRSET, the updater must conclude
+ * that the client's desired name is in use by another host.  At this
+ * juncture, the updater can decide (based on some administrative
+ * configuration outside of the scope of this document) whether to let
+ * the existing owner of the name keep that name, and to (possibly)
+ * perform some name disambiguation operation on behalf of the current
+ * client, or to replace the RRs on the name with RRs that represent
+ * the current client. If the configured policy allows replacement of
+ * existing records, the updater submits a query that deletes the
+ * existing A RR and the existing DHCID RR, adding A and DHCID RRs that
+ * represent the IP address and client-identity of the new client.
+ *   -- "Interaction between DHCP and DNS"
+ */
 
-void client_dns_update_timeout (void *cp)
+/* The first and second stages are pretty similar so we combine them */
+void
+client_dns_update_action(dhcp_ddns_cb_t *ddns_cb,
+			 isc_result_t    eresult)
 {
-	struct dns_update_state *ustate = cp;
-	isc_result_t status = ISC_R_FAILURE;
+	isc_result_t result;
 	struct timeval tv;
 
-	/* XXX: DNS TTL is a problem we need to solve properly.  Until
-	 * that time, 300 is a placeholder default for something that is
-	 * less insane than a value scaled by lease timeout.
-	 */
-	if ((ustate->client->active != NULL) ||
-	    (ustate->client->active_lease != NULL))
-		status = client_dns_update(ustate->client, 1, 300,
-					   &ustate->address);
+	switch(eresult) {
+	case ISC_R_SUCCESS:
+	default:
+		/* Either we succeeded or broke in a bad way, clean up */
+		break;
 
-	if (status == ISC_R_TIMEDOUT) {
-		if (ustate->dns_update_timeout < 3600)
-			ustate->dns_update_timeout *= 10;
-		tv.tv_sec = cur_time + ustate->dns_update_timeout;
-		tv.tv_usec = 0;
+	case DNS_R_YXRRSET:
+		/*
+		 * This is the only difference between the two stages,
+		 * check to see if it is the first stage, in which case
+		 * start the second stage
+		 */
+		if (ddns_cb->state == DDNS_STATE_ADD_FW_NXDOMAIN) {
+			ddns_cb->state = DDNS_STATE_ADD_FW_YXDHCID;
+			ddns_cb->cur_func = client_dns_update_action;
+
+			result = ddns_modify_fwd(ddns_cb);
+			if (result == ISC_R_SUCCESS) {
+				return;
+			}
+		}
+		break;
+
+	case ISC_R_TIMEDOUT:
+		/*
+		 * We got a timeout response from the DNS module.  Schedule
+		 * another attempt for later.  We forget the name, dhcid and
+		 * zone so if it gets changed we will get the new information.
+		 */
+		data_string_forget(&ddns_cb->fwd_name, MDL);
+		data_string_forget(&ddns_cb->dhcid, MDL);
+		if (ddns_cb->zone != NULL) {
+			forget_zone((struct dns_zone **)&ddns_cb->zone);
+		}
+
+		/* Reset to doing the first stage */
+		ddns_cb->state    = DDNS_STATE_ADD_FW_NXDOMAIN;
+		ddns_cb->cur_func = client_dns_update_action;
+
+		/* and update our timer */
+		if (ddns_cb->timeout < 3600)
+			ddns_cb->timeout *= 10;
+		tv.tv_sec = cur_tv.tv_sec + ddns_cb->timeout;
+		tv.tv_usec = cur_tv.tv_usec;
 		add_timeout(&tv, client_dns_update_timeout,
-			    ustate, NULL, NULL);
-	} else
-		dfree(ustate, MDL);
+			    ddns_cb, NULL, NULL);
+		return;
+	}
+
+	ddns_cb_free(ddns_cb, MDL);
+	return;
 }
 
 /* See if we should do a DNS update, and if so, do it. */
 
-isc_result_t client_dns_update (struct client_state *client, int addp,
-				int ttl, struct iaddr *address)
+isc_result_t
+client_dns_update(struct client_state *client, dhcp_ddns_cb_t *ddns_cb)
 {
-	struct data_string ddns_fwd_name, ddns_dhcid, client_identifier;
+	struct data_string client_identifier;
 	struct option_cache *oc;
 	int ignorep;
 	int result;
@@ -3703,10 +3963,9 @@ isc_result_t client_dns_update (struct client_state *client, int addp,
 		return ISC_R_SUCCESS;
 
 	/* If no FQDN option was supplied, don't do the update. */
-	memset (&ddns_fwd_name, 0, sizeof ddns_fwd_name);
 	if (!(oc = lookup_option (&fqdn_universe, client -> sent_options,
 				  FQDN_FQDN)) ||
-	    !evaluate_option_cache (&ddns_fwd_name, (struct packet *)0,
+	    !evaluate_option_cache (&ddns_cb->fwd_name, (struct packet *)0,
 				    (struct lease *)0, client,
 				    client -> sent_options,
 				    (struct option_state *)0,
@@ -3718,8 +3977,6 @@ isc_result_t client_dns_update (struct client_state *client, int addp,
 	 * the client identifier, if there is one, or the interface's
 	 * MAC address.
 	 */
-	memset (&ddns_dhcid, 0, sizeof ddns_dhcid);
-
 	result = 0;
 	memset(&client_identifier, 0, sizeof(client_identifier));
 	if (client->active_lease != NULL) {
@@ -3733,7 +3990,7 @@ isc_result_t client_dns_update (struct client_state *client, int addp,
 			 * field.  We aren't using RFC4701 DHCID RR's yet,
 			 * but this is as good a value as any.
 			 */
-			result = get_dhcid(&ddns_dhcid, 2,
+			result = get_dhcid(&ddns_cb->dhcid, 2,
 					   client_identifier.data,
 					   client_identifier.len);
 			data_string_forget(&client_identifier, MDL);
@@ -3746,46 +4003,92 @@ isc_result_t client_dns_update (struct client_state *client, int addp,
 		    evaluate_option_cache(&client_identifier, NULL, NULL,
 					  client, client->sent_options, NULL,
 					  &global_scope, oc, MDL)) {
-			result = get_dhcid(&ddns_dhcid,
+			result = get_dhcid(&ddns_cb->dhcid,
 					   DHO_DHCP_CLIENT_IDENTIFIER,
 					   client_identifier.data,
 					   client_identifier.len);
 			data_string_forget(&client_identifier, MDL);
 		} else
-			result = get_dhcid(&ddns_dhcid, 0,
+			result = get_dhcid(&ddns_cb->dhcid, 0,
 					   client->interface->hw_address.hbuf,
 					   client->interface->hw_address.hlen);
 	}
 	if (!result) {
-		data_string_forget(&ddns_fwd_name, MDL);
 		return ISC_R_SUCCESS;
-	}
-
-	/* Start the resolver, if necessary. */
-	if (!resolver_inited) {
-		minires_ninit (&resolver_state);
-		resolver_inited = 1;
-		resolver_state.retrans = 1;
-		resolver_state.retry = 1;
 	}
 
 	/*
 	 * Perform updates.
 	 */
-	if (ddns_fwd_name.len && ddns_dhcid.len) {
-		if (addp)
-			rcode = ddns_update_fwd(&ddns_fwd_name, *address,
-						&ddns_dhcid, ttl, 1, 1);
-		else
-			rcode = ddns_remove_fwd(&ddns_fwd_name, *address,
-						&ddns_dhcid);
+	if (ddns_cb->fwd_name.len && ddns_cb->dhcid.len) {
+		rcode = ddns_modify_fwd(ddns_cb);
 	} else
 		rcode = ISC_R_FAILURE;
 
-	data_string_forget (&ddns_fwd_name, MDL);
-	data_string_forget (&ddns_dhcid, MDL);
+	/*
+	 * A success from the modify routine means we are performing
+	 * async processing, for which we use the timedout error message.
+	 */
+	if (rcode == ISC_R_SUCCESS) {
+		rcode = ISC_R_TIMEDOUT;
+	}
+
 	return rcode;
 }
+
+
+/*
+ * Schedule the first update.  They will continue to retry occasionally
+ * until they no longer time out (or fail).
+ */
+void
+dhclient_schedule_updates(struct client_state *client,
+			  struct iaddr        *addr,
+			  int                  offset)
+{
+	dhcp_ddns_cb_t *ddns_cb;
+	struct timeval tv;
+
+	if (!client->config->do_forward_update)
+		return;
+
+	/* cancel any outstanding ddns requests */
+	if (client->ddns_cb != NULL) {
+		ddns_cancel(client->ddns_cb);
+		client->ddns_cb = NULL;
+	}
+
+	ddns_cb = ddns_cb_alloc(MDL);
+
+	if (ddns_cb != NULL) {
+		ddns_cb->lease = (void *)client;
+		ddns_cb->address = *addr;
+		ddns_cb->timeout = 1;
+
+		/*
+		 * XXX: DNS TTL is a problem we need to solve properly.
+		 * Until that time, 300 is a placeholder default for
+		 * something that is less insane than a value scaled
+		 * by lease timeout.
+		 */
+		ddns_cb->ttl = 300;
+
+		ddns_cb->state = DDNS_STATE_ADD_FW_NXDOMAIN;
+		ddns_cb->cur_func = client_dns_update_action;
+		ddns_cb->flags = DDNS_UPDATE_ADDR | DDNS_INCLUDE_RRSET;
+
+		client->ddns_cb = ddns_cb;
+
+		tv.tv_sec = cur_tv.tv_sec + offset;
+		tv.tv_usec = cur_tv.tv_usec;
+		add_timeout(&tv, client_dns_update_timeout,
+			    ddns_cb, NULL, NULL);
+	} else {
+		log_error("Unable to allocate dns update state for %s",
+			  piaddr(*addr));
+	}
+}
+#endif
 
 void
 dhcpv4_client_assignments(void)
@@ -3821,4 +4124,159 @@ dhcpv4_client_assignments(void)
 		remote_port = local_port;
 	} else
 		remote_port = htons (ntohs (local_port) - 1);   /* XXX */
+}
+
+/*
+ * The following routines are used to check that certain
+ * strings are reasonable before we pass them to the scripts.
+ * This avoids some problems with scripts treating the strings
+ * as commands - see ticket 23722
+ * The domain checking code should be done as part of assembling
+ * the string but we are doing it here for now due to time
+ * constraints.
+ */
+
+static int check_domain_name(const char *ptr, size_t len, int dots)
+{
+	const char *p;
+
+	/* not empty or complete length not over 255 characters   */
+	if ((len == 0) || (len > 256))
+		return(-1);
+
+	/* consists of [[:alnum:]-]+ labels separated by [.]      */
+	/* a [_] is against RFC but seems to be "widely used"...  */
+	for (p=ptr; (*p != 0) && (len-- > 0); p++) {
+		if ((*p == '-') || (*p == '_')) {
+			/* not allowed at begin or end of a label */
+			if (((p - ptr) == 0) || (len == 0) || (p[1] == '.'))
+				return(-1);
+		} else if (*p == '.') {
+			/* each label has to be 1-63 characters;
+			   we allow [.] at the end ('foo.bar.')   */
+			size_t d = p - ptr;
+			if ((d <= 0) || (d >= 64))
+				return(-1);
+			ptr = p + 1; /* jump to the next label    */
+			if ((dots > 0) && (len > 0))
+				dots--;
+		} else if (isalnum((unsigned char)*p) == 0) {
+			/* also numbers at the begin are fine     */
+			return(-1);
+		}
+	}
+	return(dots ? -1 : 0);
+}
+
+static int check_domain_name_list(const char *ptr, size_t len, int dots)
+{
+	const char *p;
+	int ret = -1; /* at least one needed */
+
+	if ((ptr == NULL) || (len == 0))
+		return(-1);
+
+	for (p=ptr; (*p != 0) && (len > 0); p++, len--) {
+		if (*p != ' ')
+			continue;
+		if (p > ptr) {
+			if (check_domain_name(ptr, p - ptr, dots) != 0)
+				return(-1);
+			ret = 0;
+		}
+		ptr = p + 1;
+	}
+	if (p > ptr)
+		return(check_domain_name(ptr, p - ptr, dots));
+	else
+		return(ret);
+}
+
+static int check_option_values(struct universe *universe,
+			       unsigned int opt,
+			       const char *ptr,
+			       size_t len)
+{
+	if (ptr == NULL)
+		return(-1);
+
+	/* just reject options we want to protect, will be escaped anyway */
+	if ((universe == NULL) || (universe == &dhcp_universe)) {
+		switch(opt) {
+		      case DHO_DOMAIN_NAME:
+#ifdef ACCEPT_LIST_IN_DOMAIN_NAME
+			      return check_domain_name_list(ptr, len, 0);
+#else
+			      return check_domain_name(ptr, len, 0);
+#endif
+		      case DHO_HOST_NAME:
+		      case DHO_NIS_DOMAIN:
+		      case DHO_NETBIOS_SCOPE:
+			return check_domain_name(ptr, len, 0);
+			break;
+		      case DHO_DOMAIN_SEARCH:
+			return check_domain_name_list(ptr, len, 0);
+			break;
+		      case DHO_ROOT_PATH:
+			if (len == 0)
+				return(-1);
+			for (; (*ptr != 0) && (len-- > 0); ptr++) {
+				if(!(isalnum((unsigned char)*ptr) ||
+				     *ptr == '#'  || *ptr == '%' ||
+				     *ptr == '+'  || *ptr == '-' ||
+				     *ptr == '_'  || *ptr == ':' ||
+				     *ptr == '.'  || *ptr == ',' ||
+				     *ptr == '@'  || *ptr == '~' ||
+				     *ptr == '\\' || *ptr == '/' ||
+				     *ptr == '['  || *ptr == ']' ||
+				     *ptr == '='  || *ptr == ' '))
+					return(-1);
+			}
+			return(0);
+			break;
+		}
+	}
+
+#ifdef DHCPv6
+	if (universe == &dhcpv6_universe) {
+		switch(opt) {
+		      case D6O_SIP_SERVERS_DNS:
+		      case D6O_DOMAIN_SEARCH:
+		      case D6O_NIS_DOMAIN_NAME:
+		      case D6O_NISP_DOMAIN_NAME:
+			return check_domain_name_list(ptr, len, 0);
+			break;
+		}
+	}
+#endif
+
+	return(0);
+}
+
+static void
+add_reject(struct packet *packet) {
+	struct iaddrmatchlist *list;
+	
+	list = dmalloc(sizeof(struct iaddrmatchlist), MDL);
+	if (!list)
+		log_fatal ("no memory for reject list!");
+
+	/*
+	 * client_addr is misleading - it is set to source address in common
+	 * code.
+	 */
+	list->match.addr = packet->client_addr;
+	/* Set mask to indicate host address. */
+	list->match.mask.len = list->match.addr.len;
+	memset(list->match.mask.iabuf, 0xff, sizeof(list->match.mask.iabuf));
+
+	/* Append to reject list for the source interface. */
+	list->next = packet->interface->client->config->reject_list;
+	packet->interface->client->config->reject_list = list;
+
+	/*
+	 * We should inform user that we won't be accepting this server
+	 * anymore.
+	 */
+	log_info("Server added to list of rejected servers.");
 }

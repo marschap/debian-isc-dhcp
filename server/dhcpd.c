@@ -3,7 +3,7 @@
    DHCP Server Daemon. */
 
 /*
- * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -33,7 +33,7 @@
  */
 
 static const char copyright[] =
-"Copyright 2004-2010 Internet Systems Consortium.";
+"Copyright 2004-2011 Internet Systems Consortium.";
 static const char arr [] = "All rights reserved.";
 static const char message [] = "Internet Systems Consortium DHCP Server";
 static const char url [] =
@@ -72,7 +72,6 @@ char std_nsupdate [] = "						    \n\
 option server.ddns-hostname =						    \n\
   pick (option fqdn.hostname, option host-name);			    \n\
 option server.ddns-domainname =	config-option domain-name;		    \n\
-option server.ddns-ttl = encode-int(lease-time / 2, 32);		    \n\
 option server.ddns-rev-domainname = \"in-addr.arpa.\";";
 
 /* This is the old-style name service updater that is executed
@@ -155,12 +154,14 @@ on commit {								    \n\
   }									    \n\
 }";
 
-int ddns_update_style;
 #endif /* NSUPDATE */
+int ddns_update_style;
 
 const char *path_dhcpd_conf = _PATH_DHCPD_CONF;
 const char *path_dhcpd_db = _PATH_DHCPD_DB;
 const char *path_dhcpd_pid = _PATH_DHCPD_PID;
+/* False (default) => we write and use a pid file */
+isc_boolean_t no_pid_file = ISC_FALSE;
 
 int dhcp_max_agent_option_packet_length = DHCP_MTU_MAX;
 
@@ -177,7 +178,7 @@ static isc_result_t verify_addr (omapi_object_t *l, omapi_addr_t *addr) {
 
 static isc_result_t verify_auth (omapi_object_t *p, omapi_auth_key_t *a) {
 	if (a != omapi_key)
-		return ISC_R_INVALIDKEY;
+		return DHCP_R_INVALIDKEY;
 	return ISC_R_SUCCESS;
 }
 
@@ -200,8 +201,8 @@ static void omapi_listener_start (void *foo)
 	if (result != ISC_R_SUCCESS) {
 		log_error ("Can't start OMAPI protocol: %s",
 			   isc_result_totext (result));
-		tv.tv_sec = cur_time + 5;
-		tv.tv_usec = 0;
+		tv.tv_sec = cur_tv.tv_sec + 5;
+		tv.tv_usec = cur_tv.tv_usec;
 		add_timeout (&tv, omapi_listener_start, 0, 0, 0);
 	}
 	omapi_object_dereference (&listener, MDL);
@@ -242,8 +243,10 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	unsigned seed;
 	struct interface_info *ip;
+#if defined (NSUPDATE)
 	struct parse *parse;
 	int lose;
+#endif
 	int no_dhcpd_conf = 0;
 	int no_dhcpd_db = 0;
 	int no_dhcpd_pid = 0;
@@ -276,6 +279,12 @@ main(int argc, char **argv) {
                 log_perror = 0; /* No sense logging to /dev/null. */
         else if (fd != -1)
                 close(fd);
+
+	/* Set up the isc and dns library managers */
+	status = dhcp_context_create();
+	if (status != ISC_R_SUCCESS)
+		log_fatal("Can't initialize context: %s",
+			  isc_result_totext(status));
 
 	/* Set up the client classification system. */
 	classification_setup ();
@@ -344,6 +353,8 @@ main(int argc, char **argv) {
 				usage ();
 			path_dhcpd_pid = argv [i];
 			no_dhcpd_pid = 1;
+		} else if (!strcmp(argv[i], "--no-pid")) {
+			no_pid_file = ISC_TRUE;
                 } else if (!strcmp (argv [i], "-t")) {
 			/* test configurations only */
 #ifndef DEBUG
@@ -397,6 +408,10 @@ main(int argc, char **argv) {
 		} else {
 			struct interface_info *tmp =
 				(struct interface_info *)0;
+			if (strlen(argv[i]) >= sizeof(tmp->name))
+				log_fatal("%s: interface name too long "
+					  "(is %ld)",
+					  argv[i], (long)strlen(argv[i]));
 			result = interface_allocate (&tmp, MDL);
 			if (result != ISC_R_SUCCESS)
 				log_fatal ("Insufficient memory to %s %s: %s",
@@ -480,6 +495,7 @@ main(int argc, char **argv) {
 	trace_srandom = trace_type_register ("random-seed", (void *)0,
 					     trace_seed_input,
 					     trace_seed_stop, MDL);
+	trace_ddns_init();
 #endif
 
 #if defined (PARANOIA)
@@ -591,6 +607,14 @@ main(int argc, char **argv) {
 	/* Add the ddns update style enumeration prior to parsing. */
 	add_enumeration (&ddns_styles);
 	add_enumeration (&syslog_enum);
+#if defined (LDAP_CONFIGURATION)
+	add_enumeration (&ldap_methods);
+#if defined (LDAP_USE_SSL)
+	add_enumeration (&ldap_ssl_usage_enum);
+	add_enumeration (&ldap_tls_reqcert_enum);
+	add_enumeration (&ldap_tls_crlcheck_enum);
+#endif
+#endif
 
 	if (!group_allocate (&root_group, MDL))
 		log_fatal ("Can't allocate root group!");
@@ -763,33 +787,41 @@ main(int argc, char **argv) {
 	}
 #endif /* PARANOIA */
 
-	/* Read previous pid file. */
-	if ((i = open (path_dhcpd_pid, O_RDONLY)) >= 0) {
-		status = read(i, pbuf, (sizeof pbuf) - 1);
-		close (i);
-		if (status > 0) {
-			pbuf[status] = 0;
-			pid = atoi(pbuf);
+	/*
+	 * Deal with pid files.  If the user told us
+	 * not to write a file we don't read one either
+	 */
+	if (no_pid_file == ISC_FALSE) {
+		/*Read previous pid file. */
+		if ((i = open (path_dhcpd_pid, O_RDONLY)) >= 0) {
+			status = read(i, pbuf, (sizeof pbuf) - 1);
+			close (i);
+			if (status > 0) {
+				pbuf[status] = 0;
+				pid = atoi(pbuf);
 
-			/*
-                         * If there was a previous server process and it's
-                         * is still running, abort
-                         */
-			if (!pid || (pid != getpid() && kill(pid, 0) == 0))
-				log_fatal("There's already a "
-                                          "DHCP server running.");
+				/*
+				 * If there was a previous server process and
+				 * it is still running, abort
+				 */
+				if (!pid ||
+				    (pid != getpid() && kill(pid, 0) == 0))
+					log_fatal("There's already a "
+						  "DHCP server running.");
+			}
+		}
+
+		/* Write new pid file. */
+		i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC, 0644);
+		if (i >= 0) {
+			sprintf(pbuf, "%d\n", (int) getpid());
+			IGNORE_RET (write(i, pbuf, strlen(pbuf)));
+			close(i);
+		} else {
+			log_error("Can't create PID file %s: %m.",
+				  path_dhcpd_pid);
 		}
 	}
-
-        /* Write new pid file. */
-        if ((i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC, 0644)) >= 0) {
-                sprintf(pbuf, "%d\n", (int) getpid());
-                IGNORE_RET (write(i, pbuf, strlen(pbuf)));
-                close(i);
-        } else {
-                log_error("Can't create PID file %s: %m.", path_dhcpd_pid);
-        }
-
 
 	/* If we were requested to log to stdout on the command line,
 	   keep doing so; otherwise, stop. */
@@ -827,8 +859,6 @@ main(int argc, char **argv) {
 	omapi_set_int_value ((omapi_object_t *)dhcp_control_object,
 			     (omapi_object_t *)0, "state", server_running);
 
-	register_eventhandler(&rw_queue_empty,commit_leases_readerdry);
-	
 	/* Receive packets and dispatch them... */
 	dispatch ();
 
@@ -844,7 +874,9 @@ void postconf_initialization (int quiet)
 	struct option_cache *oc;
 	char *s;
 	isc_result_t result;
+#if defined (NSUPDATE)
 	struct parse *parse;
+#endif
 	int tmp;
 
 	/* Now try to get the lease file name. */
@@ -882,7 +914,7 @@ void postconf_initialization (int quiet)
 				   &global_scope, oc, MDL)) {
 		s = dmalloc (db.len + 1, MDL);
 		if (!s)
-			log_fatal ("no memory for lease db filename.");
+			log_fatal ("no memory for pid filename.");
 		memcpy (s, db.data, db.len);
 		s [db.len] = 0;
 		data_string_forget (&db, MDL);
@@ -918,7 +950,7 @@ void postconf_initialization (int quiet)
                                           oc, MDL)) {
                         s = dmalloc (db.len + 1, MDL);
                         if (!s)
-                                log_fatal ("no memory for lease db filename.");
+                                log_fatal ("no memory for pid filename.");
                         memcpy (s, db.data, db.len);
                         s [db.len] = 0;
                         data_string_forget (&db, MDL);
@@ -998,7 +1030,7 @@ void postconf_initialization (int quiet)
 		if (db.len == 4) {
 			memcpy (&limited_broadcast, db.data, 4);
 		} else
-			log_fatal ("invalid remote port data length");
+			log_fatal ("invalid broadcast address data length");
 		data_string_forget (&db, MDL);
 	}
 
@@ -1012,7 +1044,7 @@ void postconf_initialization (int quiet)
 		if (db.len == 4) {
 			memcpy (&local_address, db.data, 4);
 		} else
-			log_fatal ("invalid remote port data length");
+			log_fatal ("invalid local address data length");
 		data_string_forget (&db, MDL);
 	}
 
@@ -1033,6 +1065,17 @@ void postconf_initialization (int quiet)
 	} else {
 		ddns_update_style = DDNS_UPDATE_STYLE_NONE;
 	}
+#if defined (NSUPDATE)
+	/* We no longer support ad_hoc, tell the user */
+	if (ddns_update_style == DDNS_UPDATE_STYLE_AD_HOC) {
+		log_fatal("ddns-update-style ad_hoc no longer supported");
+	}
+#else
+	/* If we don't have support for updates compiled in tell the user */
+	if (ddns_update_style != DDNS_UPDATE_STYLE_NONE) {
+		log_fatal("Support for ddns-update-style not compiled in");
+	}
+#endif
 
 	oc = lookup_option (&server_universe, options, SV_LOG_FACILITY);
 	if (oc) {
@@ -1179,7 +1222,8 @@ usage(void) {
 		  "             [-tf trace-output-file]\n"
 		  "             [-play trace-input-file]\n"
 #endif /* TRACING */
-		  "             [-pf pid-file] [-s server] [if0 [...ifN]]");
+		  "             [-pf pid-file] [--no-pid] [-s server]\n"
+		  "             [if0 [...ifN]]");
 }
 
 void lease_pinged (from, packet, length)
@@ -1456,5 +1500,5 @@ isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 		dhcp_io_shutdown_countdown (0);
 		return ISC_R_SUCCESS;
 	}
-	return ISC_R_INVALIDARG;
+	return DHCP_R_INVALIDARG;
 }

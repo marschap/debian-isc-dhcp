@@ -3,7 +3,7 @@
    DHCP/BOOTP Relay Agent. */
 
 /*
- * Copyright(c) 2004-2010 by Internet Systems Consortium, Inc.("ISC")
+ * Copyright(c) 2004-2011 by Internet Systems Consortium, Inc.("ISC")
  * Copyright(c) 1997-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -49,6 +49,9 @@ char *token_line;
 char *tlname;
 
 const char *path_dhcrelay_pid = _PATH_DHCRELAY_PID;
+isc_boolean_t no_dhcrelay_pid = ISC_FALSE;
+/* False (default) => we write and use a pid file */
+isc_boolean_t no_pid_file = ISC_FALSE;
 
 int bogus_agent_drops = 0;	/* Packets dropped because agent option
 				   field was specified and we're not relaying
@@ -127,7 +130,7 @@ static int strip_relay_agent_options(struct interface_info *,
 				     struct dhcp_packet *, unsigned);
 
 static const char copyright[] =
-"Copyright 2004-2010 Internet Systems Consortium.";
+"Copyright 2004-2011 Internet Systems Consortium.";
 static const char arr[] = "All rights reserved.";
 static const char message[] =
 "Internet Systems Consortium DHCP Relay Agent";
@@ -138,10 +141,12 @@ static const char url[] =
 #define DHCRELAY_USAGE \
 "Usage: dhcrelay [-4] [-d] [-q] [-a] [-D]\n"\
 "                     [-A <length>] [-c <hops>] [-p <port>]\n" \
+"                     [-pf <pid-file>] [--no-pid]\n"\
 "                     [-m append|replace|forward|discard]\n" \
 "                     [-i interface0 [ ... -i interfaceN]\n" \
 "                     server0 [ ... serverN]\n\n" \
 "       dhcrelay -6   [-d] [-q] [-I] [-c <hops>] [-p <port>]\n" \
+"                     [-pf <pid-file>] [--no-pid]\n"\
 "                     -l lower0 [ ... -l lowerN]\n" \
 "                     -u upper0 [ ... -u upperN]\n" \
 "       lower (client link): [address%%]interface[#index]\n" \
@@ -149,6 +154,7 @@ static const char url[] =
 #else
 #define DHCRELAY_USAGE \
 "Usage: dhcrelay [-d] [-q] [-a] [-D] [-A <length>] [-c <hops>] [-p <port>]\n" \
+"                [-pf <pid-file>] [--no-pid]\n"\
 "                [-m append|replace|forward|discard]\n" \
 "                [-i interface0 [ ... -i interfaceN]\n" \
 "                server0 [ ... serverN]\n\n"
@@ -192,6 +198,12 @@ main(int argc, char **argv) {
 #if !defined(DEBUG)
 	setlogmask(LOG_UPTO(LOG_INFO));
 #endif	
+
+	/* Set up the isc and dns library managers */
+	status = dhcp_context_create();
+	if (status != ISC_R_SUCCESS)
+		log_fatal("Can't initialize context: %s",
+			  isc_result_totext(status));
 
 	/* Set up the OMAPI. */
 	status = omapi_init();
@@ -344,6 +356,13 @@ main(int argc, char **argv) {
 			sl->next = upstreams;
 			upstreams = sl;
 #endif
+		} else if (!strcmp(argv[i], "-pf")) {
+			if (++i == argc)
+				usage();
+			path_dhcrelay_pid = argv[i];
+			no_dhcrelay_pid = ISC_TRUE;
+		} else if (!strcmp(argv[i], "--no-pid")) {
+			no_pid_file = ISC_TRUE;
 		} else if (!strcmp(argv[i], "--version")) {
 			log_info("isc-dhcrelay-%s", PACKAGE_VERSION);
 			exit(0);
@@ -388,18 +407,24 @@ main(int argc, char **argv) {
  		}
 	}
 
-	if (local_family == AF_INET) {
-		path_dhcrelay_pid = getenv("PATH_DHCRELAY_PID");
-		if (path_dhcrelay_pid == NULL)
-			path_dhcrelay_pid = _PATH_DHCRELAY_PID;
-	}
+	/*
+	 * If the user didn't specify a pid file directly
+	 * find one from environment variables or defaults
+	 */
+	if (no_dhcrelay_pid == ISC_FALSE) {
+		if (local_family == AF_INET) {
+			path_dhcrelay_pid = getenv("PATH_DHCRELAY_PID");
+			if (path_dhcrelay_pid == NULL)
+				path_dhcrelay_pid = _PATH_DHCRELAY_PID;
+		}
 #ifdef DHCPv6
-	else {
-		path_dhcrelay_pid = getenv("PATH_DHCRELAY6_PID");
-		if (path_dhcrelay_pid == NULL)
-			path_dhcrelay_pid = _PATH_DHCRELAY6_PID;
-	}
+		else {
+			path_dhcrelay_pid = getenv("PATH_DHCRELAY6_PID");
+			if (path_dhcrelay_pid == NULL)
+				path_dhcrelay_pid = _PATH_DHCRELAY6_PID;
+		}
 #endif
+	}
 
 	if (!quiet) {
 		log_info("%s %s", message, PACKAGE_VERSION);
@@ -513,20 +538,23 @@ main(int argc, char **argv) {
 		else if (pid)
 			exit(0);
 
-		pfdesc = open(path_dhcrelay_pid,
-			       O_CREAT | O_TRUNC | O_WRONLY, 0644);
+		if (no_pid_file == ISC_FALSE) {
+			pfdesc = open(path_dhcrelay_pid,
+				      O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
-		if (pfdesc < 0) {
-			log_error("Can't create %s: %m", path_dhcrelay_pid);
-		} else {
-			pf = fdopen(pfdesc, "w");
-			if (!pf)
-				log_error("Can't fdopen %s: %m",
-				      path_dhcrelay_pid);
-			else {
-				fprintf(pf, "%ld\n",(long)getpid());
-				fclose(pf);
-			}	
+			if (pfdesc < 0) {
+				log_error("Can't create %s: %m",
+					  path_dhcrelay_pid);
+			} else {
+				pf = fdopen(pfdesc, "w");
+				if (!pf)
+					log_error("Can't fdopen %s: %m",
+						  path_dhcrelay_pid);
+				else {
+					fprintf(pf, "%ld\n",(long)getpid());
+					fclose(pf);
+				}	
+			}
 		}
 
 		close(0);
@@ -565,6 +593,12 @@ do_relay4(struct interface_info *ip, struct dhcp_packet *packet,
 		log_info("Discarding packet with invalid hlen.");
 		return;
 	}
+
+	if (ip->address_count < 1 || ip->addresses == NULL) {
+		log_info("Discarding packet received on %s interface that "
+			 "has no IPv4 address assigned.", ip->name);
+ 		return;
+ 	}
 
 	/* Find the interface that corresponds to the giaddr
 	   in the packet. */
@@ -1349,7 +1383,7 @@ process_up6(struct packet *packet, struct stream_list *dp) {
 
 	/* Build the relay-forward header. */
 	relay = (struct dhcpv6_relay_packet *) forw_data;
-	cursor = sizeof(*relay);
+	cursor = offsetof(struct dhcpv6_relay_packet, options);
 	relay->msg_type = DHCPV6_RELAY_FORW;
 	if (packet->dhcpv6_msg_type == DHCPV6_RELAY_FORW) {
 		if (packet->dhcpv6_hop_count >= max_hop_count) {
@@ -1477,7 +1511,7 @@ process_down6(struct packet *packet) {
 	if (!evaluate_option_cache(&relay_msg, packet, NULL, NULL,
 				   packet->options, NULL,
 				   &global_scope, oc, MDL) ||
-	    (relay_msg.len < sizeof(struct dhcpv6_packet))) {
+	    (relay_msg.len < offsetof(struct dhcpv6_packet, options))) {
 		log_error("Can't evaluate relay-msg.");
 		return;
 	}

@@ -3,7 +3,8 @@
    Turn data structures into printable text. */
 
 /*
- * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -163,9 +164,9 @@ char *print_base64 (const unsigned char *buf, unsigned len,
 }
 
 char *print_hw_addr (htype, hlen, data)
-	int htype;
-	int hlen;
-	unsigned char *data;
+	const int htype;
+	const int hlen;
+	const unsigned char *data;
 {
 	static char habuf [49];
 	char *s;
@@ -357,44 +358,118 @@ void hash_dump (table)
 	}
 }
 
-#define HBLEN 60
+/*
+ * print a string as hex.  This only outputs
+ * colon separated hex list no matter what
+ * the input looks like.  See print_hex
+ * for a function that prints either cshl
+ * or a string if all bytes are printible
+ * It only uses limit characters from buf
+ * and doesn't do anything if buf == NULL
+ *
+ * len - length of data
+ * data - input data
+ * limit - length of buf to use
+ * buf - output buffer
+ */
+void print_hex_only (len, data, limit, buf)
+	unsigned len;
+	const u_int8_t *data;
+	unsigned limit;
+	char *buf;
+{
+	unsigned i;
 
-#define DECLARE_HEX_PRINTER(x)						      \
-char *print_hex##x (len, data, limit)					      \
-	unsigned len;							      \
-	const u_int8_t *data;						      \
-	unsigned limit;							      \
-{									      \
-									      \
-	static char hex_buf##x [HBLEN + 1];				      \
-	unsigned i;							      \
-									      \
-	if (limit > HBLEN)						      \
-		limit = HBLEN;						      \
-									      \
-	for (i = 0; i < (limit - 2) && i < len; i++) {			      \
-		if (!isascii (data [i]) || !isprint (data [i])) {	      \
-			for (i = 0; i < limit / 3 && i < len; i++) {	      \
-				sprintf (&hex_buf##x [i * 3],		      \
-					 "%02x:", data [i]);		      \
-			}						      \
-			hex_buf##x [i * 3 - 1] = 0;			      \
-			return hex_buf##x;				      \
-		}							      \
-	}								      \
-	hex_buf##x [0] = '"';						      \
-	i = len;							      \
-	if (i > limit - 2)						      \
-		i = limit - 2;						      \
-	memcpy (&hex_buf##x [1], data, i);				      \
-	hex_buf##x [i + 1] = '"';					      \
-	hex_buf##x [i + 2] = 0;						      \
-	return hex_buf##x;						      \
+	if ((buf == NULL) || (limit < 3))
+		return;
+
+	for (i = 0; (i < limit / 3) && (i < len); i++) {
+		sprintf(&buf[i*3], "%02x:", data[i]);
+	}
+	buf[(i * 3) - 1] = 0;
+	return;
 }
 
-DECLARE_HEX_PRINTER (_1)
-DECLARE_HEX_PRINTER (_2)
-DECLARE_HEX_PRINTER (_3)
+/*
+ * print a string as either text if all the characters
+ * are printable or colon separated hex if they aren't
+ *
+ * len - length of data
+ * data - input data
+ * limit - length of buf to use
+ * buf - output buffer
+ */
+void print_hex_or_string (len, data, limit, buf)
+	unsigned len;
+	const u_int8_t *data;
+	unsigned limit;
+	char *buf;
+{
+	unsigned i;
+	if ((buf == NULL) || (limit < 3))
+		return;
+
+	for (i = 0; (i < (limit - 3)) && (i < len); i++) {
+		if (!isascii(data[i]) || !isprint(data[i])) {
+			print_hex_only(len, data, limit, buf);
+			return;
+		}
+	}
+
+	buf[0] = '"';
+	i = len;
+	if (i > (limit - 3))
+		i = limit - 3;
+	memcpy(&buf[1], data, i);
+	buf[i + 1] = '"';
+	buf[i + 2] = 0;
+	return;
+}
+
+/*
+ * print a string as either hex or text
+ * using static buffers to hold the output
+ * 
+ * len - length of data
+ * data - input data
+ * limit - length of buf
+ * buf_num - the output buffer to use
+ */
+#define HBLEN 1024
+char *print_hex(len, data, limit, buf_num)
+	unsigned len;
+	const u_int8_t *data;
+	unsigned limit;
+	unsigned buf_num;
+{
+	static char hex_buf_1[HBLEN + 1];
+	static char hex_buf_2[HBLEN + 1];
+	static char hex_buf_3[HBLEN + 1];
+	char *hex_buf;
+
+	switch(buf_num) {
+	  case 0:
+		hex_buf = hex_buf_1;
+		if (limit >= sizeof(hex_buf_1))
+			limit = sizeof(hex_buf_1);
+		break;
+	  case 1:
+		hex_buf = hex_buf_2;
+		if (limit >= sizeof(hex_buf_2))
+			limit = sizeof(hex_buf_2);
+		break;
+	  case 2:
+		hex_buf = hex_buf_3;
+		if (limit >= sizeof(hex_buf_3))
+			limit = sizeof(hex_buf_3);
+		break;
+	  default:
+		return(NULL);
+	}
+
+	print_hex_or_string(len, data, limit, hex_buf);
+	return(hex_buf);
+}
 
 #define DQLEN	80
 
@@ -446,8 +521,7 @@ char *print_dec_2 (val)
 	return vbuf;
 }
 
-static unsigned print_subexpression PROTO ((struct expression *,
-					    char *, unsigned));
+static unsigned print_subexpression (struct expression *, char *, unsigned);
 
 static unsigned print_subexpression (expr, buf, len)
 	struct expression *expr;
@@ -1062,6 +1136,13 @@ static unsigned print_subexpression (expr, buf, len)
 			return rv;
 		}
 
+	      case expr_gethostname:
+		if (len > 13) {
+			strcpy(buf, "(gethostname)");
+			return 13;
+		}
+		break;
+
 	      default:
 		log_fatal("Impossible case at %s:%d (undefined expression "
 			  "%d).", MDL, expr->op);
@@ -1201,252 +1282,188 @@ void indent_spaces (FILE *file, int indent)
 }
 
 #if defined (NSUPDATE)
-void print_dns_status (int status, ns_updque *uq)
+#if defined (DEBUG_DNS_UPDATES)
+/*
+ * direction outbound (messages to the dns server)
+ *           inbound  (messages from the dns server)
+ * ddns_cb is the control block associated with the message
+ * result is the result from the dns code.  For outbound calls
+ * it is from the call to pass the message to the dns library.
+ * For inbound calls it is from the event returned by the library.
+ *
+ * For outbound messages we print whatever we think is interesting
+ * from the control block.
+ * For inbound messages we only print the transaction id pointer
+ * and the result and expect that the user will match them up as
+ * necessary.  Note well: the transaction information is opaque to
+ * us so we simply print the pointer to it.  This should be sufficient
+ * to match requests and replys in a short sequence but is awkward
+ * when trying to use it for longer sequences.
+ */
+void
+print_dns_status (int direction,
+		  struct dhcp_ddns_cb *ddns_cb,
+		  isc_result_t result)
 {
-	char obuf [1024];
-	char *s = &obuf [0], *end = &obuf [1022];
-	ns_updrec *u;
-	int position;
-	int ttlp;
-	const char *predicate = "if", *en, *op;
-	int errorp;
+	char obuf[1024];
+	char *s = obuf, *end = &obuf[sizeof(obuf)-2];
+	char *en;
+	const char *result_str;
+	char ddns_address[
+		sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 
-	for (u = ISC_LIST_HEAD (*uq); u; u = ISC_LIST_NEXT (u, r_link)) {
-		ttlp = 0;
+	if (direction == DDNS_PRINT_INBOUND) {
+		log_info("DDNS reply: id ptr %p, result: %s",
+			 ddns_cb->transaction, isc_result_totext(result));
+		return;
+	}
 
-		switch (u -> r_opcode)
-		{
-		      case NXRRSET:
-			op = "rrset doesn't exist";
-			position = 1;
-			break;
-		      case YXRRSET:
-			op = "rrset exists";
-			position = 1;
-			break;
-		      case NXDOMAIN:
-			op = "domain doesn't exist";
-			position = 1;
-			break;
-		      case YXDOMAIN:
-			op = "domain exists";
-			position = 1;
-			break;
-		      case ADD:
-			op = "add";
-			position = 0;
-			ttlp = 1;
-			break;
-		      case DELETE:
-			op = "delete";
-			position = 0;
-			break;
-		      default:
-			op = "unknown";
-			position = 0;
-			break;
-		}
-		if (!position) {
-			if (s != &obuf [0] && s + 1 < end)
-				*s++ = ' ';
-			if (s + strlen (op) < end) {
-				strcpy (s, op);
-				s += strlen (s);
-			}
+	/* 
+	 * To avoid having to figure out if any of the strings
+	 * aren't NULL terminated, just 0 the whole string
+	 */
+	memset(obuf, 0, 1024);
+
+	en = "DDNS request: id ptr ";
+	if (s + strlen(en) + 16 < end) {
+		sprintf(s, "%s%p", en, ddns_cb->transaction);
+		s += strlen(s);
+	} else {
+		goto bailout;
+	}
+
+	switch (ddns_cb->state) {
+	case DDNS_STATE_ADD_FW_NXDOMAIN:
+		en = " add forward ";
+		break;
+	case DDNS_STATE_ADD_FW_YXDHCID:
+		en = " modify forward ";
+		break;
+
+	case DDNS_STATE_ADD_PTR:
+		en = " add reverse ";
+		break;
+
+	case DDNS_STATE_REM_FW_YXDHCID:
+		en = " remove forward ";
+		break;
+
+	case DDNS_STATE_REM_FW_NXRR:
+		en = " remove rrset ";
+		break;
+
+	case DDNS_STATE_REM_PTR:
+		en = " remove reverse ";
+		break;
+
+	case DDNS_STATE_CLEANUP:
+		en = " cleanup ";
+		break;
+
+	default:
+		en = " unknown state ";
+		break;
+	}
+
+	switch (ddns_cb->state) {
+	case DDNS_STATE_ADD_FW_NXDOMAIN:
+	case DDNS_STATE_ADD_FW_YXDHCID:
+	case DDNS_STATE_REM_FW_YXDHCID:
+	case DDNS_STATE_REM_FW_NXRR:
+		strcpy(ddns_address, piaddr(ddns_cb->address));
+		if (s + strlen(en) + strlen(ddns_address) +
+		    ddns_cb->fwd_name.len + 5 < end) {
+			sprintf(s, "%s%s for %.*s", en, ddns_address,
+				ddns_cb->fwd_name.len,
+				ddns_cb->fwd_name.data);
+			s += strlen(s);
 		} else {
-			if (s != &obuf [0] && s + 1 < end)
-				*s++ = ' ';
-			if (s + strlen (predicate) < end) {
-				strcpy (s, predicate);
-				s += strlen (s);
-			}
-			predicate = "and";
+			goto bailout;
 		}
-		if (u -> r_dname) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			if (s + strlen (u -> r_dname) < end) {
-				strcpy (s, u -> r_dname);
-				s += strlen (s);
-			}
+		break;
+
+	case DDNS_STATE_ADD_PTR:
+	case DDNS_STATE_REM_PTR:
+		if (s + strlen(en) + ddns_cb->fwd_name.len +
+		    ddns_cb->rev_name.len + 5 < end) {
+			sprintf(s, "%s%.*s for %.*s", en,
+				ddns_cb->fwd_name.len,
+				ddns_cb->fwd_name.data,
+				ddns_cb->rev_name.len,
+				ddns_cb->rev_name.data);
+			s += strlen(s);
+		} else {
+			goto bailout;
 		}
-		if (ttlp) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			/* 27 is as big as a ttl can get. */
-			if (s + 27 < end) {
-				sprintf (s, "%lu",
-					 (unsigned long)(u -> r_ttl));
-				s += strlen (s);
-			}
+		break;
+
+	case DDNS_STATE_CLEANUP:
+	default:
+		if (s + strlen(en) < end) {
+			sprintf(s, "%s", en);
+			s += strlen(s);
+		} else {
+			goto bailout;
 		}
-		switch (u -> r_class) {
-		      case C_IN:
-			en = "IN";
-			break;
-		      case C_CHAOS:
-			en = "CHAOS";
-			break;
-		      case C_HS:
-			en = "HS";
-			break;
-		      default:
-			en = "UNKNOWN";
-			break;
-		}
-		if (s + strlen (en) < end) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			strcpy (s, en);
-			s += strlen (en);
-		}
-		switch (u -> r_type) {
-		      case T_A:
-			en = "A";
-			break;
-		      case T_AAAA:
-			en = "AAAA";
-			break;
-		      case T_PTR:
-			en = "PTR";
-			break;
-		      case T_MX:
-			en = "MX";
-			break;
-		      case T_TXT:
-			en = "TXT";
-			break;
-		      case T_KEY:
-			en = "KEY";
-			break;
-		      case T_CNAME:
-			en = "CNAME";
-			break;
-		      default:
-			en = "UNKNOWN";
-			break;
-		}
-		if (s + strlen (en) < end) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			strcpy (s, en);
-			s += strlen (en);
-		}
-		if (u -> r_data) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			if (u -> r_type == T_TXT) {
-				if (s + 1 < end)
-					*s++ = '"';
-			}
-			if(u->r_type == T_KEY) {
-			  strcat(s, "<keydata>");
-			  s+=strlen("<keydata>");
-			}
-			else {  
-			  if (s + u -> r_size < end) {
-			    memcpy (s, u -> r_data, u -> r_size);
-			    s += u -> r_size;
-			    if (u -> r_type == T_TXT) {
-			      if (s + 1 < end)
-				*s++ = '"';
-			    }
-			  }
-			}
-		}
-		if (position) {
-			if (s + 1 < end)
-				*s++ = ' ';
-			if (s + strlen (op) < end) {
-				strcpy (s, op);
-				s += strlen (s);
-			}
-		}
-		if (u == ISC_LIST_TAIL (*uq))
-			break;
-	}
-	if (s == &obuf [0]) {
-		strcpy (s, "empty update");
-		s += strlen (s);
-	}
-	if (status == NOERROR)
-		errorp = 0;
-	else
-		errorp = 1;
-	en = isc_result_totext (status);
-#if 0
-	switch (status) {
-	      case -1:
-		en = "resolver failed";
-		break;
-
-	      case FORMERR:
-		en = "format error";
-		break;
-
-	      case NOERROR:
-		en = "succeeded";
-		errorp = 0;
-		break;
-
-	      case NOTAUTH:
-		en = "not authorized";
-		break;
-
-	      case NOTIMP:
-		en = "not implemented";
-		break;
-
-	      case NOTZONE:
-		en = "not a single valid zone";
-		break;
-
-	      case NXDOMAIN:
-		en = "no such domain";
-		break;
-
-	      case NXRRSET:
-		en = "no such record";
-		break;
-
-	      case REFUSED:
-		en = "refused";
-		break;
-
-	      case SERVFAIL:
-		en = "server failed";
-		break;
-
-	      case YXDOMAIN:
-		en = "domain exists";
-		break;
-
-	      case YXRRSET:
-		en = "record exists";
-		break;
-
-	      default:
-		en = "unknown error";
 		break;
 	}
-#endif
 
-	if (s + 2 < end) {
-		*s++ = ':';
-		*s++ = ' ';
+	en = " zone: ";
+	if (s + strlen(en) + strlen((char *)ddns_cb->zone_name) < end) {
+		sprintf(s, "%s%s", en, ddns_cb->zone_name);
+		s += strlen(s);
+	} else {
+		goto bailout;
 	}
-	if (s + strlen (en) < end) {
-		strcpy (s, en);
-		s += strlen (en);
+
+	en = " dhcid: ";
+	if (ddns_cb->dhcid.len > 0) {
+		if (s + strlen(en) + ddns_cb->dhcid.len-1 < end) {
+			strcpy(s, en);
+			s += strlen(s);
+			strncpy(s, (char *)ddns_cb->dhcid.data+1,
+				ddns_cb->dhcid.len-1);
+			s += strlen(s);
+		} else {
+			goto bailout;
+		}
+	} else {
+		en = " dhcid: <empty>";
+		if (s + strlen(en) < end) {
+			strcpy(s, en);
+			s += strlen(s);
+		} else {
+			goto bailout;
+		}
 	}
-	if (s + 1 < end)
-		*s++ = '.';
-	*s++ = 0;
-	if (errorp)
-		log_error ("%s", obuf);
-	else
-		log_info ("%s", obuf);
+
+	en = " ttl: ";
+	if (s + strlen(en) + 10 < end) {
+		sprintf(s, "%s%ld", en, ddns_cb->ttl);
+		s += strlen(s);
+	} else {
+		goto bailout;
+	}
+		
+	en = " result: ";
+	result_str = isc_result_totext(result);
+	if (s + strlen(en) + strlen(result_str) < end) {
+		sprintf(s, "%s%s", en, result_str);
+		s += strlen(s);
+	} else {
+		goto bailout;
+	}
+
+ bailout:
+	/*
+	 * We either finished building the string or ran out
+	 * of space, print whatever we have in case it is useful
+	 */
+	log_info("%s", obuf);
+
+	return;
 }
+#endif
 #endif /* NSUPDATE */
 
 /* Format the given time as "A; # B", where A is the format
@@ -1457,6 +1474,8 @@ print_time(TIME t)
 {
 	static char buf[sizeof("epoch 9223372036854775807; "
 			       "# Wed Jun 30 21:49:08 2147483647")];
+	static char buf1[sizeof("# Wed Jun 30 21:49:08 2147483647")];
+	time_t since_epoch;
 	/* The string: 	       "6 2147483647/12/31 23:59:60;"
 	 * is smaller than the other, used to declare the buffer size, so
 	 * we can use one buffer for both.
@@ -1478,10 +1497,14 @@ print_time(TIME t)
 #endif
 
 	if (db_time_format == LOCAL_TIME_FORMAT) {
-		if (strftime(buf, sizeof(buf),
-			     "epoch %s; # %a %b %d %H:%M:%S %Y",
-			     localtime(&t)) == 0)
+		since_epoch = mktime(localtime(&t));
+		if ((strftime(buf1, sizeof(buf1),
+			      "# %a %b %d %H:%M:%S %Y",
+			      localtime(&t)) == 0) ||
+		    (snprintf(buf, sizeof(buf), "epoch %lu; %s",
+			      (unsigned long)since_epoch, buf1) >= sizeof(buf)))
 			return NULL;
+
 	} else {
 		/* No bounds check for the year is necessary - in this case,
 		 * strftime() will run out of space and assert an error.

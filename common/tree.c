@@ -3,6 +3,7 @@
    Routines for manipulating parse trees... */
 
 /*
+ * Copyright (c) 2011 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
@@ -43,17 +44,11 @@
 
 struct binding_scope *global_scope;
 
-static int do_host_lookup PROTO ((struct data_string *,
-				  struct dns_host_entry *));
-
-#ifdef NSUPDATE
-struct __res_state resolver_state;
-int resolver_inited = 0;
-#endif
+static int do_host_lookup (struct data_string *, struct dns_host_entry *);
 
 #define DS_SPRINTF_SIZE 128
 
-/* 
+/*
  * If we are using a data_string structure to hold a NUL-terminated 
  * ASCII string, this function can be used to append a printf-formatted 
  * string to the end of it. The data_string structure will be resized to
@@ -650,8 +645,8 @@ int evaluate_expression (result, packet, lease, client_state,
 		status = (evaluate_data_expression
 			  (&bv -> value.data, packet, lease, client_state,
 			   in_options, cfg_options, scope, expr, MDL));
+#if defined (NSUPDATE_OLD)
 	} else if (is_dns_expression (expr)) {
-#if defined (NSUPDATE)
 		if (!binding_value_allocate (&bv, MDL))
 			return 0;
 		bv -> type = binding_dns;
@@ -705,7 +700,7 @@ int binding_value_dereference (struct binding_value **v,
 			data_string_forget (&bv -> value.data, file, line);
 		break;
 	      case binding_dns:
-#if defined (NSUPDATE)
+#if defined (NSUPDATE_OLD)
 		if (bv -> value.dns) {
 			if (bv -> value.dns -> r_data) {
 				dfree (bv -> value.dns -> r_data_ephem, MDL);
@@ -726,7 +721,7 @@ int binding_value_dereference (struct binding_value **v,
 	return 1;
 }
 
-#if defined (NSUPDATE)
+#if defined (NSUPDATE_OLD)
 int evaluate_dns_expression (result, packet, lease, client_state, in_options,
 			     cfg_options, scope, expr)
 	ns_updrec **result;
@@ -951,6 +946,7 @@ int evaluate_dns_expression (result, packet, lease, client_state, in_options,
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_null:
+	      case expr_gethostname:
 		log_error ("Data opcode in evaluate_dns_expression: %d",
 		      expr -> op);
 		return 0;
@@ -987,7 +983,7 @@ int evaluate_dns_expression (result, packet, lease, client_state, in_options,
 		   expr -> op);
 	return 0;
 }
-#endif /* defined (NSUPDATE) */
+#endif /* defined (NSUPDATE_OLD) */
 
 int evaluate_boolean_expression (result, packet, lease, client_state,
 				 in_options, cfg_options, scope, expr)
@@ -1060,7 +1056,7 @@ int evaluate_boolean_expression (result, packet, lease, client_state,
 			    else
 				*result = expr -> op == expr_not_equal;
 			    break;
-
+#if defined (NSUPDATE_OLD)
 			  case binding_dns:
 #if defined (NSUPDATE)
 			    /* XXX This should be a comparison for equal
@@ -1073,7 +1069,7 @@ int evaluate_boolean_expression (result, packet, lease, client_state,
 				*result = expr -> op == expr_not_equal;
 #endif
 			    break;
-
+#endif /* NSUPDATE_OLD */
 			  case binding_function:
 			    if (bv -> value.fundef == obv -> value.fundef)
 				*result = expr -> op == expr_equal;
@@ -1376,6 +1372,7 @@ int evaluate_boolean_expression (result, packet, lease, client_state,
 	      case expr_null:
 	      case expr_filename:
 	      case expr_sname:
+	      case expr_gethostname:
 		log_error ("Data opcode in evaluate_boolean_expression: %d",
 		      expr -> op);
 		return 0;
@@ -2299,6 +2296,39 @@ int evaluate_data_expression (result, packet, lease, client_state,
 #endif
 		return s0;
 
+		/* Provide the system's local hostname as a return value. */
+	      case expr_gethostname:
+		/*
+		 * Allocate a buffer to return.
+		 *
+		 * The largest valid hostname is maybe 64 octets at a single
+		 * label, or 255 octets if you think a hostname is allowed
+		 * to contain labels (plus termination).
+		 */
+		memset(result, 0, sizeof(*result));
+		if (!buffer_allocate(&result->buffer, 255, file, line)) {
+			log_error("data: gethostname(): no memory for buffer");
+			return 0;
+		}
+		result->data = result->buffer->data;
+
+		/*
+		 * On successful completion, gethostname() resturns 0.  It may
+		 * not null-terminate the string if there was insufficient
+		 * space.
+		 */
+		if (!gethostname((char *)result->buffer->data, 255)) {
+			if (result->buffer->data[255] == '\0')
+				result->len =
+					strlen((char *)result->buffer->data);
+			else
+				result->len = 255;
+			return 1;
+		}
+
+		data_string_forget(result, MDL);
+		return 0;
+
 	      case expr_check:
 	      case expr_equal:
 	      case expr_not_equal:
@@ -2369,11 +2399,12 @@ int evaluate_numeric_expression (result, packet, lease, client_state,
 {
 	struct data_string data;
 	int status, sleft, sright;
-#if defined (NSUPDATE)
+#if defined (NSUPDATE_OLD)
 	ns_updrec *nut;
 	ns_updque uq;
-#endif
 	struct expression *cur, *next;
+#endif
+
 	struct binding *binding;
 	struct binding_value *bv;
 	unsigned long ileft, iright;
@@ -2420,6 +2451,7 @@ int evaluate_numeric_expression (result, packet, lease, client_state,
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_null:
+	      case expr_gethostname:
 		log_error ("Data opcode in evaluate_numeric_expression: %d",
 		      expr -> op);
 		return 0;
@@ -2498,7 +2530,7 @@ int evaluate_numeric_expression (result, packet, lease, client_state,
 		return 1;
  
 	      case expr_dns_transaction:
-#if !defined (NSUPDATE)
+#if !defined (NSUPDATE_OLD)
 		return 0;
 #else
 		if (!resolver_inited) {
@@ -2542,7 +2574,7 @@ int evaluate_numeric_expression (result, packet, lease, client_state,
 			minires_freeupdrec (tmp);
 		}
 		return status;
-#endif /* NSUPDATE */
+#endif /* NSUPDATE_OLD */
 
 	      case expr_variable_reference:
 		if (scope && *scope) {
@@ -3202,6 +3234,7 @@ void expression_dereference (eptr, file, line)
 	      case expr_exists:
 	      case expr_known:
 	      case expr_null:
+	      case expr_gethostname:
 		break;
 
 	      default:
@@ -3261,7 +3294,8 @@ int is_data_expression (expr)
 		expr->op == expr_host_decl_name ||
 		expr->op == expr_leased_address ||
 		expr->op == expr_config_option ||
-		expr->op == expr_null);
+		expr->op == expr_null ||
+		expr->op == expr_gethostname);
 }
 
 int is_numeric_expression (expr)
@@ -3308,7 +3342,7 @@ int is_compound_expression (expr)
 		expr -> op == expr_dns_transaction);
 }
 
-static int op_val PROTO ((enum expr_op));
+static int op_val (enum expr_op);
 
 static int op_val (op)
 	enum expr_op op;
@@ -3364,6 +3398,7 @@ static int op_val (op)
 	      case expr_binary_or:
 	      case expr_binary_xor:
 	      case expr_client_state:
+	      case expr_gethostname:
 		return 100;
 
 	      case expr_equal:
@@ -3457,6 +3492,7 @@ enum expression_context op_context (op)
 	      case expr_arg:
 	      case expr_funcall:
 	      case expr_function:
+	      case expr_gethostname:
 		return context_any;
 
 	      case expr_equal:
@@ -3988,6 +4024,32 @@ int write_expression (file, expr, col, indent, firstp)
 		col = token_print_indent (file, col, indent, "", "", ")");
 		break;
 
+	      case expr_gethostname:
+		col = token_print_indent(file, col, indent, "", "",
+					 "gethostname()");
+		break;
+
+	      case expr_funcall:
+		col = token_print_indent(file, indent, indent, "", "",
+					 expr->data.funcall.name);
+		col = token_print_indent(file, col, indent, " ", "", "(");
+
+		firstp = 1;
+		e = expr->data.funcall.arglist;
+		while (e != NULL) {
+			if (!firstp)
+				col = token_print_indent(file, col, indent,
+							 "", " ", ",");
+
+			col = write_expression(file, e->data.arg.val, col,
+					       indent, firstp);
+			firstp = 0;
+			e = e->data.arg.next;
+		}
+
+		col = token_print_indent(file, col, indent, "", "", ")");
+		break;
+
 	      default:
 		log_fatal ("invalid expression type in print_expression: %d",
 			   expr -> op);
@@ -4241,6 +4303,7 @@ int data_subexpression_length (int *rv,
 	      case expr_binary_or:
 	      case expr_binary_xor:
 	      case expr_client_state:
+	      case expr_gethostname:
 		return 0;
 	}
 	return 0;
