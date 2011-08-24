@@ -1,2 +1,3 @@
-README.ldap
-contrib/dhcp.schema
+contrib/ldap/README.ldap
+contrib/ldap/dhcp.schema
+contrib/ldap/dhcpd-conf-to-ldap

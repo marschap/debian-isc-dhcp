@@ -1,23 +1,8 @@
 # emailed upstream
 dhclient-script-exit-status
-# emailed upstream
-fix_groff_warnings
 
 # Debian specific, not appropriate to send upstream
 fix_exit_hook_doc_manpage
 
 # I think this has been independently emailed upstream
 no_loopback_checksum
-
-# Backported from 4.1.2
-CVE-2010-3611
-# Ported from 4.1-ESV
-CVE-2011-0413
-CVE-2011-0997
-
-# must be applied before the LDAP stuff
-no-libcrypto
-
-#ldap backend for dhcp server (docs and code)
-dhcp-4.1.0-ldap-docs
-dhcp-4.1.0-ldap-code

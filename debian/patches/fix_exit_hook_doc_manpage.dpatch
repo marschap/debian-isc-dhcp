@@ -9,9 +9,9 @@
 ## DP: /etc/dhcp/dhclient-enter-hooks.d.
 
 @DPATCH@
-diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' isc-dhcp-4.1.1-P1~/client/dhclient-script.8 isc-dhcp-4.1.1-P1/client/dhclient-script.8
---- isc-dhcp-4.1.1-P1~/client/dhclient-script.8	2009-07-24 23:04:51.000000000 +0100
-+++ isc-dhcp-4.1.1-P1/client/dhclient-script.8	2010-11-01 16:42:20.000000000 +0000
+diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' isc-dhcp~/client/dhclient-script.8 isc-dhcp/client/dhclient-script.8
+--- isc-dhcp~/client/dhclient-script.8	2011-08-20 22:08:40.000000000 -0700
++++ isc-dhcp/client/dhclient-script.8	2011-08-20 22:31:33.000000000 -0700
 @@ -66,13 +66,15 @@
  file.   To override the default behaviour, redefine this function in
  the enter hook script.
@@ -21,11 +21,11 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
  for the presence of an executable
  .B ETCDIR/dhclient-enter-hooks
  script, and if present, it invokes the script inline, using the Bourne
--shell '.' command.   The entire environment documented under OPERATION
+-shell \'.\' command.   The entire environment documented under OPERATION
 -is available to this script, which may modify the environment if needed
 -to change the behaviour of the script.   If an error occurs during the
-+shell '.' command.   It also invokes all executable scripts in 
-+.B ETCDIR/dhclient-enter-hooks.d/* 
++shell \'.\' command.   It also invokes all executable scripts in
++.B ETCDIR/dhclient-enter-hooks.d/*
 +in the same way.   The entire environment documented under OPERATION is
 +available to this script, which may modify the environment if needed to
 +change the behaviour of the script.   If an error occurs during the
@@ -36,25 +36,25 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
  .B CLIENTBINDIR/dhclient-script
  checks for the presence of an executable
  .B ETCDIR/dhclient-exit-hooks
--script, which if present is invoked using the '.' command.  The exit
+-script, which if present is invoked using the \'.\' command.  The exit
 -status of dhclient-script will be passed to dhclient-exit-hooks in the
 -exit_status shell variable, and will always be zero if the script
 -succeeded at the task for which it was invoked.   The rest of the
 -environment as described previously for dhclient-enter-hooks is also
 -present.   The
 +script, which if present is invoked using the '.' command.  All executable
-+scripts in 
++scripts in
 +.B ETCDIR/dhclient-exit-hooks.d/*
-+are also invoked.   The exit status of dhclient-script will be passed 
-+to dhclient-exit-hooks in the exit_status shell variable, and will 
-+always be zero if the script succeeded at the task for which it was 
-+invoked.   The rest of the environment as described previously for 
++are also invoked.   The exit status of dhclient-script will be passed
++to dhclient-exit-hooks in the exit_status shell variable, and will
++always be zero if the script succeeded at the task for which it was
++invoked.   The rest of the environment as described previously for
 +dhclient-enter-hooks is also present.   The
  .B ETCDIR/dhclient-exit-hooks
 -script can modify the valid of exit_status to change the exit status
-+and 
-+.B ETCDIR/dhclient-exit-hooks.d/* 
-+scripts can modify the valid of exit_status to change the exit status
++and
++.B ETCDIR/dhclient-exit-hooks.d/*
++scripts can modify the value of exit_status to change the exit status
  of dhclient-script.
  .SH OPERATION
  When dhclient needs to invoke the client configuration script, it

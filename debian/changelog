@@ -1,3 +1,15 @@
+isc-dhcp (4.2.2-1) unstable; urgency=low
+
+  * New upstream release, includes security fixes for CVE-2011-2748 and
+    CVE-2011-2749 (closes: #638404)
+  * Remove obsolete patches, refit remaining patches
+  * Remove LDAP patch, it's finally upstream now (yay!)
+  * debian/rules: adjust double build for the non-existence of the LDAP patch
+  * debian/isc-dhcp-server-ldap.docs: update for new location of documentation
+  * debian/rules: added build-arch and build-indep targets
+
+ -- Andrew Pollock <apollock@debian.org>  Sun, 21 Aug 2011 20:03:48 -0700
+
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
   * debian/control: fix short description for dhcp3-client package

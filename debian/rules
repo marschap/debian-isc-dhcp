@@ -40,11 +40,6 @@ CFLAGS += -DNOMINUM
 patched-ldap/build-stamp:
 	dh_testdir
 
-	aclocal
-	autoconf
-	autoheader
-	automake --foreign --add-missing --copy
-	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
@@ -52,28 +47,22 @@ patched-ldap/build-stamp:
 		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
 		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
 		--with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
-		--enable-ldap-conf --disable-ldap-casa
+		--with-ldap
 		
-	for f in common ../minires ../dst ../omapip ../dhcpctl ../server; do \
-		cd $$f;\
-		$(MAKE) $(CROSS);\
-	done
+	$(MAKE) $(CROSS)
+
 	mkdir -p patched-ldap
 	mv server/dhcpd patched-ldap/
 	
 	touch $@
 	
-build: patch-stamp build-stamp
+build: build-arch build-indep
 
-build-stamp: patched-ldap/build-stamp
+build-arch: build-stamp
+build-indep: build-stamp
 
-	dpatch deapply-until dhcp-4.1.0-ldap-code
+build-stamp: patch-stamp patched-ldap/build-stamp
 
-	aclocal
-	autoconf
-	autoheader
-	automake --foreign --add-missing --copy
-	
 	./configure \
 		--prefix=$(DESTDIR)/usr \
 		--sysconfdir=$(DESTDIR)/etc/dhcp \
@@ -158,12 +147,10 @@ binary-arch: build install
 	dh_testroot 
 	dh_installdebconf
 	dh_installdocs -A debian/README.Debian -X doc/ja_JP.eucJP
-	dh_installdocs -pisc-dhcp-server-ldap contrib/dhcpd-conf-to-ldap.pl	
 	dh_installexamples -a
 	dh_installinit -pisc-dhcp-server --error-handler=init_script_error_handler
 	dh_installinit -a -Nisc-dhcp-server
 	dh_installchangelogs
-	dh_installchangelogs -pisc-dhcp-server-ldap Changelog-LDAP 
 	dh_install -pisc-dhcp-server-ldap	
 	dh_strip -pisc-dhcp-server-ldap 
 	dh_strip -pisc-dhcp-server --dbg-package=isc-dhcp-server-dbg
