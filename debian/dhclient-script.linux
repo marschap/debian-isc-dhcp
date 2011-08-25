@@ -149,7 +149,7 @@ fi
 # problems with UDP traffic, among other things.  As such,
 # disallow MTUs from 576 and below by default, so that broken
 # MTUs are ignored, but higher stuff is allowed (1492, 1500, etc).
-if [ -z "$new_interface_mtu" ] || [ "$new_interface_mtu" -lt 576 ]; then
+if [ -z "$new_interface_mtu" ] || [ "$new_interface_mtu" -le 576 ]; then
     new_interface_mtu=''
 fi
 if [ -n "$IF_METRIC" ]; then

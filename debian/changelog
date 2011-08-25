@@ -10,8 +10,10 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
   * debian/rules: applied patch from Kees Cook to call dh_link (closes: #614992)
   * debian/dhclient-script.linux: applied patch from Colin Watson to make
     dhclient-script support stateless DHCPv6 (closes: #632888) 
+  * debian/dhclient-script.linux: fix regression for MTU <= 576 handling
+    (closes: #638267)
 
- -- Andrew Pollock <apollock@debian.org>  Wed, 24 Aug 2011 22:23:54 -0700
+ -- Andrew Pollock <apollock@debian.org>  Wed, 24 Aug 2011 22:25:25 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
