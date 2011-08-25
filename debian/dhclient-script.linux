@@ -318,13 +318,11 @@ case "$reason" in
         ;;
 
     BOUND6|RENEW6|REBIND6)
-        if [ -z "${new_ip6_address}" ] || [ -z "${new_ip6_prefixlen}" ]; then
-            exit_with_hooks 2
+        if [ "${new_ip6_address}" ] && [ "${new_ip6_prefixlen}" ]; then
+            # set leased IP
+            ip -6 addr add ${new_ip6_address}/${new_ip6_prefixlen} \
+                dev ${interface} scope global
         fi
-
-        # set leased IP
-        ip -6 addr add ${new_ip6_address}/${new_ip6_prefixlen} \
-            dev ${interface} scope global
 
         # update /etc/resolv.conf
         if [ "${reason}" = BOUND6 ] ||
