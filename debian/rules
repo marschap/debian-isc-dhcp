@@ -126,6 +126,7 @@ install-stamp: build-stamp
 	cp debian/rfc3442-classless-routes debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d
 
 	dh_install
+	dh_link -a
 
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) `pwd`/debian/isc-dhcp-client/sbin/dhclient-script
 
