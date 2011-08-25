@@ -12,8 +12,11 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
     dhclient-script support stateless DHCPv6 (closes: #632888) 
   * debian/dhclient-script.linux: fix regression for MTU <= 576 handling
     (closes: #638267)
+  * Apply patch from Peter Marschall to split the rfc3442-classless-routes hook
+    into a Linux and a kFreeBSD variant, so that the Linux one can use iproute
+    (closes: #630519)
 
- -- Andrew Pollock <apollock@debian.org>  Wed, 24 Aug 2011 22:25:25 -0700
+ -- Andrew Pollock <apollock@debian.org>  Wed, 24 Aug 2011 23:16:09 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 

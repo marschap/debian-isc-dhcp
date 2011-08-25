@@ -48,11 +48,9 @@ if [ "$RUN" = "yes" ]; then
 						;;
 				esac
 
-				if [ "$net_length" -eq 32 ]; then
-					ip -4 route add "${net_address}" via "${gateway}"
-				else
-					ip -4 route add "${net_address}/${net_length}" via "${gateway}"
-				fi
+				# set route (ip detects host routes automatically)
+				ip -4 route add "${net_address}/${net_length}" \
+					via "${gateway}" dev "${interface}" >/dev/null 2>&1
 			done
 		fi
 	fi
