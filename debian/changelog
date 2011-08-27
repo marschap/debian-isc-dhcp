@@ -15,8 +15,10 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
   * Apply patch from Peter Marschall to split the rfc3442-classless-routes hook
     into a Linux and a kFreeBSD variant, so that the Linux one can use iproute
     (closes: #630519)
+  * debian/isc-dhcp-server.postinst: apply patch from Peter Marshall to
+    document new variables in /etc/default/isc-dhcp-server
 
- -- Andrew Pollock <apollock@debian.org>  Wed, 24 Aug 2011 23:16:09 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sat, 27 Aug 2011 13:14:05 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
