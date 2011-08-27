@@ -18,29 +18,38 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 test -f /usr/sbin/dhcpd || exit 0
 
+DHCPD_DEFAULT=${DHCPD_DEFAULT:-/etc/default/isc-dhcp-server}
+
 # It is not safe to start if we don't have a default configuration...
-if [ ! -f /etc/default/isc-dhcp-server ]; then
-	echo "/etc/default/isc-dhcp-server does not exist! - Aborting..."
-	echo "Run 'dpkg-reconfigure isc-dhcp-server' to fix the problem."
+if [ ! -f "$DHCPD_DEFAULT" ]; then
+	echo "$DHCPD_DEFAULT does not exist! - Aborting..."
+	if [ "$DHCPD_DEFAULT" = "/etc/default/isc-dhcp-server" ]; then
+		echo "Run 'dpkg-reconfigure isc-dhcp-server' to fix the problem."
+	fi
 	exit 0
 fi
 
 . /lib/lsb/init-functions
 
-# Read init script configuration (so far only interfaces the daemon
-# should listen on.)
-[ -f /etc/default/isc-dhcp-server ] && . /etc/default/isc-dhcp-server
+# Read init script configuration
+[ -f "$DHCPD_DEFAULT" ] && . "$DHCPD_DEFAULT"
 
 NAME=dhcpd
 DESC="ISC DHCP server"
-DHCPDPID=/var/run/dhcpd.pid
+# fallback to default config file
+DHCPD_CONF=${DHCPD_CONF:-/etc/dhcp/dhcpd.conf}
+# try to read pid file name from config file, with fallback to /var/run/dhcpd.pid
+if [ -z "$DHCPD_PID" ]; then
+	DHCPD_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"(.*)"[ \t]*;.*$/\1/p' < "$DHCPD_CONF" | head -n 1)
+fi
+DHCPD_PID="${DHCPD_PID:-/var/run/dhcpd.pid}"
 
 test_config()
 {
-	if ! /usr/sbin/dhcpd -t -q > /dev/null 2>&1; then
-		echo "dhcpd self-test failed. Please fix the config file."
+	if ! /usr/sbin/dhcpd -t $OPTIONS -q -cf "$DHCPD_CONF" > /dev/null 2>&1; then
+		echo "dhcpd self-test failed. Please fix $DHCPD_CONF."
 		echo "The error was: "
-		/usr/sbin/dhcpd -t
+		/usr/sbin/dhcpd -t $OPTIONS -cf "$DHCPD_CONF"
 		exit 1
 	fi
 }
@@ -48,15 +57,15 @@ test_config()
 # single arg is -v for messages, -q for none
 check_status()
 {
-    if [ ! -r "$DHCPDPID" ]; then
+    if [ ! -r "$DHCPD_PID" ]; then
 	test "$1" != -v || echo "$NAME is not running."
 	return 3
     fi
-    if read pid < "$DHCPDPID" && ps -p "$pid" > /dev/null 2>&1; then
+    if read pid < "$DHCPD_PID" && ps -p "$pid" > /dev/null 2>&1; then
 	test "$1" != -v || echo "$NAME is running."
 	return 0
     else
-	test "$1" != -v || echo "$NAME is not running but $DHCPDPID exists."
+	test "$1" != -v || echo "$NAME is not running but $DHCPD_PID exists."
 	return 1
     fi
 }
@@ -65,8 +74,9 @@ case "$1" in
 	start)
 		test_config
 		log_daemon_msg "Starting $DESC" "$NAME"
-		start-stop-daemon --start --quiet --pidfile $DHCPDPID \
-			--exec /usr/sbin/dhcpd -- -q $INTERFACES
+		start-stop-daemon --start --quiet --pidfile "$DHCPD_PID" \
+			--exec /usr/sbin/dhcpd -- \
+			-q $OPTIONS -cf "$DHCPD_CONF" -pf "$DHCPD_PID" $INTERFACES
 		sleep 2
 
 		if check_status -q; then
@@ -79,9 +89,9 @@ case "$1" in
 		;;
 	stop)
 		log_daemon_msg "Stopping $DESC" "$NAME"
-		start-stop-daemon --stop --quiet --pidfile $DHCPDPID
+		start-stop-daemon --stop --quiet --pidfile "$DHCPD_PID"
 		log_end_msg $?
-		rm -f "$DHCPDPID"
+		rm -f "$DHCPD_PID"
 		;;
 	restart | force-reload)
 		test_config
