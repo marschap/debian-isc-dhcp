@@ -24,8 +24,11 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
     - allow passing additional options to dhcpd (closes: #613734)
     - read PID from config file
   * Add Catalan debconf template translation (closes: #628372)
+  * debian/isc-dhcp-client,dhcp3-client}.links: apply patch from Peter
+    Marschall to move old compatibility links to the old compatibility package
+    (closes: #614992)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 27 Aug 2011 13:37:22 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sat, 27 Aug 2011 13:41:23 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
