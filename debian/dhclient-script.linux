@@ -85,8 +85,18 @@ make_resolv_conf() {
 
 # set host name
 set_hostname() {
-    if [-n "$old_host_name" ] && [ -n "$new_host_name" ]; then
-        hostname "$new_host_name"
+    local current_hostname
+
+    if [ -n "$new_host_name" ]; then
+        current_hostname=$(hostname)
+
+        # current host name is empty, '(none)' or 'localhost' or differs from new one from DHCP
+        if [ -z "$current_hostname" ] ||
+           [ "$current_hostname" = '(none)' ] ||
+           [ "$current_hostname" = 'localhost' ] ||
+           [ "$new_host_name" != "$current_hostname" ]; then
+            hostname "$new_host_name"
+        fi
     fi
 }
 

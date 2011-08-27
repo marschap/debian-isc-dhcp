@@ -33,10 +33,13 @@ make_resolv_conf() {
 # set host name
 set_hostname() {
     local current_hostname
-    current_hostname=$(hostname)
 
-    if [ -z "$current_hostname" ] || [ "$current_hostname" = "(none)" ]; then
-        hostname "$new_host_name"
+    if [ -n "$new_host_name" ]; then
+        current_hostname=$(hostname)
+
+        if [ -z "$current_hostname" ] || [ "$current_hostname" = "(none)" ]; then
+            hostname "$new_host_name"
+        fi
     fi
 }
 
