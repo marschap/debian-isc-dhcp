@@ -83,6 +83,13 @@ make_resolv_conf() {
     fi
 }
 
+# set host name
+set_hostname() {
+    if [-n "$old_host_name" ] && [ -n "$new_host_name" ]; then
+        hostname "$new_host_name"
+    fi
+}
+
 # run given script
 run_hook() {
     local script
@@ -189,11 +196,7 @@ case "$reason" in
         ;;
 
     BOUND|RENEW|REBIND|REBOOT)
-        if [ -n "$old_host_name" ] && [ -n "$new_host_name" ] &&
-           [ "$old_host_name" != "$new_host_name" ]; then
-            # hostname changed => set it
-            hostname "$new_host_name"
-        fi
+        set_hostname
 
         if [ -n "$old_ip_address" ] && [ -n "$alias_ip_address" ] &&
            [ "$alias_ip_address" != "$old_ip_address" ]; then
