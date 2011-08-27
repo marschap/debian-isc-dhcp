@@ -34,8 +34,8 @@ umask 022
 [ -r "${INITCONFFILE}" ] || {
 	echo Generating ${INITCONFFILE}... >&2
 	cat >${INITCONFFILE} <<'EOFMAGICNUMBER1234'
-# Defaults for dhcp initscript
-# sourced by /etc/init.d/dhcp
+# Defaults for isc-dhcp-server initscript
+# sourced by /etc/init.d/isc-dhcp-server
 # installed at /etc/default/isc-dhcp-server by the maintainer scripts
 
 #
