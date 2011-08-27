@@ -29,8 +29,10 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
     (closes: #614992)
   * debian/isc-dhcp-server.postinst: apply patch from Peter Marschall to fix
     comment in /etc/default/isc-dhcp-server (closes: #616417)
+  * debian/control: apply patch from Peter Marschall to add a Provides:
+    dhcp-client to isc-dhcp-client (closes: #236001)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 27 Aug 2011 13:46:16 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sat, 27 Aug 2011 13:49:26 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
