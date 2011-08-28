@@ -121,8 +121,8 @@ install-stamp: build-stamp
 			$(DESTDIR)/usr/share/man/ja/man8; \
 	done
 
-	cp debian/debug-enter debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
-	cp debian/debug-exit debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
+	cp debian/debug-hook debian/isc-dhcp-client/etc/dhcp/dhclient-enter-hooks.d/debug
+	cp debian/debug-hook debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/debug
 
 	dh_install
 	dh_link -a

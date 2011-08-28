@@ -10,7 +10,7 @@
 RUN="no"
 
 if [ "$RUN" = "yes" ]; then
-	echo `date`: entering dhclient-enter-hooks.d, dumping variables. \
+	echo $(date): entering ${0%/*}, dumping variables. \
 		>> /tmp/dhclient-script.debug
 
 	# loop over the 4 possible prefixes: (empty), cur_, new_, old_
@@ -27,6 +27,7 @@ if [ "$RUN" = "yes" ]; then
 			       dhcp6_domain_search dhcp6_name_servers ; do
 			var="${prefix}${basevar}"
 
+			# show only variables with values set
 			if [ -n "${!var}" ]; then
 				echo "$var='${!var}'" >> /tmp/dhclient-script.debug
 			fi
