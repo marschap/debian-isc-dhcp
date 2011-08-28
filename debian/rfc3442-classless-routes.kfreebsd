@@ -16,6 +16,7 @@ if [ "$RUN" = "yes" ]; then
 
 			while [ $# -gt 0 ]; do
 				net_length=$1
+				via_arg="-interface ${interface}"
 
 				case $net_length in
 					32|31|30|29|28|27|26|25)
@@ -48,10 +49,16 @@ if [ "$RUN" = "yes" ]; then
 						;;
 				esac
 
+				# take care of link-local routes
+				if [ "${gateway}" != '0.0.0.0' ]; then
+					via_arg="gw ${gateway}"
+				fi
+
+				# set route (distinguish between host & net routes)
 				if [ "$net_length" -eq 32 ]; then
-					/sbin/route add -host "${net_address}" gw "${gateway}"
+					/sbin/route add -host "${net_address}" "${via_arg}"
 				else
-					/sbin/route add -net "${net_address}/${net_length}" gw "${gateway}"
+					/sbin/route add -net "${net_address}/${net_length}" "${via_arg}"
 				fi
 			done
 		fi

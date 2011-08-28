@@ -16,6 +16,7 @@ if [ "$RUN" = "yes" ]; then
 
 			while [ $# -gt 0 ]; do
 				net_length=$1
+				via_arg=''
 
 				case $net_length in
 					32|31|30|29|28|27|26|25)
@@ -48,9 +49,14 @@ if [ "$RUN" = "yes" ]; then
 						;;
 				esac
 
+				# take care of link-local routes
+				if [ "${gateway}" != '0.0.0.0' ]; then
+					via_arg="via ${gateway}"
+				fi
+
 				# set route (ip detects host routes automatically)
 				ip -4 route add "${net_address}/${net_length}" \
-					via "${gateway}" dev "${interface}" >/dev/null 2>&1
+					${via_arg} dev "${interface}" >/dev/null 2>&1
 			done
 		fi
 	fi
