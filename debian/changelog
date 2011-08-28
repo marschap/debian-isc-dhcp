@@ -43,8 +43,10 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
     hooks
   * debian/rfc3442-classless-routes.{linux,kfreebsd}: applied patch from Peter
     Marschall to take care of link-local routes (closes: #521024)
+  * debian/dhclient-script.*: apply patch from Peter Marschall to use alternate
+    value expansion
 
- -- Andrew Pollock <apollock@debian.org>  Sun, 28 Aug 2011 13:07:27 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sun, 28 Aug 2011 13:20:22 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 

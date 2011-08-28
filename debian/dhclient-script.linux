@@ -153,19 +153,6 @@ exit_with_hooks() {
 }
 
 
-# set up some variables for DHCPv4 handlers below
-if [ -n "$new_broadcast_address" ]; then
-    new_broadcast_arg="broadcast $new_broadcast_address"
-fi
-if [ -n "$old_broadcast_address" ]; then
-    old_broadcast_arg="broadcast $old_broadcast_address"
-fi
-if [ -n "$new_subnet_mask" ]; then
-    new_mask="/$new_subnet_mask"
-fi
-if [ -n "$alias_subnet_mask" ]; then
-    alias_mask="/$alias_subnet_mask"
-fi
 # The 576 MTU is only used for X.25 and dialup connections
 # where the admin wants low latency.  Such a low MTU can cause
 # problems with UDP traffic, among other things.  As such,
@@ -224,7 +211,8 @@ case "$reason" in
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
             # new IP has been leased or leased IP changed => set it
-            ip -4 addr add ${new_ip_address}${new_mask} ${new_broadcast_arg} \
+            ip -4 addr add ${new_ip_address}${new_subnet_mask:+/$new_subnet_mask} \
+                ${new_broadcast_address:+broadcast $new_broadcast_address} \
                 dev ${interface} label ${interface}
 
             if [ -n "$new_interface_mtu" ]; then
@@ -259,7 +247,7 @@ case "$reason" in
             # separate alias IP given, which may have changed
             # => flush it, set it & add host route to it
             ip -4 addr flush dev ${interface} label ${interface}:0
-            ip -4 addr add ${alias_ip_address}${alias_mask} \
+            ip -4 addr add ${alias_ip_address}${alias_subnet_mask:+/$alias_subnet_mask} \
                 dev ${interface} label ${interface}:0
             ip -4 route add ${alias_ip_address} dev ${interface} >/dev/null 2>&1
         fi
@@ -296,7 +284,8 @@ case "$reason" in
         fi
 
         # set IP from recorded lease
-        ip -4 addr add ${new_ip_address}${new_mask} ${new_broadcast_arg} \
+        ip -4 addr add ${new_ip_address}${new_subnet_mask:+/$new_subnet_mask} \
+            ${new_broadcast_address:+broadcast $new_broadcast_address} \
             dev ${interface} label ${interface}
 
         if [ -n "$new_interface_mtu" ]; then
@@ -309,7 +298,7 @@ case "$reason" in
             if [ -n "$alias_ip_address" ] &&
                [ "$new_ip_address" != "$alias_ip_address" ]; then
                 # separate alias IP given => set up the alias IP & add host route to it
-                ip -4 addr add ${alias_ip_address}${alias_mask} \
+                ip -4 addr add ${alias_ip_address}${alias_subnet_mask:+/$alias_subnet_mask} \
                     dev ${interface} label ${interface}:0
                 ip -4 route add ${alias_ip_address} dev ${interface} >/dev/null 2>&1
             fi

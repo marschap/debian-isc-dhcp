@@ -109,23 +109,8 @@ exit_with_hooks() {
 
 
 # set up some variables for DHCPv4 handlers below
-if [ -n "$new_broadcast_address" ]; then
-    new_broadcast_arg="broadcast $new_broadcast_address"
-fi
-if [ -n "$old_broadcast_address" ]; then
-    old_broadcast_arg="broadcast $old_broadcast_address"
-fi
-if [ -n "$new_subnet_mask" ]; then
-    new_subnet_arg="netmask $new_subnet_mask"
-fi
-if [ -n "$alias_subnet_mask" ]; then
-    alias_subnet_arg="netmask $alias_subnet_mask"
-fi
 if [ -n "$new_interface_mtu" ] && [ $new_interface_mtu -ge 575 ]; then
     mtu_arg="mtu $new_interface_mtu"
-fi
-if [ -n "$IF_METRIC" ]; then
-    metric_arg="metric $IF_METRIC"	# interfaces(5), "metric" option
 fi
 
 
@@ -183,9 +168,9 @@ case "$reason" in
         if [ -z "$old_ip_address" ] ||
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
-            ifconfig $interface inet $new_ip_address $new_subnet_arg \
-                $new_broadcast_arg $medium $mtu_arg
-            route add $new_ip_address 127.1 $metric_arg >/dev/null 2>&1
+            ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
+                ${new_broadcast_address:+broadcast $new_broadcast_address} $medium $mtu_arg
+            route add $new_ip_address 127.1 ${IF_METRIC:+metric $IF_METRIC} >/dev/null 2>&1
 
             for router in $new_routers; do
                 route add default $router >/dev/null 2>&1
@@ -202,7 +187,8 @@ case "$reason" in
 
         if [ -n "$alias_ip_address" ] &&
            [ "$new_ip_address" != "$alias_ip_address" ]; then
-            ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+            ifconfig $interface inet alias $alias_ip_address \
+                ${alias_subnet_mask:+netmask $alias_subnet_mask}
             route add $alias_ip_address 127.0.0.1
         fi
 
@@ -225,7 +211,8 @@ case "$reason" in
         fi
 
         if [ -n "$alias_ip_address" ]; then
-            ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+            ifconfig $interface inet alias $alias_ip_address \
+                ${alias_subnet_mask:+netmask $alias_subnet_mask}
             route add $alias_ip_address 127.0.0.1
         fi
 
@@ -237,8 +224,8 @@ case "$reason" in
             route delete $alias_ip_address 127.0.0.1 > /dev/null 2>&1
         fi
 
-        ifconfig $interface inet $new_ip_address $new_subnet_arg \
-            $new_broadcast_arg $medium $mtu_arg
+        ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
+            ${new_broadcast_address:+broadcast $new_broadcast_address} $medium $mtu_arg
 
         set -- $new_routers
         first_router="$1"
@@ -246,13 +233,14 @@ case "$reason" in
         if [ -z "$first_router" ] || ping -q -c 1 $first_router; then
             if [ -n "$alias_ip_address" ] &&
                [ "$new_ip_address" != "$alias_ip_address" ]; then
-                ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+                ifconfig $interface inet alias $alias_ip_address \
+                    ${alias_subnet_mask:+netmask $alias_subnet_mask}
                 route add $alias_ip_address 127.0.0.1
             fi
             route add $new_ip_address 127.1 >/dev/null 2>&1
 
             for router in $new_routers; do
-                route add default $router $metric_arg
+                route add default $router ${IF_METRIC:+metric $IF_METRIC}
             done
             set -- $new_static_routes
             while [ $# -gt 1 ]; do

@@ -51,13 +51,6 @@ if [ -n "$old_subnet_mask" ]; then
     old_mask="/$(ptom $old_subnet_mask)"
 fi
 
-if [ -n "$new_broadcast_address" ]; then
-    new_broadcast_arg="broadcast $new_broadcast_address"
-fi
-if [ -n "$old_broadcast_address" ]; then
-    old_broadcast_arg="broadcast $old_broadcast_address"
-fi
-
 # Execute the operation
 case "$reason" in
     MEDIUM|ARPCHECK|ARPSEND)
@@ -78,7 +71,8 @@ case "$reason" in
            [ "$old_ip_address" != "$new_ip_address" ]; then
             # IP address changed. Bringing down the interface will delete all routes,
             # and clear the ARP cache.
-            ip addr del $old_ip_address$old_mask $old_broadcast_arg dev $interface
+            ip addr del $old_ip_address$old_mask ${old_broadcast_address:+broadcast $old_broadcast_address} \
+                dev $interface
             ip link set $interface down
         fi
 
@@ -92,7 +86,8 @@ case "$reason" in
 
             ip link set $interface up
             ip addr flush dev $interface
-            ip addr add $new_ip_address$new_mask $new_broadcast_arg dev $interface
+            ip addr add $new_ip_address$new_mask ${new_broadcast_address:+broadcast $new_broadcast_address} \
+                 dev $interface
 
             for router in $new_routers; do
                 ip route add default via $router
