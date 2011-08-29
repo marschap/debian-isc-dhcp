@@ -18,7 +18,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 test -f /usr/sbin/dhcpd || exit 0
 
-DHCPD_DEFAULT=${DHCPD_DEFAULT:-/etc/default/isc-dhcp-server}
+DHCPD_DEFAULT="${DHCPD_DEFAULT:-/etc/default/isc-dhcp-server}"
 
 # It is not safe to start if we don't have a default configuration...
 if [ ! -f "$DHCPD_DEFAULT" ]; then
@@ -40,7 +40,7 @@ DESC="ISC DHCP server"
 DHCPD_CONF=${DHCPD_CONF:-/etc/dhcp/dhcpd.conf}
 # try to read pid file name from config file, with fallback to /var/run/dhcpd.pid
 if [ -z "$DHCPD_PID" ]; then
-	DHCPD_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"(.*)"[ \t]*;.*$/\1/p' < "$DHCPD_CONF" | head -n 1)
+	DHCPD_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"(.*)"[ \t]*;.*$/\1/p' < "$DHCPD_CONF" 2>/dev/null | head -n 1)
 fi
 DHCPD_PID="${DHCPD_PID:-/var/run/dhcpd.pid}"
 
