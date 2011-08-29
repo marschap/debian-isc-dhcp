@@ -45,8 +45,10 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
     Marschall to take care of link-local routes (closes: #521024)
   * debian/dhclient-script.*: apply patch from Peter Marschall to use alternate
     value expansion
+  * debian/isc-dhcp-server.postinst: eliminate an error message from sed if no
+    interfaces are provided 
 
- -- Andrew Pollock <apollock@debian.org>  Sun, 28 Aug 2011 13:20:22 -0700
+ -- Andrew Pollock <apollock@debian.org>  Sun, 28 Aug 2011 22:12:21 -0700
 
 isc-dhcp (4.1.1-P1-18) unstable; urgency=low
 
