@@ -24,7 +24,7 @@ esac
 # Handle debconf
 . /usr/share/debconf/confmodule
 
-INITCONFFILE=/etc/default/isc-dhcp-server
+INITCONFFILE="/etc/default/isc-dhcp-server"
 
 # We generate several files during the postinst, and we don't want
 #	them to be readable only by root.
@@ -63,11 +63,13 @@ EOFMAGICNUMBER1234
 db_get isc-dhcp-server/interfaces || true
 INTERFACES="${RET}"
 
-TMPFILE=`mktemp -q ${INITCONFFILE}.new.XXXXXX`
-sed -e "s,^[[:space:]]*INTERFACES[[:space:]]*=.*,INTERFACES=\"${INTERFACES}\"," \
-	<${INITCONFFILE} >${TMPFILE}
-cp ${TMPFILE} ${INITCONFFILE}
-rm ${TMPFILE}
+if [ -n "$INTERFACES" ]; then
+    TMPFILE="$(mktemp -q ${INITCONFFILE}.new.XXXXXX)"
+    sed -e "s,^[[:space:]]*INTERFACES[[:space:]]*=.*,INTERFACES=\"${INTERFACES}\"," \
+		<${INITCONFFILE} >${TMPFILE}
+    cp ${TMPFILE} ${INITCONFFILE}
+    rm ${TMPFILE}
+fi
 
 # ------------------------- Debconf questions end ---------------------
 db_stop
