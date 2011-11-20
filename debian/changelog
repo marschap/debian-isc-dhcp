@@ -2,8 +2,11 @@ isc-dhcp (4.2.2-2) unstable; urgency=low
 
   * debian/rules: use dpkg-buildflags to set CFLAGS, and export CFLAGS (closes:
     #643470)
+  * debian/dhclient.conf: remove host-name from the set of options requested
+    from the DHCP server, because having the hostname be changed by default
+    seems to surprise and upset many people (closes: #648676)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 14:50:29 -0800
+ -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 20:51:27 -0800
 
 isc-dhcp (4.2.2-1) unstable; urgency=low
 
