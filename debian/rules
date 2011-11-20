@@ -22,20 +22,17 @@ PACKAGE = isc-dhcp
 
 include /usr/share/dpatch/dpatch.make
 
-CFLAGS = -Wall -g
 INSTALL = install
 INSTALL_FILE 	= $(INSTALL) -p -o root -g root -m 644
 
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-CFLAGS += -O0
-else
-CFLAGS += -O2
-endif
+CFLAGS = $(shell dpkg-buildflags --get CFLAGS) -Wall
 
 CFLAGS += -D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
 CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 CFLAGS += -DNOMINUM
+
+export CFLAGS
 
 patched-ldap/build-stamp:
 	dh_testdir
