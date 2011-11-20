@@ -2,6 +2,8 @@
 # dhclient-script for GNU/kFreeBSD. Aurelien Jarno, May, 2005.
 # Based on Linux and FreeBSD scripts.
 
+export PATH=/lib/freebsd:$PATH
+
 # update /etc/resolv.conf based on received values
 make_resolv_conf() {
     local new_resolv_conf
@@ -153,27 +155,33 @@ case "$reason" in
            [ "$old_ip_address" != "$new_ip_address" ]; then
             ifconfig $interface inet -alias $old_ip_address $medium
             route delete $old_ip_address 127.1 >/dev/null 2>&1
-            # IP address changed. Bringing down the interface will delete all other
-            # route, and clear the ARP cache.
-            ifconfig $interface inet 0 down
-        fi
-
-        # point to point
-        if [ "$new_subnet_mask" = "255.255.255.255" ]; then
-            for router in $new_routers; do
-                route add $router $new_ip_address
+            for router in $old_routers; do
+              route delete default $router >/dev/null 2>&1 
             done
+            if [ -n "$old_static_routes" ]; then
+              set -- $old_static_routes
+              while [ $# -gt 1 ]; do
+                route delete $1 $2
+                shift; shift
+              done
+            fi
+            arp -n -a | sed -n -e 's/^.*(\(.*\)) at .*$/arp -d \1/p' |sh
         fi
 
         if [ -z "$old_ip_address" ] ||
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
-            ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
-                ${new_broadcast_address:+broadcast $new_broadcast_address} $medium $mtu_arg
-            route add $new_ip_address 127.1 ${IF_METRIC:+metric $IF_METRIC} >/dev/null 2>&1
-
+            ifconfig $interface inet $new_ip_address $new_netmask_arg \
+                                $new_broadcast_arg $mtu_arg $metric_arg $medium
+            route add $new_ip_address 127.1 >/dev/null 2>&1
             for router in $new_routers; do
-                route add default $router >/dev/null 2>&1
+              # If the subnet is captive, eg the netmask is /32 but the default
+              # gateway is (obviously) outside of this, then we need to produce a
+              # host route to reach the gateway.
+              if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
+                route add -host $router -interface $interface
+              fi
+              route add default $router >/dev/null 2>&1
             done
 
             if [ -n "$new_static_routes" ]; then
@@ -183,6 +191,24 @@ case "$reason" in
                     shift; shift
                 done
             fi
+        else
+          # we haven't changed the address, have we changed other options
+          # that we wish to update?
+          if [ x$new_routers != x ] && [ x$new_routers != x$old_routers ] ; then
+            # if we've changed routers delete the old and add the new.
+            for router in $old_routers; do
+              route delete default $router >/dev/null 2>&1
+            done
+            for router in $new_routers; do
+              # If the subnet is captive, eg the netmask is /32 but the default
+              # gateway is (obviously) outside of this, then we need to produce a
+              # host route to reach the gateway.
+              if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
+                route add -host $router -interface $interface
+              fi
+              route add default $router >/dev/null 2>&1
+            done
+          fi
         fi
 
         if [ -n "$alias_ip_address" ] &&
@@ -206,13 +232,22 @@ case "$reason" in
         if [ -n "$old_ip_address" ]; then
             ifconfig $interface inet -alias $old_ip_address $medium
             route delete $old_ip_address 127.1 >/dev/null 2>&1
-            # Shut down interface, which will delete all other routes and clear arp cache.
-            ifconfig $interface inet 0 down
+            for router in $old_routers; do
+              route delete default $router >/dev/null 2>&1
+            done
+            if [ -n "$old_static_routes" ]; then
+              set -- $old_static_routes
+              while [ $# -gt 1 ]; do
+                route delete $1 $2
+                shift; shift
+              done
+            fi
+            arp -n -a | sed -n -e 's/^.*(\(.*\)) at .*$/arp -d \1/p' \
+                                                        |sh >/dev/null 2>&1
         fi
 
         if [ -n "$alias_ip_address" ]; then
-            ifconfig $interface inet alias $alias_ip_address \
-                ${alias_subnet_mask:+netmask $alias_subnet_mask}
+            ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
             route add $alias_ip_address 127.0.0.1
         fi
 
@@ -224,23 +259,25 @@ case "$reason" in
             route delete $alias_ip_address 127.0.0.1 > /dev/null 2>&1
         fi
 
-        ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
-            ${new_broadcast_address:+broadcast $new_broadcast_address} $medium $mtu_arg
+        ifconfig $interface inet $new_ip_address $new_netmask_arg \
+                              $new_broadcast_arg $mtu_arg $metric_arg $medium
+        sleep 1
 
-        set -- $new_routers
-        first_router="$1"
 
-        if [ -z "$first_router" ] || ping -q -c 1 $first_router; then
-            if [ -n "$alias_ip_address" ] &&
-               [ "$new_ip_address" != "$alias_ip_address" ]; then
-                ifconfig $interface inet alias $alias_ip_address \
-                    ${alias_subnet_mask:+netmask $alias_subnet_mask}
-                route add $alias_ip_address 127.0.0.1
+        if [ -n "$new_routers" ]; then
+          set -- $new_routers
+          if ping -q -c 1 $1; then
+            if [ x$new_ip_address != x$alias_ip_address ] && \
+                              [ x$alias_ip_address != x ]; then
+              ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+              route add $alias_ip_address 127.0.0.1
             fi
             route add $new_ip_address 127.1 >/dev/null 2>&1
-
             for router in $new_routers; do
-                route add default $router ${IF_METRIC:+metric $IF_METRIC}
+              if [ "x$new_subnet_mask" = "x255.255.255.255" ] ; then
+                route add -host $router -interface $interface
+              fi
+              route add default $router >/dev/null 2>&1
             done
             set -- $new_static_routes
             while [ $# -gt 1 ]; do
@@ -249,10 +286,23 @@ case "$reason" in
             done
 
             make_resolv_conf
-        else
-            # Changed from 'ifconfig $interface inet 0 down' - see Debian bug #144666
-            ifconfig $interface inet 0
+          else
             exit_with_hooks 2 "$@"
+          fi
+        else
+          ifconfig $interface inet -alias $new_ip_address $medium
+          for router in $old_routers; do
+            route delete default $router >/dev/null 2>&1
+          done
+          if [ -n "$old_static_routes" ]; then
+            set -- $old_static_routes
+            while [ $# -gt 1 ]; do
+              route delete $1 $2
+              shift; shift
+            done
+          fi
+          arp -n -a | sed -n -e 's/^.*(\(.*\)) at .*$/arp -d \1/p' \
+                                                                |sh >/dev/null 2>&1
         fi
 
         ;;

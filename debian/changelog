@@ -5,8 +5,10 @@ isc-dhcp (4.2.2-2) unstable; urgency=low
   * debian/dhclient.conf: remove host-name from the set of options requested
     from the DHCP server, because having the hostname be changed by default
     seems to surprise and upset many people (closes: #648676)
+  * debian/dhclient-script.kfreebsd: apply patch from Robert Millan to resync
+    dhclient-script with FreeBSD version (closes: #645502)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 20:51:27 -0800
+ -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 20:55:43 -0800
 
 isc-dhcp (4.2.2-1) unstable; urgency=low
 
