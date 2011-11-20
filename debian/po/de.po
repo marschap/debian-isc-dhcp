@@ -13,10 +13,10 @@
 # Erik Schanze <eriks@debian.org>, 2004-2010.
 msgid ""
 msgstr ""
-"Project-Id-Version: isc-dhcp_4.1.1-P1-8_de\n"
+"Project-Id-Version: isc-dhcp 4.1.1-P1-17\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2010-07-18 21:01+0200\n"
+"PO-Revision-Date: 2011-09-16 20:40+0200\n"
 "Last-Translator: Erik Schanze <eriks@debian.org>\n"
 "Language-Team: German <debian-l10n-german@lists.debian.org>\n"
 "Language: de\n"
@@ -57,7 +57,7 @@ msgstr ""
 #: ../isc-dhcp-relay.templates:3001
 msgid "Interfaces the DHCP relay should listen on:"
 msgstr ""
-"Netzwerkschnittstellen, an denen der DHCP-Relay auf Anfragen lauschen soll:"
+"Netzwerkschnittstellen, an denen der DHCP-Relay auf Anfragen warten soll:"
 
 #. Type: string
 #. Description
@@ -142,7 +142,7 @@ msgid ""
 "separated list."
 msgstr ""
 "Bitte geben Sie die Netzwerkschnittstelle(n) ein, an der bzw. denen der DHCP-"
-"Server auf DHCP-Anfragen lauschen soll. Mehrere Schnittstellennamen sollten "
+"Server auf DHCP-Anfragen warten soll. Mehrere Schnittstellennamen sollten "
 "in einer Liste, durch Leerzeichen getrennt, eingegeben werden."
 
 #. Type: string
