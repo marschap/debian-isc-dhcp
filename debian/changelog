@@ -10,8 +10,10 @@ isc-dhcp (4.2.2-2) unstable; urgency=low
   * debian/control: add inetutils-ping to the dependencies for isc-dhcp-client
     on kfreebsd (closes: #648140)
   * Updated German debconf template translation (closes: #641843)
+  * added harding-wrapper to build dependencies and invoke it in debian/rules
+    (closes: #611192)
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 21:30:51 -0800
+ -- Andrew Pollock <apollock@debian.org>  Sat, 19 Nov 2011 21:37:24 -0800
 
 isc-dhcp (4.2.2-1) unstable; urgency=low
 

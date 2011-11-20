@@ -16,6 +16,8 @@ else
 CROSS=
 endif
 
+export DEB_BUILD_HARDENING=1
+
 DESTDIR = `pwd`/debian/tmp
 
 PACKAGE = isc-dhcp
