@@ -2,9 +2,9 @@ isc-dhcp (4.2.2-2) unstable; urgency=low
 
   * debian/rules: use dpkg-buildflags to set CFLAGS, and export CFLAGS (closes:
     #643470)
-  * debian/dhclient.conf: remove host-name from the set of options requested
-    from the DHCP server, because having the hostname be changed by default
-    seems to surprise and upset many people (closes: #648676)
+  * debian/dhclient.conf: revert hostname setting behaviour to something
+    equivalent to what upstream ships to avoid surprising people with unwanted
+    hostname changes when changing networks (closes: #648676)
   * debian/dhclient-script.kfreebsd: apply patch from Robert Millan to resync
     dhclient-script with FreeBSD version (closes: #645502)
   * debian/control: add inetutils-ping to the dependencies for isc-dhcp-client
