@@ -1,8 +1,10 @@
 isc-dhcp (4.2.2-4) UNRELEASED; urgency=low
 
   * debian/control: remove transitional packages
+  * debian/rules: apply the intent of Pierre Chifflier's patch to enable
+    hardening options (closes: #644413)
 
- -- Andrew Pollock <apollock@debian.org>  Sun, 08 Jan 2012 09:38:31 -0800
+ -- Andrew Pollock <apollock@debian.org>  Sun, 08 Jan 2012 09:47:17 -0800
 
 isc-dhcp (4.2.2-3) unstable; urgency=low
 

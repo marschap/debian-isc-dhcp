@@ -17,24 +17,24 @@ CROSS=
 endif
 
 export DEB_BUILD_HARDENING=1
+DPKG_EXPORT_BUILDFLAGS = 1
 
 DESTDIR = `pwd`/debian/tmp
 
 PACKAGE = isc-dhcp
 
 include /usr/share/dpatch/dpatch.make
+-include /usr/share/dpkg/buildflags.mk
 
 INSTALL = install
 INSTALL_FILE 	= $(INSTALL) -p -o root -g root -m 644
 
-CFLAGS = $(shell dpkg-buildflags --get CFLAGS) -Wall
+CFLAGS += -Wall
 
 CFLAGS += -D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
 CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 CFLAGS += -DNOMINUM
-
-export CFLAGS
 
 patched-ldap/build-stamp:
 	dh_testdir
