@@ -89,7 +89,7 @@ Description: API for accessing and modifying the DHCP server and client state
 
 Package: isc-dhcp-client
 Architecture: any
-Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), iproute [linux-any], inetutils-ping [kfreebsd-any], ${shlibs:Depends}, ${misc:Depends}
+Depends: debianutils (>= 2.8.2), isc-dhcp-common (= ${binary:Version}), iproute [linux-any], inetutils-ping [kfreebsd-any, hurd-any], ${shlibs:Depends}, ${misc:Depends}
 Suggests: resolvconf, avahi-autoipd
 Provides: dhcp-client, dhcp3-client
 Conflicts: dhcp-client (<< 3.0), samba-common (<< 3.0.0beta1-2), resolvconf (<= 1.45), ifupdown (<< 0.6.8+nmu3)
