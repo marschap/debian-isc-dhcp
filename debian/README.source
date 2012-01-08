@@ -1,9 +1,0 @@
-This package currently uses dpatch to manage the patches.
-
-Please be aware that there's a bit of a convoluted double-build to build an
-LDAP-enabled and non-LDAP-enabled DHCP server package, so the first build is
-done with the LDAP patch applied, and then it's unapplied, and a second build
-is done.
-
-See /usr/share/doc/dpatch/README.source.gz for more information on how to use
-dpatch

@@ -10,6 +10,7 @@ isc-dhcp (4.2.2-3) UNRELEASED; urgency=low
     - debian/rules: stop including dpatch.make
     - debian/rules: remove dpatch-related target dependencies
     - convert patches from dpatch to pure quilt
+    - remove debian/README.source
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 08 Jan 2012 14:04:44 -0800
 
