@@ -5,8 +5,13 @@ isc-dhcp (4.2.2-3) UNRELEASED; urgency=low
     hardening options (closes: #644413)
   * debian/control: also add inetutils-ping to the dependencies for
     isc-dhcp-client on hurd (closes: #648140)
+  * Convert to 3.0 (quilt) source format:
+    - debian/control: remove build-dep on dpatch
+    - debian/rules: stop including dpatch.make
+    - debian/rules: remove dpatch-related target dependencies
+    - convert patches from dpatch to pure quilt
 
- -- Andrew Pollock <apollock@debian.org>  Sat, 07 Jan 2012 22:19:36 -0800
+ -- Andrew Pollock <apollock@debian.org>  Sun, 08 Jan 2012 14:04:44 -0800
 
 isc-dhcp (4.2.2-2) unstable; urgency=low
 

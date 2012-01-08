@@ -23,7 +23,6 @@ DESTDIR = `pwd`/debian/tmp
 
 PACKAGE = isc-dhcp
 
-include /usr/share/dpatch/dpatch.make
 -include /usr/share/dpkg/buildflags.mk
 
 INSTALL = install
@@ -60,7 +59,7 @@ build: build-arch build-indep
 build-arch: build-stamp
 build-indep: build-stamp
 
-build-stamp: patch-stamp patched-ldap/build-stamp
+build-stamp: patched-ldap/build-stamp
 
 	./configure \
 		--prefix=$(DESTDIR)/usr \
@@ -74,7 +73,7 @@ build-stamp: patch-stamp patched-ldap/build-stamp
 
 	touch build-stamp
 
-clean: unpatch
+clean:
 	dh_testdir
 	rm -f build-stamp install-stamp
 	rm -Rf patched-ldap
