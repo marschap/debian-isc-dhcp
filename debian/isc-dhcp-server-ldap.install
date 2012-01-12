@@ -1,1 +1,1 @@
-patched-ldap/dhcpd usr/sbin
+isc-dhcp-server-ldap/dhcpd usr/sbin

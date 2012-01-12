@@ -35,7 +35,7 @@ CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 CFLAGS += -DNOMINUM
 
-patched-ldap/build-stamp:
+build-ldap-stamp:
 	dh_testdir
 
 	./configure \
@@ -49,17 +49,22 @@ patched-ldap/build-stamp:
 		
 	$(MAKE) $(CROSS)
 
-	mkdir -p patched-ldap
-	mv server/dhcpd patched-ldap/
+	mkdir -p isc-dhcp-server-ldap
+	mv server/dhcpd isc-dhcp-server-ldap/
 	
 	touch $@
 	
 build: build-arch build-indep
 
-build-arch: build-stamp
-build-indep: build-stamp
+build-arch: build-ldap-stamp build-non-ldap-stamp build-arch-stamp
+build-indep:
 
-build-stamp: patched-ldap/build-stamp
+build-arch-stamp:
+	dh_testdir
+	touch $@
+
+build-non-ldap-stamp:
+	dh_testdir
 
 	./configure \
 		--prefix=$(DESTDIR)/usr \
@@ -71,12 +76,12 @@ build-stamp: patched-ldap/build-stamp
 	
 	$(MAKE) $(CROSS)
 
-	touch build-stamp
+	touch $@
 
 clean:
 	dh_testdir
-	rm -f build-stamp install-stamp
-	rm -Rf patched-ldap
+	rm -f build*stamp install*stamp
+	rm -Rf isc-dhcp-server-ldap
 
 	[ ! -f Makefile ] || $(MAKE) distclean
 
@@ -84,7 +89,7 @@ clean:
 	dh_clean
 
 install: install-stamp
-install-stamp: build-stamp
+install-stamp: build-ldap-stamp build-non-ldap-stamp
 	dh_testdir
 	dh_testroot
 	dh_prep
@@ -138,11 +143,11 @@ ifeq ($(DEB_HOST_ARCH_OS), linux)
 endif
 	dh_lintian
 
-	touch install-stamp
+	touch $@
 
 # Build architecture-dependent files here (this package does not contain
 #	architecture-independent files).
-binary-arch: build install
+binary-arch: build-arch install
 	dh_testdir
 	dh_testroot 
 	dh_installdebconf
@@ -166,8 +171,8 @@ binary-arch: build install
 	dh_md5sums -a --no-package=isc-dhcp-client-udeb
 	dh_builddeb
 
-source diff:                                                                  
-	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
+binary-indep: build-indep
 
-binary: binary-arch
+binary: binary-arch binary-indep
+
 .PHONY: build clean binary-indep binary-arch binary

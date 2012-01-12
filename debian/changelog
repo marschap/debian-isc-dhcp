@@ -11,8 +11,10 @@ isc-dhcp (4.2.2-3) UNRELEASED; urgency=low
     - debian/rules: remove dpatch-related target dependencies
     - convert patches from dpatch to pure quilt
     - remove debian/README.source
+  * debian/rules: cleaned up the target names a bit to reflect the lack of
+    patching going on now
 
- -- Andrew Pollock <apollock@debian.org>  Sun, 08 Jan 2012 14:04:44 -0800
+ -- Andrew Pollock <apollock@debian.org>  Wed, 11 Jan 2012 21:13:08 -0800
 
 isc-dhcp (4.2.2-2) unstable; urgency=low
 
