@@ -1,0 +1,13 @@
+Index: isc-dhcp/bind/Makefile
+===================================================================
+--- isc-dhcp.orig/bind/Makefile	2012-01-07 20:51:59.887859045 -0800
++++ isc-dhcp/bind/Makefile	2012-03-14 06:24:51.197110723 -0700
+@@ -45,7 +45,7 @@
+ # Currently disable the epoll and devpoll options as they don't interact
+ # well with the DHCP code.
+ 	@echo Configuring BIND Export libraries for DHCP.
+-	@(cd ${bindsrcdir} && ./configure --disable-kqueue --disable-epoll --disable-devpoll --without-openssl --without-libxml2 --enable-exportlib --enable-threads=no --with-export-includedir=${binddir}/include --with-export-libdir=${binddir}/lib --with-gssapi=no > ${binddir}/configure.log)
++	@(cd ${bindsrcdir} && autoconf && ./configure --disable-kqueue --disable-epoll --disable-devpoll --without-openssl --without-libxml2 --enable-exportlib --enable-threads=no --with-export-includedir=${binddir}/include --with-export-libdir=${binddir}/lib --with-gssapi=no > ${binddir}/configure.log)
+ 
+ # Build the export libraries
+ 	@echo Building BIND Export libraries - this takes some time.
