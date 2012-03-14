@@ -1,28 +1,29 @@
-# Dutch translation of isc-dhcp debconf templates.
-# Copyright (C) 2004-2011 THE PACKAGE'S COPYRIGHT HOLDER
+# Translation of isc-dhcp debconf templates to Polish.
+# Copyright (C) 2010
 # This file is distributed under the same license as the isc-dhcp package.
-# Frans Pop <aragorn@tiscali.nl>, 2004, 2005, 2006.
-# Frans Pop <elendil@planet.nl>, 2006, 2007.
-# Jeroen Schot <schot@a-eskwadraat.nl>, 2011.
 #
+# Michał Kułach <michal.kulach@gmail.com>, 2012.
 msgid ""
 msgstr ""
-"Project-Id-Version: isc-dhcp 4.2.2-1\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2011-12-08 11:33+0100\n"
-"Last-Translator: Jeroen Schot <schot@a-eskwadraat.nl>\n"
-"Language-Team: Debian l10n Dutch <debian-l10n-dutch@lists.debian.org>\n"
-"Language: nl\n"
+"PO-Revision-Date: 2012-02-09 15:17+0100\n"
+"Last-Translator: Michał Kułach <michal.kulach@gmail.com>\n"
+"Language-Team: Polish <debian-l10n-polish@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: pl\n"
+"X-Generator: Lokalize 1.2\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:2001
 msgid "Servers the DHCP relay should forward requests to:"
-msgstr "Servers waarnaar de DHCP-doorgifteservice verzoeken moet doorsturen:"
+msgstr "Serwery do których przekaźnik DHCP powinien przekazywać żądania:"
 
 #. Type: string
 #. Description
@@ -31,8 +32,8 @@ msgid ""
 "Please enter the hostname or IP address of at least one DHCP server to which "
 "DHCP and BOOTP requests should be relayed."
 msgstr ""
-"Geef de computernaam of het IP-adres in van tenminste één DHCP-server "
-"waarnaar DHCP- en BOOTP-verzoeken doorgestuurd moeten worden."
+"Proszę wprowadzić nazwę lub adres IP przynajmniej jednego serwera DHCP, do "
+"którego powinny być przekazywane żądania DHCP i BOOTP."
 
 #. Type: string
 #. Description
@@ -41,14 +42,13 @@ msgid ""
 "You can specify multiple server names or IP addresses (in a space-separated "
 "list)."
 msgstr ""
-"U kunt meer dan één server opgeven; de namen of IP-adressen van de servers "
-"dienen in dat geval te worden gescheiden door spaties."
+"Można podać wiele nazw lub adresów IP serwerów (oddzielonych spacjami)."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:3001
 msgid "Interfaces the DHCP relay should listen on:"
-msgstr "Netwerkinterface(s) waarop de DHCP-doorgifteservice moet luisteren:"
+msgstr "Interfejsy na których powinien nasłuchiwać przekaźnik DHCP:"
 
 #. Type: string
 #. Description
@@ -58,9 +58,8 @@ msgid ""
 "configure. Multiple interface names should be entered as a space-separated "
 "list."
 msgstr ""
-"Geef aan welke netwerkinterface(s) de DHCP-doorgifteservice moet proberen te "
-"configureren. Als u meerdere namen van interfaces opgeeft, dienen deze te "
-"worden gescheiden door spaties."
+"Proszę podać interfejs(y) sieciowe, które przekaźnik DHCP powinien spróbować "
+"skonfigurować. Można podać kilka nazw, oddzielając je spacjami."
 
 #. Type: string
 #. Description
@@ -70,38 +69,33 @@ msgid ""
 "network interfaces by the DHCP relay, in which case only broadcast "
 "interfaces will be used (if possible)."
 msgstr ""
-"Laat dit veld leeg om automatische detectie en configuratie van "
-"netwerkinterfaces door de DHCP-doorgifteservice mogelijk te maken; in dat "
-"geval zullen (indien mogelijk) uitsluitend broadcast interfaces gebruikt "
-"worden."
+"Proszę pozostawić to pole puste, aby pozwolić na automatyczne wykrycie i "
+"skonfigurowanie interfejsów sieciowych przez przekaźnik DHCP. W takim "
+"przypadku zostaną użyte jedynie interfejsy rozgłoszeniowe (jeśli to możliwe)."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:4001
 msgid "Additional options for the DHCP relay daemon:"
-msgstr ""
-"Aanvullende opties voor de DHCP-doorgifteservice achtergronddienst (dhcp3-"
-"relay):"
+msgstr "Dodatkowe opcje do demona przekaźnika DHCP:"
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:4001
 msgid "Please specify any additional options for the DHCP relay daemon."
-msgstr ""
-"Geef eventuele aanvullende opties voor de DHCP-doorgifteservice "
-"achtergronddienst (daemon) op."
+msgstr "Proszę podać dowolne dodatkowe parametry do demona przekaźnika DHCP."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-relay.templates:4001
 msgid "For example: '-m replace' or '-a -D'."
-msgstr "Voorbeeld: '-m replace' of 'a -D'."
+msgstr "Na przykład: \"-m replace\" lub \"-a -D\"."
 
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
 msgid "Manual configuration required after installation"
-msgstr "Na de installatie is handmatige configuratie noodzakelijk"
+msgstr "Po instalacji konieczna jest ręczna konfiguracja"
 
 #. Type: note
 #. Description
@@ -111,24 +105,21 @@ msgid ""
 "by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
-"Nadat de DHCP-server is geïnstalleerd, zal u deze nog handmatig moeten "
-"configureren door het bestand /etc/dhcp/dhcpd.conf te wijzigen. Merk op dat "
-"het reeds aanwezige bestand dhcpd.conf slechts een voorbeeld is dat moet "
-"worden aangepast aan uw eigen netwerkomgeving."
+"Po zainstalowaniu serwera DHCP należy go ręcznie skonfigurować, edytując plik "
+"/etc/dhcp/dhcpd.conf. Proszę zauważyć, że dostarczony dhcpd.conf jest jedynie "
+"przykładem, który należy dostosować do swojego środowiska sieciowego."
 
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
 msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr ""
-"U wordt aangeraden om de DHCP-server te configureren zodra de installatie is "
-"voltooid."
+msgstr "Proszę skonfigurować serwer DHCP zaraz po zakończeniu instalacji."
 
 #. Type: string
 #. Description
 #: ../isc-dhcp-server.templates:3001
 msgid "Network interfaces on which the DHCP server should listen:"
-msgstr "Netwerkinterface(s) waarop de DHCP-server moet luisteren:"
+msgstr "Interfejsy sieciowe na których powinien nasłuchiwać serwer DHCP:"
 
 #. Type: string
 #. Description
@@ -138,9 +129,8 @@ msgid ""
 "for DHCP requests. Multiple interface names should be entered as a space-"
 "separated list."
 msgstr ""
-"Geef aan welke netwerkinterfaces de DHCP-server moet uitluisteren voor "
-"binnenkomende DHCP-verzoeken (bijvoorbeeld: \"eth0\"). Als u meerdere namen "
-"van interfaces opgeeft, dienen deze te worden gescheiden door spaties."
+"Proszę podać interfejs(y) sieciowe, na których serwer DHCP powinien "
+"nasłuchiwać żądań DHCP. Można podać kilka nazw, oddzielając je spacjami."
 
 #. Type: string
 #. Description
@@ -148,5 +138,6 @@ msgstr ""
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr ""
-"Als dit veld leeg wordt gelaten, zullen de interfaces automatisch "
-"gedetecteerd worden."
+"Interfejsy zostaną wykryte automatycznie, jeśli to pole pozostanie puste."
+
+

@@ -1,33 +1,22 @@
-#
-#    Translators, if you are not familiar with the PO format, gettext
-#    documentation is worth reading, especially sections dedicated to
-#    this format, e.g. by running:
-#         info -n '(gettext)PO Files'
-#         info -n '(gettext)Header Entry'
-#
-#    Some information specific to po-debconf are available at
-#            /usr/share/doc/po-debconf/README-trans
-#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
-#
-#    Developers do not need to manually edit POT or PO files.
-#
+# Debconf translations for isc-dhcp.
+# Copyright (C) 2012 THE isc-dhcp'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the isc-dhcp package.
 # Felipe Augusto van de Wiel (faw) <faw@debian.org>, 2006-2008.
-# Licensed under the same terms of the dchp3 package.
+# José dos Santos Júnior <dgjunior4@hotmail.com>, 2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dhcp3\n"
+"Project-Id-Version: isc-dhcp 4.2.2-2\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
 "POT-Creation-Date: 2010-07-07 18:58-0700\n"
-"PO-Revision-Date: 2008-10-09 04:07-0300\n"
-"Last-Translator: Felipe Augusto van de Wiel (faw) <faw@debian.org>\n"
+"PO-Revision-Date: 2012-02-28 22:04-0300\n"
+"Last-Translator: J.S.Júnior <dgjunior4@hotmail.com>\n"
 "Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
 "org>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"pt_BR utf-8\n"
 
 #. Type: string
 #. Description
@@ -44,7 +33,7 @@ msgid ""
 "DHCP and BOOTP requests should be relayed."
 msgstr ""
 "Por favor, informe o nome ou endereço IP de pelo menos um servidor DHCP para "
-"o qual requisições DHCP e BOOTP deverão ser encaminhadas."
+"o qual as requisições DHCP e BOOTP deverão ser encaminhadas."
 
 #. Type: string
 #. Description
@@ -70,7 +59,7 @@ msgid ""
 "configure. Multiple interface names should be entered as a space-separated "
 "list."
 msgstr ""
-"Por favor, especifique quais interfaces de rede o \"relay\" DHCP deverá "
+"Por favor, especifique qual(is) interface(s) de rede o \"relay\" DHCP deverá "
 "tentar configurar. Múltiplos nomes de interface podem ser informados usando "
 "uma lista separada por espaços."
 
@@ -115,21 +104,14 @@ msgstr "Configuração manual requerida após a instalação"
 #. Type: note
 #. Description
 #: ../isc-dhcp-server.templates:2001
-#, fuzzy
-#| msgid ""
-#| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
-#| "environment."
 msgid ""
 "After the DHCP server is installed, you will need to manually configure it "
 "by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
 "supplied is just a sample, and must be adapted to the network environment."
 msgstr ""
-"Após a instalação do servidor DHCP será necessário configurá-lo manualmente "
-"editando o arquivo /etc/isc-dhcp/dhcpd.conf. Por favor, note que o arquivo "
-"dhcpd.conf fornecido é apenas um exemplo e deve ser adaptado ao ambiente de "
-"rede."
+"Após a instalação do servidor DHCP, será necessário configurá-lo manualmente "
+"editando o arquivo /etc/dhcp/dhcpd.conf. Por favor, note que o arquivo dhcpd."
+"conf fornecido é apenas um exemplo, e deve ser adaptado ao ambiente de rede."
 
 #. Type: note
 #. Description
@@ -152,9 +134,9 @@ msgid ""
 "for DHCP requests. Multiple interface names should be entered as a space-"
 "separated list."
 msgstr ""
-"Por favor, especifique em quais interfaces de rede o servidor DHCP deverá "
-"escutar requisições DHCP. Múltiplos nomes de interface podem ser informados "
-"usando uma lista separada por espaços."
+"Por favor, especifique em qual(is) interface(s) de rede o servidor DHCP "
+"deverá escutar requisições DHCP. Múltiplos nomes de interface podem ser "
+"informados usando uma lista separada por espaços."
 
 #. Type: string
 #. Description
@@ -190,7 +172,6 @@ msgstr ""
 #~ msgid "Change in default behaviour of the next-server directive"
 #~ msgstr "Mudança no comportamento padrão da diretiva next-server"
 
-#, fuzzy
 #~| msgid ""
 #~| "From version 3.0.3, the DHCP server's default value of the next-server "
 #~| "directive has changed. If you are network booting clients, and your TFTP "
@@ -216,7 +197,6 @@ msgstr ""
 #~ msgid "dhclient-script moved"
 #~ msgstr "dhclient-script foi movido"
 
-#, fuzzy
 #~| msgid ""
 #~| "As of 3.0.4-2, dhclient-script is installed in /sbin and is no longer "
 #~| "registered as a configuration file. /etc/isc-dhcp/dhclient-script "
