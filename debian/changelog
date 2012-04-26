@@ -1,3 +1,9 @@
+isc-dhcp (4.2.2.dfsg.1-5) UNRELEASED; urgency=low
+
+  * debian/dhclient.conf: send the hostname (closes: #151820) 
+
+ -- Andrew Pollock <apollock@debian.org>  Wed, 25 Apr 2012 16:15:01 -0700
+
 isc-dhcp (4.2.2.dfsg.1-4) unstable; urgency=low
 
   * The "Zoe woke up at 4am and I couldn't get back to sleep so I had some
