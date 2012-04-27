@@ -84,6 +84,9 @@ clean:
 	rm -Rf isc-dhcp-server-ldap
 
 	[ ! -f Makefile ] || $(MAKE) distclean
+	rm -f Makefile client/Makefile config.log config.status
+	cd bind && rm -rf bind-* include lib bindvar.tmp \
+	    build.log configure.log install.log
 
 	debconf-updatepo
 	dh_clean
