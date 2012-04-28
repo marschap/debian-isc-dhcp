@@ -3,3 +3,4 @@ fix_exit_hook_doc_manpage
 no_loopback_checksum
 bind-autoconf
 cve-2011-4539.patch
+cve-2011-4868.patch
