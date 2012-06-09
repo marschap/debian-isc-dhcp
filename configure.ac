@@ -1,8 +1,15 @@
-AC_INIT([DHCP], [4.2.2], [dhcp-users@isc.org])
+AC_INIT([DHCP], [4.2.4], [dhcp-users@isc.org])
 
 # we specify "foreign" to avoid having to have the GNU mandated files,
 # like AUTHORS, COPYING, and such
 AM_INIT_AUTOMAKE([foreign])
+
+# we specify AM_MAINTAINER_MODE to avoid problems with rebuilding
+# the configure and makefiles.  Without it users doing things that
+# change the timestamps on the code, like checking it into a cvs
+# tree, could trigger a rebuild of the infrastructure files which
+# might fail if they don't have the correct tools.
+AM_MAINTAINER_MODE 
 
 # We want to turn on warnings if we are using gcc and the user did 
 # not specify CFLAGS. The autoconf check for the C compiler sets the
@@ -143,7 +150,7 @@ if test "$enable_early_chroot" = "yes" ; then
 		  [Define to any value to chroot() prior to loading config.])
 fi
 
-AC_ARG_ENABLE(IPv4_PKTINFO,
+AC_ARG_ENABLE(ipv4_pktinfo,
 	AC_HELP_STRING([--enable-ipv4-pktinfo],
 		[enable use of pktinfo on IPv4 sockets (default is no)]))
 
@@ -152,7 +159,7 @@ if test "$enable_ipv4_pktinfo" = "yes"; then
 		[Define to 1 to enable IPv4 packet info support.])
 fi
 
-AC_ARG_ENABLE(USE_SOCKETS,
+AC_ARG_ENABLE(use_sockets,
 	AC_HELP_STRING([--enable-use-sockets],
 		[use the standard BSD socket API (default is no)]))
 
@@ -396,7 +403,7 @@ else
 		AC_CHECK_HEADER(net/bpf.h, DO_BPF=1)
 		if test -n "$DO_BPF"
 		then
-			AC_DEFINE([HAVE_BPF], [""],
+			AC_DEFINE([HAVE_BPF], [1],
 	  			  [Define to 1 to use the 
 				   Berkeley Packet Filter interface code.])
 		fi
@@ -446,6 +453,18 @@ AC_TRY_LINK(
 		   [Define to 1 if the system has 'struct if_laddrreq'.])],
 	[AC_MSG_RESULT(no)])
 
+#
+# check for GCC noreturn attribute
+#
+AC_MSG_CHECKING(for GCC noreturn attribute)
+AC_TRY_COMPILE([],[void foo() __attribute__((noreturn));],
+	[AC_MSG_RESULT(yes)
+	 AC_DEFINE([ISC_DHCP_NORETURN], [__attribute__((noreturn))],
+		   [Define to the string for a noreturn attribute.])],
+	[AC_MSG_RESULT(no)
+	 AC_DEFINE([ISC_DHCP_NORETURN], [],
+		   [Define to the string for a noreturn attribute.])])
+
 # Look for optional headers.
 AC_CHECK_HEADERS(sys/socket.h net/if_dl.h net/if6.h regex.h)
 
@@ -481,7 +500,7 @@ AC_CHECK_SIZEOF(struct iaddr *, , [
 #include <stdio.h>
 ])
 
-# Solaris does not have the msg_control or msg_controlen members in 
+# Solaris does not have the msg_control or msg_controlen members 
 # in the msghdr structure unless you define:
 #
 #   _XOPEN_SOURCE, _XOPEN_SOURCE_EXTENDED, and __EXTENSIONS__

@@ -3,7 +3,7 @@
    Common parser code for dhcpd and dhclient. */
 
 /*
- * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -569,7 +569,9 @@ parse_ip_addr_with_subnet(cfile, match)
 
 /*
  * hardware-parameter :== HARDWARE hardware-type colon-separated-hex-list SEMI
- * hardware-type :== ETHERNET | TOKEN_RING | TOKEN_FDDI
+ * hardware-type :== ETHERNET | TOKEN_RING | TOKEN_FDDI | INFINIBAND
+ * Note that INFINIBAND may not be useful for some items, such as classification
+ * as the hardware address won't always be available.
  */
 
 void parse_hardware_param (cfile, hardware)
@@ -581,24 +583,27 @@ void parse_hardware_param (cfile, hardware)
 	unsigned hlen;
 	unsigned char *t;
 
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = next_token(&val, NULL, cfile);
 	switch (token) {
 	      case ETHERNET:
-		hardware -> hbuf [0] = HTYPE_ETHER;
+		hardware->hbuf[0] = HTYPE_ETHER;
 		break;
 	      case TOKEN_RING:
-		hardware -> hbuf [0] = HTYPE_IEEE802;
+		hardware->hbuf[0] = HTYPE_IEEE802;
 		break;
 	      case TOKEN_FDDI:
-		hardware -> hbuf [0] = HTYPE_FDDI;
+		hardware->hbuf[0] = HTYPE_FDDI;
+		break;
+	      case TOKEN_INFINIBAND:
+		hardware->hbuf[0] = HTYPE_INFINIBAND;
 		break;
 	      default:
-		if (!strncmp (val, "unknown-", 8)) {
-			hardware -> hbuf [0] = atoi (&val [8]);
+		if (!strncmp(val, "unknown-", 8)) {
+			hardware->hbuf[0] = atoi(&val[8]);
 		} else {
-			parse_warn (cfile,
-				    "expecting a network hardware type");
-			skip_to_semi (cfile);
+			parse_warn(cfile,
+				   "expecting a network hardware type");
+			skip_to_semi(cfile);
 
 			return;
 		}
@@ -612,34 +617,33 @@ void parse_hardware_param (cfile, hardware)
 	   that data in the lease file rather than simply failing on such
 	   clients.   Yuck. */
 	hlen = 0;
-	token = peek_token (&val, (unsigned *)0, cfile);
+	token = peek_token(&val, NULL, cfile);
 	if (token == SEMI) {
-		hardware -> hlen = 1;
+		hardware->hlen = 1;
 		goto out;
 	}
-	t = parse_numeric_aggregate (cfile, (unsigned char *)0, &hlen,
-				     COLON, 16, 8);
-	if (!t) {
-		hardware -> hlen = 1;
+	t = parse_numeric_aggregate(cfile, NULL, &hlen, COLON, 16, 8);
+	if (t == NULL) {
+		hardware->hlen = 1;
 		return;
 	}
-	if (hlen + 1 > sizeof hardware -> hbuf) {
-		dfree (t, MDL);
-		parse_warn (cfile, "hardware address too long");
+	if (hlen + 1 > sizeof(hardware->hbuf)) {
+		dfree(t, MDL);
+		parse_warn(cfile, "hardware address too long");
 	} else {
-		hardware -> hlen = hlen + 1;
-		memcpy ((unsigned char *)&hardware -> hbuf [1], t, hlen);
-		if (hlen + 1 < sizeof hardware -> hbuf)
-			memset (&hardware -> hbuf [hlen + 1], 0,
-				(sizeof hardware -> hbuf) - hlen - 1);
-		dfree (t, MDL);
+		hardware->hlen = hlen + 1;
+		memcpy((unsigned char *)&hardware->hbuf[1], t, hlen);
+		if (hlen + 1 < sizeof(hardware->hbuf))
+			memset(&hardware->hbuf[hlen + 1], 0,
+			       (sizeof(hardware->hbuf)) - hlen - 1);
+		dfree(t, MDL);
 	}
 	
       out:
-	token = next_token (&val, (unsigned *)0, cfile);
+	token = next_token(&val, NULL, cfile);
 	if (token != SEMI) {
-		parse_warn (cfile, "expecting semicolon.");
-		skip_to_semi (cfile);
+		parse_warn(cfile, "expecting semicolon.");
+		skip_to_semi(cfile);
 	}
 }
 
@@ -903,7 +907,7 @@ parse_date_core(cfile)
 	struct parse *cfile;
 {
 	int guess;
-	int tzoff, wday, year, mon, mday, hour, min, sec;
+	int tzoff, year, mon, mday, hour, min, sec;
 	const char *val;
 	enum dhcp_token token;
 	static int months[11] = { 31, 59, 90, 120, 151, 181,
@@ -941,7 +945,7 @@ parse_date_core(cfile)
 		return((TIME)0);
 	}
 	token = next_token(&val, NULL, cfile); /* consume day of week */
-	wday = atoi(val);
+        /* we are not using this for anything */
 
 	/* Year... */
 	token = peek_token(&val, NULL, cfile);
@@ -2698,6 +2702,8 @@ int parse_executable_statement (result, cfile, lose, case_context)
    zone-statement :==
 	PRIMARY ip-addresses SEMI |
 	SECONDARY ip-addresses SEMI |
+	PRIMARY6 ip-address6 SEMI |
+	SECONDARY6 ip-address6 SEMI |
 	key-reference SEMI
    ip-addresses :== ip-addr-or-hostname |
 		  ip-addr-or-hostname COMMA ip-addresses
@@ -2776,6 +2782,61 @@ int parse_zone (struct dns_zone *zone, struct parse *cfile)
 			    parse_warn (cfile, "expecting semicolon.");
 			    skip_to_semi (cfile);
 			    return 0;
+		    }
+		    break;
+
+	          case PRIMARY6:
+		    if (zone->primary6) {
+			    parse_warn(cfile, "more than one primary6.");
+			    skip_to_semi(cfile);
+			    return (0);
+		    }
+		    if (!option_cache_allocate (&zone->primary6, MDL))
+			    log_fatal("can't allocate primary6 option cache.");
+		    oc = zone->primary6;
+		    goto consemup6;
+
+	          case SECONDARY6:
+		    if (zone->secondary6) {
+			    parse_warn(cfile, "more than one secondary6.");
+			    skip_to_semi(cfile);
+			    return (0);
+		    }
+		    if (!option_cache_allocate (&zone->secondary6, MDL))
+			    log_fatal("can't allocate secondary6 "
+				      "option cache.");
+		    oc = zone->secondary6;
+	          consemup6:
+		    token = next_token(&val, NULL, cfile);
+		    do {
+			    struct expression *expr = NULL;
+			    if (parse_ip6_addr_expr(&expr, cfile) == 0) {
+				    parse_warn(cfile, "expecting IPv6 addr.");
+				    skip_to_semi(cfile);
+				    return (0);
+			    }
+			    if (oc->expression) {
+				    struct expression *old = NULL;
+				    expression_reference(&old, oc->expression,
+							 MDL);
+				    expression_dereference(&oc->expression,
+							   MDL);
+				    if (!make_concat(&oc->expression,
+						     old, expr))
+					    log_fatal("no memory for concat.");
+				    expression_dereference(&expr, MDL);
+				    expression_dereference(&old, MDL);
+			    } else {
+				    expression_reference(&oc->expression,
+							 expr, MDL);
+				    expression_dereference(&expr, MDL);
+			    }
+			    token = next_token(&val, NULL, cfile);
+		    } while (token == COMMA);
+		    if (token != SEMI) {
+			    parse_warn(cfile, "expecting semicolon.");
+			    skip_to_semi(cfile);
+			    return (0);
 		    }
 		    break;
 
@@ -3329,11 +3390,10 @@ int parse_boolean_expression (expr, cfile, lose)
 int parse_boolean (cfile)
 	struct parse *cfile;
 {
-	enum dhcp_token token;
 	const char *val;
 	int rv;
 
-	token = next_token (&val, (unsigned *)0, cfile);
+        (void)next_token(&val, NULL, cfile);
 	if (!strcasecmp (val, "true")
 	    || !strcasecmp (val, "on"))
 		rv = 1;

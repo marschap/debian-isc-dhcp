@@ -3,7 +3,7 @@
    Persistent database management routines for DHCPD... */
 
 /*
- * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2010,2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -35,6 +35,8 @@
 #include "dhcpd.h"
 #include <ctype.h>
 #include <errno.h>
+
+#define LEASE_REWRITE_PERIOD 3600
 
 static isc_result_t write_binding_scope(FILE *db_file, struct binding *bnd,
 					char *prepend);
@@ -1002,12 +1004,27 @@ int commit_leases ()
 	/* If we haven't rewritten the lease database in over an
 	   hour, rewrite it now.  (The length of time should probably
 	   be configurable. */
-	if (count && cur_time - write_time > 3600) {
+	if (count && cur_time - write_time > LEASE_REWRITE_PERIOD) {
 		count = 0;
 		write_time = cur_time;
 		new_lease_file ();
 	}
 	return 1;
+}
+
+/*
+ * rewrite the lease file about once an hour
+ * This is meant as a quick patch for ticket 24887.  It allows
+ * us to rotate the v6 lease file without adding too many fsync()
+ * calls.  In the future wes should revisit this area and add
+ * something similar to the delayed ack code for v4.
+ */
+int commit_leases_timed()
+{
+	if ((count != 0) && (cur_time - write_time > LEASE_REWRITE_PERIOD)) {
+		return (commit_leases());
+	}
+	return (1);
 }
 
 void db_startup (testp)
@@ -1021,7 +1038,11 @@ void db_startup (testp)
 		/* Read in the existing lease file... */
 		status = read_conf_file (path_dhcpd_db,
 					 (struct group *)0, 0, 1);
-		/* XXX ignore status? */
+		if (status != ISC_R_SUCCESS) {
+			/* XXX ignore status? */
+			;
+		}
+
 #if defined (TRACING)
 	}
 #endif

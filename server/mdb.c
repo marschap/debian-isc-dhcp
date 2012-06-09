@@ -3,7 +3,7 @@
    Server-specific in-memory database support. */
 
 /*
- * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -1445,7 +1445,7 @@ void make_binding_state_transition (struct lease *lease)
 	      lease -> binding_state == FTS_ACTIVE &&
 	      lease -> next_binding_state != FTS_RELEASED))) {
 #if defined (NSUPDATE)
-		ddns_removals(lease, NULL, NULL);
+		(void) ddns_removals(lease, NULL, NULL, ISC_TRUE);
 #endif
 		if (lease -> on_expiry) {
 			execute_statements ((struct binding_value **)0,
@@ -1511,7 +1511,7 @@ void make_binding_state_transition (struct lease *lease)
 		 * release message.  This is not true of expiry, where the
 		 * peer may have extended the lease.
 		 */
-		ddns_removals(lease, NULL, NULL);
+		(void) ddns_removals(lease, NULL, NULL, ISC_TRUE);
 #endif
 		if (lease -> on_release) {
 			execute_statements ((struct binding_value **)0,
@@ -1680,7 +1680,7 @@ void release_lease (lease, packet)
 	/* If there are statements to execute when the lease is
 	   released, execute them. */
 #if defined (NSUPDATE)
-	ddns_removals(lease, NULL, NULL);
+	(void) ddns_removals(lease, NULL, NULL, ISC_FALSE);
 #endif
 	if (lease -> on_release) {
 		execute_statements ((struct binding_value **)0,
@@ -1754,7 +1754,7 @@ void abandon_lease (lease, message)
 {
 	struct lease *lt = (struct lease *)0;
 #if defined (NSUPDATE)
-	ddns_removals(lease, NULL, NULL);
+	(void) ddns_removals(lease, NULL, NULL, ISC_FALSE);
 #endif
 
 	if (!lease_copy (&lt, lease, MDL))
@@ -1778,6 +1778,14 @@ void abandon_lease (lease, message)
 	lease_dereference (&lt, MDL);
 }
 
+#if 0
+/*
+ * This doesn't appear to be in use for anything anymore.
+ * I'm ifdeffing it now and if there are no complaints in
+ * the future it will be removed.
+ * SAR
+ */
+
 /* Abandon the specified lease (set its timeout to infinity and its
    particulars to zero, and re-hash it as appropriate. */
 
@@ -1786,7 +1794,7 @@ void dissociate_lease (lease)
 {
 	struct lease *lt = (struct lease *)0;
 #if defined (NSUPDATE)
-	ddns_removals(lease, NULL, NULL);
+	(void) ddns_removals(lease, NULL, NULL, ISC_FALSE);
 #endif
 
 	if (!lease_copy (&lt, lease, MDL))
@@ -1811,6 +1819,7 @@ void dissociate_lease (lease)
 	supersede_lease (lease, lt, 1, 1, 1);
 	lease_dereference (&lt, MDL);
 }
+#endif
 
 /* Timer called when a lease in a particular pool expires. */
 void pool_timer (vpool)
@@ -1961,9 +1970,17 @@ int find_lease_by_hw_addr (struct lease **lp,
 			   const char *file, int line)
 {
 	if (hwlen == 0)
-		return 0;
-	return lease_id_hash_lookup(lp, lease_hw_addr_hash, hwaddr, hwlen,
-				    file, line);
+		return (0);
+
+	/*
+	 * If it's an infiniband address don't bother
+	 * as we don't have a useful address to hash.
+	 */
+	if ((hwlen == 1) && (hwaddr[0] == HTYPE_INFINIBAND))
+		return (0);
+
+	return (lease_id_hash_lookup(lp, lease_hw_addr_hash, hwaddr, hwlen,
+				     file, line));
 }
 
 /* If the lease is preferred over the candidate, return truth.  The
@@ -2128,6 +2145,8 @@ void uid_hash_delete (lease)
 }
 
 /* Add the specified lease to the hardware address hash. */
+/* We don't add leases with infiniband addresses to the
+ * hash as there isn't any address to hash on. */
 
 void
 hw_hash_add(struct lease *lease)
@@ -2137,6 +2156,14 @@ hw_hash_add(struct lease *lease)
 	struct lease *prev = NULL;
 	struct lease *next = NULL;
 
+	/*
+	 * If it's an infiniband address don't bother
+	 * as we don't have a useful address to hash.
+	 */
+	if ((lease->hardware_addr.hlen == 1) &&
+	    (lease->hardware_addr.hbuf[0] == HTYPE_INFINIBAND))
+		return;
+	   
 	/* If it's not in the hash, just add it. */
 	if (!find_lease_by_hw_addr (&head, lease -> hardware_addr.hbuf,
 				    lease -> hardware_addr.hlen, MDL))
@@ -2207,6 +2234,14 @@ void hw_hash_delete (lease)
 {
 	struct lease *head = (struct lease *)0;
 	struct lease *next = (struct lease *)0;
+
+	/*
+	 * If it's an infiniband address don't bother
+	 * as we don't have a useful address to hash.
+	 */
+	if ((lease->hardware_addr.hlen == 1) &&
+	    (lease->hardware_addr.hbuf[0] == HTYPE_INFINIBAND))
+		return;
 
 	/* If it's not in the hash, we have no work to do. */
 	if (!find_lease_by_hw_addr (&head, lease -> hardware_addr.hbuf,
