@@ -3,7 +3,7 @@
    BSD socket interface code... */
 
 /*
- * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -51,6 +51,7 @@
 #include <net/if.h>
 #include <sys/sockio.h>
 #include <net/if_dl.h>
+#include <sys/dlpi.h>
 #endif
 
 #ifdef USE_SOCKET_FALLBACK
@@ -765,7 +766,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 	struct sockaddr_in *from;
 	struct hardware *hfrom;
 {
-#if !defined(USE_V4_PKTINFO)
+#if !(defined(IP_PKTINFO) && defined(IP_RECVPKTINFO) && defined(USE_V4_PKTINFO))
 	SOCKLEN_T flen = sizeof *from;
 #endif
 	int result;
@@ -788,7 +789,6 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 	struct cmsghdr *cmsg;
 	struct in_pktinfo *pktinfo;
 	unsigned int ifindex;
-	int found_pktinfo;
 
 	/*
 	 * If necessary allocate space for the control message header.
@@ -831,7 +831,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 	 * We set up some space for a "control message". We have 
 	 * previously asked the kernel to give us packet 
 	 * information (when we initialized the interface), so we
-	 * should get the destination address from that.
+	 * should get the interface index from that.
 	 */
 	m.msg_control = control_buf;
 	m.msg_controllen = control_buf_len;
@@ -842,12 +842,8 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 		/*
 		 * If we did read successfully, then we need to loop
 		 * through the control messages we received and 
-		 * find the one with our destination address.
-		 *
-		 * We also keep a flag to see if we found it. If we 
-		 * didn't, then we consider this to be an error.
+		 * find the one with our inteface index.
 		 */
-		found_pktinfo = 0;
 		cmsg = CMSG_FIRSTHDR(&m);
 		while (cmsg != NULL) {
 			if ((cmsg->cmsg_level == IPPROTO_IP) && 
@@ -861,18 +857,21 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 				 * the discover code.
 				 */
 				memcpy(hfrom->hbuf, &ifindex, sizeof(ifindex));
-				found_pktinfo = 1;
+				return (result);
 			}
 			cmsg = CMSG_NXTHDR(&m, cmsg);
 		}
-		if (!found_pktinfo) {
-			result = -1;
-			errno = EIO;
-		}
+
+		/*
+		 * We didn't find the necessary control message
+		 * flag it as an error
+		 */
+		result = -1;
+		errno = EIO;
 	}
 #else
-		result = recvfrom (interface -> rfdesc, (char *)buf, len, 0,
-				   (struct sockaddr *)from, &flen);
+		result = recvfrom(interface -> rfdesc, (char *)buf, len, 0,
+				  (struct sockaddr *)from, &flen);
 #endif /* IP_PKTINFO ... */
 #ifdef IGNORE_HOSTUNREACH
 	} while (result < 0 &&
@@ -880,7 +879,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 		  errno == ECONNREFUSED) &&
 		 retry++ < 10);
 #endif
-	return result;
+	return (result);
 }
 
 #endif /* USE_SOCKET_RECEIVE */
@@ -897,7 +896,6 @@ receive_packet6(struct interface_info *interface,
 	int result;
 	struct cmsghdr *cmsg;
 	struct in6_pktinfo *pktinfo;
-	int found_pktinfo;
 
 	/*
 	 * If necessary allocate space for the control message header.
@@ -952,11 +950,7 @@ receive_packet6(struct interface_info *interface,
 		 * If we did read successfully, then we need to loop
 		 * through the control messages we received and 
 		 * find the one with our destination address.
-		 *
-		 * We also keep a flag to see if we found it. If we 
-		 * didn't, then we consider this to be an error.
 		 */
-		found_pktinfo = 0;
 		cmsg = CMSG_FIRSTHDR(&m);
 		while (cmsg != NULL) {
 			if ((cmsg->cmsg_level == IPPROTO_IPV6) && 
@@ -964,17 +958,21 @@ receive_packet6(struct interface_info *interface,
 				pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
 				*to_addr = pktinfo->ipi6_addr;
 				*if_idx = pktinfo->ipi6_ifindex;
-				found_pktinfo = 1;
+
+				return (result);
 			}
 			cmsg = CMSG_NXTHDR(&m, cmsg);
 		}
-		if (!found_pktinfo) {
-			result = -1;
-			errno = EIO;
-		}
+
+		/*
+		 * We didn't find the necessary control message
+		 * flag is as an error
+		 */
+		result = -1;
+		errno = EIO;
 	}
 
-	return result;
+	return (result);
 }
 #endif /* DHCPv6 */
 
@@ -1002,6 +1000,9 @@ isc_result_t fallback_discard (object)
 		log_error ("fallback_discard: %m");
 		return ISC_R_UNEXPECTED;
 	}
+#else
+        /* ignore the fact that status value is never used */
+        IGNORE_UNUSED(status);
 #endif
 	return ISC_R_SUCCESS;
 }
@@ -1070,7 +1071,7 @@ void maybe_setup_fallback ()
 void
 get_hw_addr(const char *name, struct hardware *hw) {
 	struct sockaddr_dl *dladdrp;
-	int rv, sock, i;
+	int sock, i;
 	struct lifreq lifr;
 
 	memset(&lifr, 0, sizeof (lifr));
@@ -1104,7 +1105,8 @@ get_hw_addr(const char *name, struct hardware *hw) {
 		hw->hlen = sizeof (hw->hbuf);
 		srandom((long)gethrtime());
 
-		for (i = 0; i < hw->hlen; ++i) {
+		hw->hbuf[0] = HTYPE_IPMP;
+		for (i = 1; i < hw->hlen; ++i) {
 			hw->hbuf[i] = random() % 256;
 		}
 
@@ -1117,8 +1119,27 @@ get_hw_addr(const char *name, struct hardware *hw) {
 		log_fatal("Couldn't get interface hardware address for %s: %m",
 			  name);
 	dladdrp = (struct sockaddr_dl *)&lifr.lifr_addr;
-	hw->hlen = dladdrp->sdl_alen;
-	memcpy(hw->hbuf, LLADDR(dladdrp), hw->hlen);
+	hw->hlen = dladdrp->sdl_alen+1;
+	switch (dladdrp->sdl_type) {
+		case DL_CSMACD: /* IEEE 802.3 */
+		case DL_ETHER:
+			hw->hbuf[0] = HTYPE_ETHER;
+			break;
+		case DL_TPR:
+			hw->hbuf[0] = HTYPE_IEEE802;
+			break;
+		case DL_FDDI:
+			hw->hbuf[0] = HTYPE_FDDI;
+			break;
+		case DL_IB:
+			hw->hbuf[0] = HTYPE_INFINIBAND;
+			break;
+		default:
+			log_fatal("%s: unsupported DLPI MAC type %lu", name,
+				  (unsigned long)dladdrp->sdl_type);
+	}
+
+	memcpy(hw->hbuf+1, LLADDR(dladdrp), hw->hlen-1);
 
 	if (sock != -1)
 		(void) close(sock);

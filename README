@@ -1,8 +1,8 @@
 	      Internet Systems Consortium DHCP Distribution
-			     Version 4.2.2
-			      27 July 2011
+			       Version 4.2.4
+			        29 May 2012
 
-			      README FILE
+			        README FILE
 
 You should read this file carefully before trying to install or use
 the ISC DHCP Distribution.
@@ -97,7 +97,7 @@ directory, it may not have up-to-date information).
 
 			    RELEASE STATUS
 
-This is ISC DHCP 4.2.2, a maintenance release containing patches.
+This is ISC DHCP 4.2.4, a maintenance release containing patches.
 
 In this release, the DHCPv6 server should be fully functional on Linux,
 Solaris, or any BSD.  The DHCPv6 client should be similarly functional
@@ -132,12 +132,12 @@ information.   On Digital Unix, type ``man pfilt''.
 To build the DHCP Distribution, unpack the compressed tar file using
 the tar utility and the gzip command - type something like:
 
-	gunzip dhcp-4.2.2.tar.gz
-	tar xvf dhcp-4.2.2.tar
+	gunzip dhcp-4.2.4.tar.gz
+	tar xvf dhcp-4.2.4.tar
 
 			    CONFIGURING IT
 
-Now, cd to the dhcp-4.2.2 subdirectory that you've just created and
+Now, cd to the dhcp-4.2.4 subdirectory that you've just created and
 configure the source tree by typing:
 
 	./configure
@@ -523,20 +523,23 @@ this text is only about the DHCPv6 client (``dhclient -6 ...'').  The DNS
 configuration (domain search list and name servers' addresses) is managed
 by a System Configuration agent, not by /etc/resolv.conf (which is a link
 to /var/run/resolv.conf, which itself only reflects the internal state;
-the System Configuration agent's Dynamic Store).
+the System Configuration framework's Dynamic Store).
 
-This means that modifying resolv.conf directly doesn't have the intended
-effect, so the macos script sample uses its own resolv.conf.dhclient6 in
-/var/run, and inserts the contents of this file into the System
-Configuration agent.  Because the System Configuration agent expects the
-prefix along with the configured address, and a default router, this is
-not usable (the DHCPv6 protocol does not today deliver this information).
-Instead, ifconfig is directly used for address configuration.
+This means that modifying resolv.conf directly doesn't have the
+intended effect, instead the macos script sample creates its own
+resolv.conf.dhclient6 in /var/run, and inserts the contents of this
+file into the Dynamic Store.
+
+When updating the address configuration the System Configuration
+framework expects the prefix and a default router along with the
+configured address. As this extra information is not available via
+the DHCPv6 protocol the System Configuration framework isn't usable
+for address configuration, instead ifconfig is used directly.
 
 Note the Dynamic Store (from which /var/run/resolv.conf is built) is
-recomputed from scratch when the current location/set is changed, for
-instance when a laptop is resumed from sleep. In this case running the
-dhclient-script could reinstall the resolv.conf.dhclient6 configuration.
+recomputed from scratch when the current location/set is changed.
+Running the dhclient-script reinstalls the resolv.conf.dhclient6
+configuration.
 
 			       SUPPORT
 

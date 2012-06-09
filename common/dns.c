@@ -3,7 +3,7 @@
    Domain Name Service subroutines. */
 
 /*
- * Copyright (c) 2009-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2001-2003 by Internet Software Consortium
  *
@@ -63,6 +63,11 @@
  * secondaries that don't know how to forward updates (e.g., BIND 8 doesn't
  * support update forwarding, AFAIK).   If no TSIG key is listed, the update
  * is attempted without TSIG.
+ *
+ * You can also include IPv6 addresses via the primary6 and secondary6
+ * options.  The search order for the addresses is primary, primary6,
+ * secondary and lastly secondary6, with a limit on the number of 
+ * addresses used.  Currently this limit is 3.
  *
  * The DHCP server tries to find an existing zone for any given name by
  * trying to look up a local zone structure for each domain containing
@@ -602,44 +607,48 @@ int dns_zone_dereference (ptr, file, line)
 {
 	struct dns_zone *dns_zone;
 
-	if (!ptr || !*ptr) {
-		log_error ("%s(%d): null pointer", file, line);
+	if ((ptr == NULL) || (*ptr == NULL)) {
+		log_error("%s(%d): null pointer", file, line);
 #if defined (POINTER_DEBUG)
-		abort ();
+		abort();
 #else
-		return 0;
+		return (0);
 #endif
 	}
 
 	dns_zone = *ptr;
-	*ptr = (struct dns_zone *)0;
-	--dns_zone -> refcnt;
-	rc_register (file, line, ptr, dns_zone, dns_zone -> refcnt, 1, RC_MISC);
-	if (dns_zone -> refcnt > 0)
-		return 1;
+	*ptr = NULL;
+	--dns_zone->refcnt;
+	rc_register(file, line, ptr, dns_zone, dns_zone->refcnt, 1, RC_MISC);
+	if (dns_zone->refcnt > 0)
+		return (1);
 
-	if (dns_zone -> refcnt < 0) {
-		log_error ("%s(%d): negative refcnt!", file, line);
+	if (dns_zone->refcnt < 0) {
+		log_error("%s(%d): negative refcnt!", file, line);
 #if defined (DEBUG_RC_HISTORY)
-		dump_rc_history (dns_zone);
+		dump_rc_history(dns_zone);
 #endif
 #if defined (POINTER_DEBUG)
-		abort ();
+		abort();
 #else
-		return 0;
+		return (0);
 #endif
 	}
 
-	if (dns_zone -> name)
-		dfree (dns_zone -> name, file, line);
-	if (dns_zone -> key)
-		omapi_auth_key_dereference (&dns_zone -> key, file, line);
-	if (dns_zone -> primary)
-		option_cache_dereference (&dns_zone -> primary, file, line);
-	if (dns_zone -> secondary)
-		option_cache_dereference (&dns_zone -> secondary, file, line);
-	dfree (dns_zone, file, line);
-	return 1;
+	if (dns_zone->name)
+		dfree(dns_zone->name, file, line);
+	if (dns_zone->key)
+		omapi_auth_key_dereference(&dns_zone->key, file, line);
+	if (dns_zone->primary)
+		option_cache_dereference(&dns_zone->primary, file, line);
+	if (dns_zone->secondary)
+		option_cache_dereference(&dns_zone->secondary, file, line);
+	if (dns_zone->primary6)
+		option_cache_dereference(&dns_zone->primary6, file, line);
+	if (dns_zone->secondary6)
+		option_cache_dereference(&dns_zone->secondary6, file, line);
+	dfree(dns_zone, file, line);
+	return (1);
 }
 
 #if defined (NSUPDATE)
@@ -648,9 +657,10 @@ find_cached_zone(dhcp_ddns_cb_t *ddns_cb, int direction)
 {
 	isc_result_t status = ISC_R_NOTFOUND;
 	const char *np;
-	struct dns_zone *zone = (struct dns_zone *)0;
+	struct dns_zone *zone = NULL;
 	struct data_string nsaddrs;
 	struct in_addr zone_addr;
+	struct in6_addr zone_addr6;
 	int ix;
 
 	if (direction == FIND_FORWARD) {
@@ -661,14 +671,14 @@ find_cached_zone(dhcp_ddns_cb_t *ddns_cb, int direction)
 
 	/* We can't look up a null zone. */
 	if ((np == NULL) || (*np == '\0')) {
-		return DHCP_R_INVALIDARG;
+		return (DHCP_R_INVALIDARG);
 	}
 
 	/*
 	 * For each subzone, try to find a cached zone.
 	 */
 	for (;;) {
-		status = dns_zone_lookup (&zone, np);
+		status = dns_zone_lookup(&zone, np);
 		if (status == ISC_R_SUCCESS)
 			break;
 
@@ -679,32 +689,72 @@ find_cached_zone(dhcp_ddns_cb_t *ddns_cb, int direction)
 	}
 
 	if (status != ISC_R_SUCCESS)
-		return status;
+		return (status);
 
 	/* Make sure the zone is valid. */
-	if (zone -> timeout && zone -> timeout < cur_time) {
-		dns_zone_dereference (&zone, MDL);
-		return ISC_R_CANCELED;
+	if (zone->timeout && zone->timeout < cur_time) {
+		dns_zone_dereference(&zone, MDL);
+		return (ISC_R_CANCELED);
 	}
 
 	/* Make sure the zone name will fit. */
 	if (strlen(zone->name) > sizeof(ddns_cb->zone_name)) {
-		dns_zone_dereference (&zone, MDL);
-		return ISC_R_NOSPACE;
+		dns_zone_dereference(&zone, MDL);
+		return (ISC_R_NOSPACE);
 	}
 	strcpy((char *)&ddns_cb->zone_name[0], zone->name);
 
 	memset (&nsaddrs, 0, sizeof nsaddrs);
 	ix = 0;
 
-	if (zone -> primary) {
-		if (evaluate_option_cache (&nsaddrs, (struct packet *)0,
-					   (struct lease *)0,
-					   (struct client_state *)0,
-					   (struct option_state *)0,
-					   (struct option_state *)0,
-					   &global_scope,
-					   zone -> primary, MDL)) {
+	if (zone->primary) {
+		if (evaluate_option_cache(&nsaddrs, NULL, NULL, NULL,
+					  NULL, NULL, &global_scope,
+					  zone->primary, MDL)) {
+			int ip = 0;
+			while (ix < DHCP_MAXNS) {
+				if (ip + 4 > nsaddrs.len)
+					break;
+				memcpy(&zone_addr, &nsaddrs.data[ip], 4);
+				isc_sockaddr_fromin(&ddns_cb->zone_addrs[ix],
+						    &zone_addr,
+						    NS_DEFAULTPORT);
+				ISC_LIST_APPEND(ddns_cb->zone_server_list,
+						&ddns_cb->zone_addrs[ix],
+						link);
+				ip += 4;
+				ix++;
+			}
+			data_string_forget(&nsaddrs, MDL);
+		}
+	}
+
+	if (zone->primary6) {
+		if (evaluate_option_cache(&nsaddrs, NULL, NULL, NULL,
+					  NULL, NULL, &global_scope,
+					  zone->primary6, MDL)) {
+			int ip = 0;
+			while (ix < DHCP_MAXNS) {
+				if (ip + 16 > nsaddrs.len)
+					break;
+				memcpy(&zone_addr6, &nsaddrs.data[ip], 16);
+				isc_sockaddr_fromin6(&ddns_cb->zone_addrs[ix],
+						    &zone_addr6,
+						    NS_DEFAULTPORT);
+				ISC_LIST_APPEND(ddns_cb->zone_server_list,
+						&ddns_cb->zone_addrs[ix],
+						link);
+				ip += 16;
+				ix++;
+			}
+			data_string_forget(&nsaddrs, MDL);
+		}
+	}
+
+	if (zone->secondary) {
+		if (evaluate_option_cache(&nsaddrs, NULL, NULL, NULL,
+					  NULL, NULL, &global_scope,
+					  zone->secondary, MDL)) {
 			int ip = 0;
 			while (ix < DHCP_MAXNS) {
 				if (ip + 4 > nsaddrs.len)
@@ -722,26 +772,23 @@ find_cached_zone(dhcp_ddns_cb_t *ddns_cb, int direction)
 			data_string_forget (&nsaddrs, MDL);
 		}
 	}
-	if (zone -> secondary) {
-		if (evaluate_option_cache (&nsaddrs, (struct packet *)0,
-					   (struct lease *)0,
-					   (struct client_state *)0,
-					   (struct option_state *)0,
-					   (struct option_state *)0,
-					   &global_scope,
-					   zone -> secondary, MDL)) {
+
+	if (zone->secondary6) {
+		if (evaluate_option_cache(&nsaddrs, NULL, NULL, NULL,
+					  NULL, NULL, &global_scope,
+					  zone->secondary6, MDL)) {
 			int ip = 0;
 			while (ix < DHCP_MAXNS) {
-				if (ip + 4 > nsaddrs.len)
+				if (ip + 16 > nsaddrs.len)
 					break;
-				memcpy(&zone_addr, &nsaddrs.data[ip], 4);
-				isc_sockaddr_fromin(&ddns_cb->zone_addrs[ix],
-						    &zone_addr,
+				memcpy(&zone_addr6, &nsaddrs.data[ip], 16);
+				isc_sockaddr_fromin6(&ddns_cb->zone_addrs[ix],
+						    &zone_addr6,
 						    NS_DEFAULTPORT);
 				ISC_LIST_APPEND(ddns_cb->zone_server_list,
 						&ddns_cb->zone_addrs[ix],
 						link);
-				ip += 4;
+				ip += 16;
 				ix++;
 			}
 			data_string_forget (&nsaddrs, MDL);
@@ -765,6 +812,12 @@ void repudiate_zone (struct dns_zone **zone)
 	   XXX that if we reap cached zones, we blow away repudiated
 	   XXX zones.   This isn't a big problem since we're not yet
 	   XXX caching zones... :'} */
+
+	/* verify that we have a pointer at least */
+	if ((zone == NULL) || (*zone == NULL)) {
+		log_info("Null argument to repudiate zone");
+		return;
+	}
 
 	(*zone) -> timeout = cur_time - 1;
 	dns_zone_dereference (zone, MDL);
@@ -1272,6 +1325,24 @@ void ddns_interlude(isc_task_t  *taskp,
 	 * need to clean up. */
 	if ((eresult == ISC_R_CANCELED) ||
 	    ((ddns_cb->flags & DDNS_ABORT) != 0)) {
+#if defined (DEBUG_DNS_UPDATES)
+		log_info("DDNS: completeing transaction cancellation cb=%p, "
+			 "flags=%x, %s",
+			 ddns_cb, ddns_cb->flags, isc_result_totext(eresult));
+#endif
+		if ((ddns_cb->flags & DDNS_ABORT) == 0) {
+			log_info("DDNS: cleaning up lease pointer for a cancel "
+				 "cb=%p", ddns_cb);
+			/* 
+			 * We shouldn't actually be able to get here but
+			 * we are.  This means we haven't cleaned up
+			 * the lease pointer so we need to do that before
+			 * freeing the cb.  
+			 */
+			ddns_cb->cur_func(ddns_cb, eresult);
+			return;
+		}
+
 		if (ddns_cb->next_op != NULL) {
 			/* if necessary cleanup up next op block */
 			ddns_cb_free(ddns_cb->next_op, MDL);
@@ -1286,6 +1357,8 @@ void ddns_interlude(isc_task_t  *taskp,
 		int i;
 		/* Our zone information was questionable,
 		 * repudiate it and try again */
+		log_error("DDNS: bad zone information, repudiating zone %s",
+			  ddns_cb->zone_name);
 		repudiate_zone(&ddns_cb->zone);
 		ddns_cb->zone_name[0]    = 0;
 		ISC_LIST_INIT(ddns_cb->zone_server_list);
@@ -1293,20 +1366,18 @@ void ddns_interlude(isc_task_t  *taskp,
 			ISC_LINK_INIT(&ddns_cb->zone_addrs[i], link);
 		}
 
-		if ((ddns_cb->state &
-		     (DDNS_STATE_ADD_PTR | DDNS_STATE_REM_PTR)) != 0) {
-			result = ddns_modify_ptr(ddns_cb);
+		if ((ddns_cb->state == DDNS_STATE_ADD_PTR) ||
+		    (ddns_cb->state == DDNS_STATE_REM_PTR)) {
+			result = ddns_modify_ptr(ddns_cb, MDL);
 		} else {
-			result = ddns_modify_fwd(ddns_cb);
+			result = ddns_modify_fwd(ddns_cb, MDL);
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			/* if we couldn't redo the query toss it */
-			if (ddns_cb->next_op != NULL) {
-				/* cleanup up next op block */
-				ddns_cb_free(ddns_cb->next_op, MDL);
-				}
-			ddns_cb_free(ddns_cb, MDL);
+			/* if we couldn't redo the query log it and
+			 * let the next function clean it up */
+			log_info("DDNS: Failed to retry after zone failure");
+			ddns_cb->cur_func(ddns_cb, result);
 		}
 		return;
 	} else {
@@ -1324,7 +1395,7 @@ void ddns_interlude(isc_task_t  *taskp,
  */
 
 isc_result_t
-ddns_modify_fwd(dhcp_ddns_cb_t *ddns_cb)
+ddns_modify_fwd(dhcp_ddns_cb_t *ddns_cb, const char *file, int line)
 {
 	isc_result_t result;
 	dns_tsec_t *tsec_key = NULL;
@@ -1494,6 +1565,13 @@ ddns_modify_fwd(dhcp_ddns_cb_t *ddns_cb)
 #endif
 
  cleanup:
+#if defined (DEBUG_DNS_UPDATES)
+	if (result != ISC_R_SUCCESS) {
+		log_info("DDNS: %s(%d): error in ddns_modify_fwd %s for %p",
+			 file, line, isc_result_totext(result), ddns_cb);
+	}
+#endif
+
 	if (dataspace != NULL) {
 		isc_mem_put(dhcp_gbl_ctx.mctx, dataspace,
 			    sizeof(*dataspace) * 4);
@@ -1503,7 +1581,7 @@ ddns_modify_fwd(dhcp_ddns_cb_t *ddns_cb)
 
 
 isc_result_t
-ddns_modify_ptr(dhcp_ddns_cb_t *ddns_cb)
+ddns_modify_ptr(dhcp_ddns_cb_t *ddns_cb, const char *file, int line)
 {
 	isc_result_t result;
 	dns_tsec_t *tsec_key  = NULL;
@@ -1683,6 +1761,13 @@ ddns_modify_ptr(dhcp_ddns_cb_t *ddns_cb)
 #endif
 
  cleanup:
+#if defined (DEBUG_DNS_UPDATES)
+	if (result != ISC_R_SUCCESS) {
+		log_info("DDNS: %s(%d): error in ddns_modify_ptr %s for %p",
+			 file, line, isc_result_totext(result), ddns_cb);
+	}
+#endif
+
 	if (dataspace != NULL) {
 		isc_mem_put(dhcp_gbl_ctx.mctx, dataspace,
 			    sizeof(*dataspace) * 2);
@@ -1691,13 +1776,18 @@ ddns_modify_ptr(dhcp_ddns_cb_t *ddns_cb)
 }
 
 void
-ddns_cancel(dhcp_ddns_cb_t *ddns_cb) {
+ddns_cancel(dhcp_ddns_cb_t *ddns_cb, const char *file, int line) {
 	ddns_cb->flags |= DDNS_ABORT;
 	if (ddns_cb->transaction != NULL) {
 		dns_client_cancelupdate((dns_clientupdatetrans_t *)
 					ddns_cb->transaction);
 	}
 	ddns_cb->lease = NULL;
+
+#if defined (DEBUG_DNS_UPDATES)
+	log_info("DDNS: %s(%d): cancelling transaction for  %p",
+		 file, line,  ddns_cb);
+#endif
 }
 
 #endif /* NSUPDATE */
