@@ -2,9 +2,7 @@ Source: isc-dhcp
 Section: net
 Priority: important
 Maintainer: Debian ISC DHCP maintainers <pkg-dhcp-devel@lists.alioth.debian.org>
-Uploaders:
- Andrew Pollock <apollock@debian.org>,
- Michael Gilbert <mgilbert@debian.org>,
+Uploaders: Andrew Pollock <apollock@debian.org>, Michael Gilbert <mgilbert@debian.org>
 Vcs-Git: git://git.debian.org/pkg-dhcp/isc-dhcp.git
 Vcs-Browser: http://git.debian.org/?p=pkg-dhcp/isc-dhcp.git;a=summary
 Build-Depends:
