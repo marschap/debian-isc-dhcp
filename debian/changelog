@@ -6,6 +6,8 @@ isc-dhcp (4.2.4-1) UNRELEASED; urgency=low
   * debian/rules: do a clean between the LDAP-enabled build and the
     non-LDAP-enabled one, so that no LDAP-related artefacts are accidently
     incorporated into the non-LDAP build
+  * debian/dhclient-script.*: conditionalise the chown/chmod of the new
+    resolv.conf on the existence of the old one (closes: #595400)
 
  -- Andrew Pollock <apollock@debian.org>  Sat, 09 Jun 2012 14:01:05 -0700
 
