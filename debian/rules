@@ -56,7 +56,7 @@ build-ldap-stamp:
 	
 build: build-arch build-indep
 
-build-arch: build-ldap-stamp build-non-ldap-stamp build-arch-stamp
+build-arch: build-ldap-stamp clean build-non-ldap-stamp build-arch-stamp
 build-indep:
 
 build-arch-stamp:
@@ -81,7 +81,6 @@ build-non-ldap-stamp:
 clean:
 	dh_testdir
 	rm -f build*stamp install*stamp
-	rm -Rf isc-dhcp-server-ldap
 
 	[ ! -f Makefile ] || $(MAKE) distclean
 	rm -f Makefile client/Makefile config.log config.status
