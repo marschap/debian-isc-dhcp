@@ -1,3 +1,14 @@
+isc-dhcp (4.2.4-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * debian/control: reformatted Uploaders so that dch doesn't think I'm making
+    NMUs
+  * debian/rules: do a clean between the LDAP-enabled build and the
+    non-LDAP-enabled one, so that no LDAP-related artefacts are accidently
+    incorporated into the non-LDAP build
+
+ -- Andrew Pollock <apollock@debian.org>  Sat, 09 Jun 2012 14:01:05 -0700
+
 isc-dhcp (4.2.2.dfsg.1-5) unstable; urgency=medium
 
   [ Andrew Pollock ]
