@@ -8,6 +8,9 @@ isc-dhcp (4.2.4-1) UNRELEASED; urgency=low
     incorporated into the non-LDAP build
   * debian/dhclient-script.*: conditionalise the chown/chmod of the new
     resolv.conf on the existence of the old one (closes: #595400)
+  * debian/dhclient-script.linux: comply with RFC 3442 and ignore
+    the routers option if the rfc3442-classless-static-routes option is present
+    (closes: #592735)
 
  -- Andrew Pollock <apollock@debian.org>  Sat, 09 Jun 2012 14:01:05 -0700
 

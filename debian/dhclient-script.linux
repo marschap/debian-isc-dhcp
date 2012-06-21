@@ -226,26 +226,30 @@ case "$reason" in
                 ip link set dev ${interface} mtu ${new_interface_mtu}
             fi
 
-            # set if_metric if IF_METRIC is set or there's more than one router
-            if_metric="$IF_METRIC"
-            if [ "${new_routers%% *}" != "${new_routers}" ]; then
-                if_metric=${if_metric:-1}
-            fi
+	    # if we have $new_rfc3442_classless_static_routes then we have to
+	    # ignore $new_routers entirely
+	    if [ ! "$new_rfc3442_classless_static_routers" ]; then
+		    # set if_metric if IF_METRIC is set or there's more than one router
+		    if_metric="$IF_METRIC"
+		    if [ "${new_routers%% *}" != "${new_routers}" ]; then
+			if_metric=${if_metric:-1}
+		    fi
 
-            for router in $new_routers; do
-                if [ "$new_subnet_mask" = "255.255.255.255" ]; then
-                    # point-to-point connection => set explicit route
-                    ip -4 route add ${router} dev $interface >/dev/null 2>&1
-                fi
+		    for router in $new_routers; do
+			if [ "$new_subnet_mask" = "255.255.255.255" ]; then
+			    # point-to-point connection => set explicit route
+			    ip -4 route add ${router} dev $interface >/dev/null 2>&1
+			fi
 
-                # set default route
-                ip -4 route add default via ${router} dev ${interface} \
-                    ${if_metric:+metric $if_metric} >/dev/null 2>&1
+			# set default route
+			ip -4 route add default via ${router} dev ${interface} \
+			    ${if_metric:+metric $if_metric} >/dev/null 2>&1
 
-                if [ -n "$if_metric" ]; then
-                    if_metric=$((if_metric+1))
-                fi
-            done
+			if [ -n "$if_metric" ]; then
+			    if_metric=$((if_metric+1))
+			fi
+		    done
+	    fi
         fi
 
         if [ -n "$alias_ip_address" ] &&
@@ -301,29 +305,33 @@ case "$reason" in
 
         # if there is no router recorded in the lease or the 1st router answers pings
         if [ -z "$new_routers" ] || ping -q -c 1 "${new_routers%% *}"; then
-            if [ -n "$alias_ip_address" ] &&
-               [ "$new_ip_address" != "$alias_ip_address" ]; then
-                # separate alias IP given => set up the alias IP & add host route to it
-                ip -4 addr add ${alias_ip_address}${alias_subnet_mask:+/$alias_subnet_mask} \
-                    dev ${interface} label ${interface}:0
-                ip -4 route add ${alias_ip_address} dev ${interface} >/dev/null 2>&1
-            fi
+	    # if we have $new_rfc3442_classless_static_routes then we have to
+	    # ignore $new_routers entirely
+	    if [ ! "$new_rfc3442_classless_static_routes" ]; then
+		    if [ -n "$alias_ip_address" ] &&
+		       [ "$new_ip_address" != "$alias_ip_address" ]; then
+			# separate alias IP given => set up the alias IP & add host route to it
+			ip -4 addr add ${alias_ip_address}${alias_subnet_mask:+/$alias_subnet_mask} \
+			    dev ${interface} label ${interface}:0
+			ip -4 route add ${alias_ip_address} dev ${interface} >/dev/null 2>&1
+		    fi
 
-            # set if_metric if IF_METRIC is set or there's more than one router
-            if_metric="$IF_METRIC"
-            if [ "${new_routers%% *}" != "${new_routers}" ]; then
-                if_metric=${if_metric:-1}
-            fi
+		    # set if_metric if IF_METRIC is set or there's more than one router
+		    if_metric="$IF_METRIC"
+		    if [ "${new_routers%% *}" != "${new_routers}" ]; then
+			if_metric=${if_metric:-1}
+		    fi
 
-            # set default route
-            for router in $new_routers; do
-                ip -4 route add default via ${router} dev ${interface} \
-                    ${if_metric:+metric $if_metric} >/dev/null 2>&1
+		    # set default route
+		    for router in $new_routers; do
+			ip -4 route add default via ${router} dev ${interface} \
+			    ${if_metric:+metric $if_metric} >/dev/null 2>&1
 
-                if [ -n "$if_metric" ]; then
-                    if_metric=$((if_metric+1))
-                fi
-            done
+			if [ -n "$if_metric" ]; then
+			    if_metric=$((if_metric+1))
+			fi
+		    done
+	    fi
 
             # update /etc/resolv.conf
             make_resolv_conf
