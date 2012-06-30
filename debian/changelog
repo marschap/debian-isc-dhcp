@@ -1,4 +1,4 @@
-isc-dhcp (4.2.4-1) UNRELEASED; urgency=low
+isc-dhcp (4.2.4-1) unstable; urgency=low
 
   * New upstream release
   * debian/control: reformatted Uploaders so that dch doesn't think I'm making
