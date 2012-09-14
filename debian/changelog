@@ -1,3 +1,13 @@
+isc-dhcp (4.2.4-2) unstable; urgency=low
+
+  * Fix multiple security issues (closes: #686174)
+    - cve-2012-3570: buffer overflow via lanrge hardware address length.
+    - cve-2012-3571: denial-of-service via zero-length packets.
+    - cve-2012-3954: two potential memory leaks.
+    - cve-2012-3955: server abort due to certain lease time changes.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Fri, 14 Sep 2012 00:46:11 -0400
+
 isc-dhcp (4.2.4-1) unstable; urgency=low
 
   * New upstream release
