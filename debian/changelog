@@ -1,3 +1,14 @@
+isc-dhcp (4.2.4-3) unstable; urgency=high
+
+  * Maintainer security upload.
+  * Fix cve-2012-2248: as of 4.2.x the build system prefix now gets included
+    in CLIENT_PATH.  This has security implications since the build system's
+    source path is now included in dhclient's search PATH on users' systems,
+    so sanitize the prefix to not include build system paths (closes: #690532)
+    - Patch thanks to Raphael Geissert
+
+ -- Michael Gilbert <mgilbert@debian.org>  Mon, 15 Oct 2012 14:18:07 -0400
+
 isc-dhcp (4.2.4-2) unstable; urgency=low
 
   * Fix multiple security issues (closes: #686174)
