@@ -39,8 +39,8 @@ build-ldap-stamp:
 	dh_testdir
 
 	./configure \
-		--prefix=$(DESTDIR)/usr \
-		--sysconfdir=$(DESTDIR)/etc/dhcp \
+		--prefix=/usr \
+		--sysconfdir=/etc/dhcp \
 		--with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
 		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
 		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
@@ -67,8 +67,8 @@ build-non-ldap-stamp:
 	dh_testdir
 
 	./configure \
-		--prefix=$(DESTDIR)/usr \
-		--sysconfdir=$(DESTDIR)/etc/dhcp \
+		--prefix=/usr \
+		--sysconfdir=/etc/dhcp \
 		--with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
 		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
 		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
@@ -98,7 +98,7 @@ install-stamp: build-ldap-stamp build-non-ldap-stamp
 	dh_installdirs -A
 
 	# Add here commands to install the package into debian/tmp.
-	$(MAKE) install
+	$(MAKE) install DESTDIR=$(DESTDIR)
 
 	mkdir -p $(DESTDIR)/etc/dhcp
 
