@@ -1,3 +1,11 @@
+isc-dhcp (4.2.4-4) unstable; urgency=medium
+
+  * Run exit hooks when "dhclient -1" fails (closes: #486520).
+  * Add dhcp6.name-servers and dhcp6.domain-search to the default request
+    options in dhclient.conf (closes: #693315).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Thu, 13 Dec 2012 21:44:18 -0500
+
 isc-dhcp (4.2.4-3) unstable; urgency=high
 
   * Maintainer security upload.
