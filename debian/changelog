@@ -1,3 +1,12 @@
+isc-dhcp (4.2.4-5) unstable; urgency=medium
+
+  * Handle dhclient.conf left behind during a prior lenny->squeeze upgrade,
+    upgrade it now to avoid an unnecessary conffile prompt (closes: #698582).
+    - Thanks to Gregor Herrmann for the patch.
+  * Also, do not copy dhclient.conf from /etc/dhcp3 anymore (closes: #700363).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Tue, 12 Feb 2013 03:14:13 +0000
+
 isc-dhcp (4.2.4-4) unstable; urgency=medium
 
   * Run exit hooks when "dhclient -1" fails (closes: #486520).
