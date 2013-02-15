@@ -61,6 +61,10 @@ dhcrelay - Dynamic Host Configuration Protocol Relay Agent
 .B --no-pid
 ]
 [
+.B -r
+.I remote-id
+]
+[
 .B -m
 .I append
 |
@@ -181,8 +185,11 @@ clients will be stripped before forwarding such responses back to the
 client.  The agent option field will contain two agent options: the Circuit
 ID suboption and the Remote ID suboption.  Currently, the Circuit ID will
 be the printable name of the interface on which the client request was
-received.  The client supports inclusion of a Remote ID suboption as well,
-but this is not used by default.
+received.  Remote ID can be added using \fB-r\fR option.
+.TP
+-r REMOTE_ID
+Append Remote ID specified as string to Option 82 (Relay agent information).
+Option \fB-a\fR has to be enabled.
 .TP
 -A LENGTH
 Specify the maximum packet size to send to a DHCPv4/BOOTP server.  This
