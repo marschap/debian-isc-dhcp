@@ -95,6 +95,10 @@ enum { forward_and_append,	/* Forward and append our own relay option. */
        forward_untouched,	/* Forward without changes. */
        discard } agent_relay_mode = forward_and_replace;
 
+//char *remote_id;
+u_int8_t *remote_id;
+int remote_id_len;
+
 u_int16_t local_port;
 u_int16_t remote_port;
 
@@ -143,6 +147,7 @@ static const char url[] =
 "                     [-A <length>] [-c <hops>] [-p <port>]\n" \
 "                     [-pf <pid-file>] [--no-pid]\n"\
 "                     [-m append|replace|forward|discard]\n" \
+"                     [-r <remote id>]\n" \
 "                     [-i interface0 [ ... -i interfaceN]\n" \
 "                     server0 [ ... serverN]\n\n" \
 "       dhcrelay -6   [-d] [-q] [-I] [-c <hops>] [-p <port>]\n" \
@@ -294,6 +299,12 @@ main(int argc, char **argv) {
 				log_fatal("%s: packet length exceeds "
 					  "longest possible MTU\n",
 					  argv[i]);
+		} else if (!strcmp(argv[i], "-r")) {
+			if (++i == argc) usage();
+			//printf("RemoteID: %s\n", argv[i]);
+			remote_id = (u_int8_t *)argv[i];
+			remote_id_len = strlen((char *)remote_id);
+			printf("RemoteID: %s (%d)\n", remote_id, remote_id_len);
 		} else if (!strcmp(argv[i], "-m")) {
 #ifdef DHCPv6
 			if (local_family_set && (local_family == AF_INET6)) {
@@ -1055,11 +1066,11 @@ add_relay_agent_options(struct interface_info *ip, struct dhcp_packet *packet,
 			  "%s\n", ip->circuit_id_len, ip->name);
 	optlen = ip->circuit_id_len + 2;            /* RAI_CIRCUIT_ID + len */
 
-	if (ip->remote_id) {
-		if (ip->remote_id_len > 255 || ip->remote_id_len < 1)
+	if (remote_id) {
+		if (remote_id_len > 255 || remote_id_len < 1)
 			log_fatal("Remote ID length %d out of range [1-255] "
 				  "on %s\n", ip->circuit_id_len, ip->name);
-		optlen += ip->remote_id_len + 2;    /* RAI_REMOTE_ID + len */
+		optlen += remote_id_len + 2;    /* RAI_REMOTE_ID + len */
 	}
 
 	/* We do not support relay option fragmenting(multiple options to
@@ -1087,11 +1098,11 @@ add_relay_agent_options(struct interface_info *ip, struct dhcp_packet *packet,
 		sp += ip->circuit_id_len;
 
 		/* Copy in remote ID... */
-		if (ip->remote_id) {
+		if (remote_id) {
 			*sp++ = RAI_REMOTE_ID;
-			*sp++ = ip->remote_id_len;
-			memcpy(sp, ip->remote_id, ip->remote_id_len);
-			sp += ip->remote_id_len;
+			*sp++ = remote_id_len;
+			memcpy(sp, remote_id, remote_id_len);
+			sp += remote_id_len;
 		}
 	} else {
 		++agent_option_errors;
