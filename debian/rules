@@ -35,7 +35,14 @@ CFLAGS += -D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS += -D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 CFLAGS += -DNOMINUM
 
-build-ldap-stamp:
+
+bind-stamp:
+	dh_testdir
+	cd bind && tar xf bind.tar.gz && cd bind-* && \
+	    QUILT_PATCHES=../../debian/bind-patches quilt push -a
+	touch $@
+
+build-ldap-stamp: bind-stamp
 	dh_testdir
 
 	./configure \
@@ -63,7 +70,7 @@ build-arch-stamp:
 	dh_testdir
 	touch $@
 
-build-non-ldap-stamp:
+build-non-ldap-stamp: bind-stamp
 	dh_testdir
 
 	./configure \
@@ -80,7 +87,7 @@ build-non-ldap-stamp:
 
 clean:
 	dh_testdir
-	rm -f build*stamp install*stamp
+	rm -f build*stamp install*stamp bind-stamp
 
 	[ ! -f Makefile ] || $(MAKE) distclean
 	rm -f Makefile client/Makefile config.log config.status

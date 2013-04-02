@@ -1,3 +1,10 @@
+isc-dhcp (4.2.4-6) unstable; urgency=high
+
+  * Fix cve-2013-2494: issues with regular expression handling in the embedded
+    bind library (closes: #704426).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 31 Mar 2013 23:52:58 +0000
+
 isc-dhcp (4.2.4-5) unstable; urgency=medium
 
   * Handle dhclient.conf left behind during a prior lenny->squeeze upgrade,
