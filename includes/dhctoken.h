@@ -3,7 +3,8 @@
    Tokens for config file lexer and parser. */
 
 /*
- * Copyright (c) 2004,2007-2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2011-2013 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -32,6 +33,11 @@
  * ``http://www.nominum.com''.
  */
 
+/*
+ * The following tokens have been deprecated and aren't in use anymore.
+ * They have been left in place to avoid disturbing the code.
+ * DNS_UPDATE, DNS_DELETE, NS_UPDATE, UPDATED_DNS_RR
+ */
 enum dhcp_token {
 	SEMI = ';',
 	DOT = '.',
@@ -364,7 +370,10 @@ enum dhcp_token {
 	GETHOSTBYNAME = 665,
 	PRIMARY6 = 666,
 	SECONDARY6 = 667,
-	TOKEN_INFINIBAND = 668
+	TOKEN_INFINIBAND = 668,
+	POOL6 = 669,
+	V6RELAY = 670,
+	V6RELOPT = 671
 };
 
 #define is_identifier(x)	((x) >= FIRST_TOKEN &&	\

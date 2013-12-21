@@ -628,10 +628,9 @@ ldap_start (void)
       options = NULL;
       option_state_allocate (&options, MDL);
 
-      execute_statements_in_scope ((struct binding_value **) NULL,
-                 (struct packet *) NULL, (struct lease *) NULL,
-                 (struct client_state *) NULL, (struct option_state *) NULL,
-                 options, &global_scope, root_group, (struct group *) NULL);
+      execute_statements_in_scope (NULL, NULL, NULL, NULL, NULL
+				   options, &global_scope, root_group,
+				   NULL, NULL);
 
       ldap_server = _do_lookup_dhcp_string_option (options, SV_LDAP_SERVER);
       ldap_dhcp_server_cn = _do_lookup_dhcp_string_option (options,
@@ -1988,7 +1987,7 @@ find_subclass_in_ldap (struct class *class, struct class **newclass,
               return (0);
             }
           memset ((*newclass)->billed_leases, 0, 
-                ((*newclass)->lease_limit * sizeof (*newclass)->billed_leases));
+		  ((*newclass)->lease_limit * sizeof (struct lease *)));
         }
 
       data_string_copy (&(*newclass)->hash_string, data, MDL);

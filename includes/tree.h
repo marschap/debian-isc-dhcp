@@ -3,7 +3,7 @@
    Definitions for address trees... */
 
 /*
- * Copyright (c) 2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2011,2013 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004,2007-2009 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
@@ -116,9 +116,6 @@ struct binding_value {
 		struct data_string data;
 		unsigned long intval;
 		int boolean;
-#if defined (NSUPDATE_OLD)
-		ns_updrec *dns;
-#endif
 		struct fundef *fundef;
 		struct binding_value *bv;
 	} value;
@@ -199,7 +196,8 @@ enum expr_op {
 	expr_lcase,
 	expr_regex_match,
 	expr_iregex_match,
-	expr_gethostname
+	expr_gethostname,
+	expr_v6relay
 };
 
 struct expression {
@@ -282,6 +280,10 @@ struct expression {
 			struct expression *arglist;
 		} funcall;
 		struct fundef *func;
+		struct {
+			struct expression *relay;
+			struct expression *roption;
+		} v6relay;
 	} data;
 	int flags;
 #	define EXPR_EPHEMERAL	1

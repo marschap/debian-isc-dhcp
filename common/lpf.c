@@ -4,7 +4,8 @@
    Support Services in Vancouver, B.C. */
 
 /*
- * Copyright (c) 2004,2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009,2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -28,7 +29,6 @@
 
 #include "dhcpd.h"
 #if defined (USE_LPF_SEND) || defined (USE_LPF_RECEIVE)
-#include <sys/ioctl.h>
 #include <sys/uio.h>
 #include <errno.h>
 
@@ -40,8 +40,14 @@
 #include "includes/netinet/ip.h"
 #include "includes/netinet/udp.h"
 #include "includes/netinet/if_ether.h"
-#include <net/if.h>
+#endif
 
+#if defined (USE_LPF_RECEIVE) || defined (USE_LPF_HWADDR)
+#include <sys/ioctl.h>
+#include <net/if.h>
+#endif
+
+#if defined (USE_LPF_SEND) || defined (USE_LPF_RECEIVE)
 /* Reinitializes the specified interface after an address change.   This
    is not required for packet-filter APIs. */
 
@@ -417,7 +423,9 @@ void maybe_setup_fallback ()
 		interface_dereference (&fbi, MDL);
 	}
 }
+#endif
 
+#if defined (USE_LPF_RECEIVE) || defined (USE_LPF_HWADDR)
 void
 get_hw_addr(const char *name, struct hardware *hw) {
 	int sock;
@@ -456,9 +464,9 @@ get_hw_addr(const char *name, struct hardware *hw) {
 			memcpy(&hw->hbuf[1], sa->sa_data, 6);
 			break;
 		case ARPHRD_FDDI:
-			hw->hlen = 17;
+			hw->hlen = 7;
 			hw->hbuf[0] = HTYPE_FDDI;
-			memcpy(&hw->hbuf[1], sa->sa_data, 16);
+			memcpy(&hw->hbuf[1], sa->sa_data, 6);
 			break;
 		default:
 			log_fatal("Unsupported device type %ld for \"%s\"",

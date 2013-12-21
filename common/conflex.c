@@ -3,7 +3,7 @@
    Lexical scanner for dhcpd config file... */
 
 /*
- * Copyright (c) 2004-2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2013 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -470,6 +470,16 @@ read_whitespace(int c, struct parse *cfile) {
 	 */
 	ofs = 0;
 	do {
+		if (ofs >= sizeof(cfile->tokbuf)) {
+			/*
+			 * As the file includes a huge amount of whitespace,
+			 * it's probably broken.
+			 * Print out a warning and bail out.
+			 */
+			parse_warn(cfile,
+				   "whitespace too long, buffer overflow.");
+			log_fatal("Exiting");
+		}
 		cfile->tokbuf[ofs++] = c;
 		c = get_char(cfile);
 	} while (!((c == '\n') && cfile->eol_token) && 
@@ -534,7 +544,6 @@ static enum dhcp_token read_string (cfile)
 				goto again;
 			      default:
 				cfile -> tokbuf [i] = c;
-				bs = 0;
 				break;
 			}
 			bs = 0;
@@ -877,10 +886,6 @@ intern(char *atom, enum dhcp_token dfv) {
 	      case 'd':
 		if (!strcasecmp(atom + 1, "b-time-format"))
 			return DB_TIME_FORMAT;
-		if (!strcasecmp (atom + 1, "ns-update"))
-			return DNS_UPDATE;
-		if (!strcasecmp (atom + 1, "ns-delete"))
-			return DNS_DELETE;
 		if (!strcasecmp (atom + 1, "omain"))
 			return DOMAIN;
 		if (!strncasecmp (atom + 1, "omain-", 6)) {
@@ -1055,8 +1060,8 @@ intern(char *atom, enum dhcp_token dfv) {
 			return IP6_ADDRESS;
 		if (!strcasecmp (atom + 1, "nitial-interval"))
 			return INITIAL_INTERVAL;
-                if (!strcasecmp (atom + 1, "nitial-delay"))
-                        return INITIAL_DELAY;
+		if (!strcasecmp (atom + 1, "nitial-delay"))
+			return INITIAL_DELAY;
 		if (!strcasecmp (atom + 1, "nterface"))
 			return INTERFACE;
 		if (!strcasecmp (atom + 1, "dentifier"))
@@ -1174,8 +1179,6 @@ intern(char *atom, enum dhcp_token dfv) {
 			return TOKEN_NOT;
 		if (!strcasecmp (atom + 1, "o"))
 			return TOKEN_NO;
-		if (!strcasecmp (atom + 1, "s-update"))
-			return NS_UPDATE;
 		if (!strcasecmp (atom + 1, "oerror"))
 			return NS_NOERROR;
 		if (!strcasecmp (atom + 1, "otauth"))
@@ -1222,6 +1225,8 @@ intern(char *atom, enum dhcp_token dfv) {
 			return PACKET;
 		if (!strcasecmp (atom + 1, "ool"))
 			return POOL;
+		if (!strcasecmp (atom + 1, "ool6"))
+			return POOL6;
 		if (!strcasecmp (atom + 1, "refix6"))
 			return PREFIX6;
 		if (!strcasecmp (atom + 1, "seudo"))
@@ -1492,12 +1497,14 @@ intern(char *atom, enum dhcp_token dfv) {
 		}
 		if (!strcasecmp (atom + 1, "nauthenticated"))
 			return UNAUTHENTICATED;
-		if (!strcasecmp (atom + 1, "pdated-dns-rr"))
-			return UPDATED_DNS_RR;
 		if (!strcasecmp (atom + 1, "pdate"))
 			return UPDATE;
 		break;
 	      case 'v':
+		if (!strcasecmp (atom + 1, "6relay"))
+			return V6RELAY;
+		if (!strcasecmp (atom + 1, "6relopt"))
+			return V6RELOPT;
 		if (!strcasecmp (atom + 1, "endor-class"))
 			return VENDOR_CLASS;
 		if (!strcasecmp (atom + 1, "endor"))

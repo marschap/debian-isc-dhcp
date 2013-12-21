@@ -3,7 +3,8 @@
    Persistent database management routines for DHCPD... */
 
 /*
- * Copyright (c) 2004-2010,2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2012,2013 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -66,10 +67,9 @@ write_binding_scope(FILE *db_file, struct binding *bnd, char *prepend) {
 				errno = 0;
 				fprintf(db_file, "%sset %s = \"%s\";",
 					prepend, bnd->name, s);
+				dfree(s, MDL);
 				if (errno)
 					return ISC_R_FAILURE;
-
-				dfree(s, MDL);
 			} else {
 			    return ISC_R_FAILURE;
 			}
@@ -265,21 +265,22 @@ int write_lease (lease)
 		} else
 			++errors;
 	}
-	if (lease -> on_expiry) {
+	if (lease->on_star.on_expiry) {
 		errno = 0;
 		fprintf (db_file, "\n  on expiry%s {",
-			 lease -> on_expiry == lease -> on_release
+			 lease->on_star.on_expiry == lease->on_star.on_release
 			 ? " or release" : "");
-		write_statements (db_file, lease -> on_expiry, 4);
+		write_statements (db_file, lease->on_star.on_expiry, 4);
 		/* XXX */
 		fprintf (db_file, "\n  }");
 		if (errno)
 			++errors;
 	}
-	if (lease -> on_release && lease -> on_release != lease -> on_expiry) {
+	if (lease->on_star.on_release &&
+	    lease->on_star.on_release != lease->on_star.on_expiry) {
 		errno = 0;
 		fprintf (db_file, "\n  on release {");
-		write_statements (db_file, lease -> on_release, 4);
+		write_statements (db_file, lease->on_star.on_release, 4);
 		/* XXX */
 		fprintf (db_file, "\n  }");
 		if (errno)
@@ -643,6 +644,29 @@ write_ia(const struct ia_xx *ia) {
 				
 		}
 
+		if (iasubopt->on_star.on_expiry) {
+			if (fprintf(db_file, "\n    on expiry%s {",
+				    iasubopt->on_star.on_expiry ==
+				    iasubopt->on_star.on_release
+				    ? " or release" : "") < 0)
+				goto error_exit;
+			write_statements(db_file,
+					 iasubopt->on_star.on_expiry, 6);
+			if (fprintf(db_file, "\n    }") < 0) 
+				goto error_exit;
+		}
+
+		if (iasubopt->on_star.on_release &&
+		    iasubopt->on_star.on_release !=
+		    iasubopt->on_star.on_expiry) {
+			if (fprintf(db_file, "\n    on release {") < 0)
+				goto error_exit;
+			write_statements(db_file,
+					 iasubopt->on_star.on_release, 6);
+			if (fprintf(db_file, "\n    }") < 0)
+				goto error_exit;
+		}
+
 		if (fprintf(db_file, "\n  }\n") < 0)
                         goto error_exit;
 	}
@@ -990,12 +1014,13 @@ int commit_leases ()
 	   We need to do this even if we're rewriting the file below,
 	   just in case the rewrite fails. */
 	if (fflush (db_file) == EOF) {
-		log_info ("commit_leases: unable to commit: %m");
-		return 0;
+		log_info("commit_leases: unable to commit, fflush(): %m");
+		return (0);
 	}
-	if (fsync (fileno (db_file)) < 0) {
-		log_info ("commit_leases: unable to commit: %m");
-		return 0;
+	if ((dont_use_fsync == 0) &&
+	    (fsync(fileno (db_file)) < 0)) {
+		log_info ("commit_leases: unable to commit, fsync(): %m");
+		return (0);
 	}
 
 	/* send out all deferred ACKs now */
@@ -1007,9 +1032,9 @@ int commit_leases ()
 	if (count && cur_time - write_time > LEASE_REWRITE_PERIOD) {
 		count = 0;
 		write_time = cur_time;
-		new_lease_file ();
+		new_lease_file();
 	}
-	return 1;
+	return (1);
 }
 
 /*

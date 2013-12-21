@@ -3,7 +3,7 @@
    Tables of information only used by server... */
 
 /*
- * Copyright (c) 2004-2011 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2011,2013 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -266,6 +266,11 @@ static struct option server_options[] = {
 	{ "ldap-tls-randfile", "t",		&server_universe,  77, 1 },
 #endif /* LDAP_USE_SSL */
 #endif /* LDAP_CONFIGURATION */
+	{ "dhcp-cache-threshold", "B",		&server_universe,  78, 1 },
+	{ "dont-use-fsync", "f",		&server_universe,  79, 1 },
+	{ "ddns-local-address4", "I",		&server_universe,  80, 1 },
+	{ "ddns-local-address6", "6",		&server_universe,  81, 1 },
+	{ "ignore-client-uids", "f",		&server_universe,  82, 1 },
 	{ NULL, NULL, NULL, 0, 0 }
 };
 
@@ -329,6 +334,7 @@ struct enumeration_value ddns_styles_values [] = {
 	{ "none", 0 },
 	{ "ad-hoc", 1 },
 	{ "interim", 2 },
+	{ "standard", 3 },
 	{ (char *)0, 0 }
 };
 

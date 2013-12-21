@@ -3,7 +3,8 @@
    Memory allocation... */
 
 /*
- * Copyright (c) 2004-2007,2009 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009,2013 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -142,7 +143,6 @@ int option_chain_head_dereference (ptr, file, line)
 			option_cache_dereference ((struct option_cache **)
 						  (&car -> car), MDL);
 		dfree (car, MDL);
-		car = cdr;
 	}
 
 	dfree (option_chain_head, file, line);
@@ -831,11 +831,11 @@ int dns_host_entry_dereference (ptr, file, line)
 #endif
 	}
 
-	(*ptr) -> refcnt--;
-	rc_register (file, line, ptr, *ptr, (*ptr) -> refcnt, 1, RC_MISC);
-	if (!(*ptr) -> refcnt)
+	(*ptr)->refcnt--;
+	rc_register (file, line, ptr, *ptr, (*ptr)->refcnt, 1, RC_MISC);
+	if ((*ptr)->refcnt == 0) {
 		dfree ((*ptr), file, line);
-	if ((*ptr) -> refcnt < 0) {
+	} else if ((*ptr)->refcnt < 0) {
 		log_error ("%s(%d): negative refcnt!", file, line);
 #if defined (DEBUG_RC_HISTORY)
 		dump_rc_history (*ptr);
