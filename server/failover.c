@@ -3,7 +3,7 @@
    Failover protocol support code... */
 
 /*
- * Copyright (c) 2004-2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2013 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -893,8 +893,7 @@ isc_result_t dhcp_failover_link_get_value (omapi_object_t *h,
 		return omapi_make_int_value (value, name,
 					     (int)link -> peer_port, MDL);
 	} else if (!omapi_ds_strcmp (name, "link-state")) {
-		if (link -> state < 0 ||
-		    link -> state >= dhcp_flink_state_max)
+		if (link -> state >= dhcp_flink_state_max)
 			return omapi_make_string_value (value, name,
 							"invalid link state",
 							MDL);
@@ -954,8 +953,7 @@ isc_result_t dhcp_failover_link_stuff_values (omapi_object_t *c,
 	status = omapi_connection_put_name (c, "link-state");
 	if (status != ISC_R_SUCCESS)
 		return status;
-	if (link -> state < 0 ||
-	    link -> state >= dhcp_flink_state_max)
+	if (link -> state >= dhcp_flink_state_max)
 		status = omapi_connection_put_string (c, "invalid link state");
 	else
 		status = (omapi_connection_put_string
@@ -1795,6 +1793,10 @@ isc_result_t dhcp_failover_set_state (dhcp_failover_state_t *state,
     log_info ("failover peer %s: I move from %s to %s",
 	      state -> name, dhcp_failover_state_name_print (saved_state),
 	      dhcp_failover_state_name_print (state -> me.state));
+
+    /* If both servers are now normal log it */
+    if ((state->me.state == normal) && (state->partner.state == normal))
+	    log_info("failover peer %s: Both servers normal", state->name);
     
     /* If we were in startup and we just left it, cancel the timeout. */
     if (new_state != startup && saved_state == startup)
@@ -1988,6 +1990,10 @@ isc_result_t dhcp_failover_peer_state_changed (dhcp_failover_state_t *state,
 		  state -> name,
 		  dhcp_failover_state_name_print (previous_state),
 		  dhcp_failover_state_name_print (state -> partner.state));
+
+	/* If both servers are now normal log it */
+	if ((state->me.state == normal) && (state->partner.state == normal))
+		log_info("failover peer %s: Both servers normal", state->name);
     
 	if (!write_failover_state (state) || !commit_leases ()) {
 		/* This is bad, but it's not fatal.  Of course, if we

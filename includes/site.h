@@ -108,6 +108,9 @@
 
 /* #define DEBUG_DNS_UPDATES */
 
+/* Define this if you want to debug the host part of the inform processing */
+/* #define DEBUG_INFORM_HOST */
+
 /* Define this if you want DHCP failover protocol support in the DHCP
    server. */
 
@@ -116,6 +119,10 @@
 /* Define this if you want DNS update functionality to be available. */
 
 #define NSUPDATE
+
+/* Define this if you want to enable the DHCP server attempting to
+   find a nameserver to use for DDNS updates. */
+#define DNS_ZONE_LOOKUP
 
 /* Define this if you want the dhcpd.pid file to go somewhere other than
    the default (which varies from system to system, but is usually either
@@ -247,7 +254,7 @@
    host declarations.  With some configurations the server id
    computed for a NAK may not match that computed for an ACK. */
 
-/* #define SERVER_ID_FOR_NAK */
+#define SERVER_ID_FOR_NAK
 
 /* When processing a request do a simple check to compare the
    server id the client sent with the one the server would send.
@@ -275,3 +282,16 @@
    Care should be taken before enabling this option. */
 
 /* #define SERVER_ID_CHECK */
+
+/* Include code to do a slow transition of DDNS records
+   from the interim to the standard version, or backwards.
+   The normal code will handle removing an old style record
+   when the name on a lease is being changed.  This adds code
+   to handle the case where the name isn't being changed but
+   the old record should be removed to allow a new record to
+   be added.  This is the slow transition as leases are only
+   updated as a client touches them.  A fast transition would
+   entail updating all the records at once, probably at start
+   up. */
+#define DDNS_UPDATE_SLOW_TRANSITION
+   

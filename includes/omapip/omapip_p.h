@@ -3,7 +3,7 @@
    Private master include file for the OMAPI library. */
 
 /*
- * Copyright (c) 2009-2010 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2010 by Internet Systems Consortium, Inc. ("ISC") 
  * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
