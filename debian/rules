@@ -1,10 +1,6 @@
 #!/usr/bin/make -f
-# Made with the iad of dh_make, by Craig Small
-# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
-# Also some stuff taken from debmake scripts, by Cristopt Lameter.
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+export DH_VERBOSE=1
 
 DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -38,8 +34,9 @@ CFLAGS += -DNOMINUM
 
 bind-stamp:
 	dh_testdir
-	cd bind && tar xf bind.tar.gz && cd bind-* && \
-	    QUILT_PATCHES=../../debian/bind-patches quilt push -a
+	cd bind && tar xf bind.tar.gz && \
+	    cd bind-* && test -e debian/bind-patches/series && \
+	    QUILT_PATCHES=../../debian/bind-patches quilt push -a || true
 	touch $@
 
 build-ldap-stamp: bind-stamp
@@ -90,7 +87,7 @@ build-non-ldap-stamp: bind-stamp
 
 clean:
 	dh_testdir
-	rm -f build*stamp install*stamp bind-stamp
+	rm -f build*stamp install*stamp bind-stamp config.report
 	rm -rf isc-dhcp-server-ldap
 
 	[ ! -f Makefile ] || $(MAKE) distclean
