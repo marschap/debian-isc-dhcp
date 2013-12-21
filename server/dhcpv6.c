@@ -572,6 +572,7 @@ valid_client_info_req(struct packet *packet, struct data_string *server_id) {
 
 	ret_val = 0;
 	memset(server_id, 0, sizeof(*server_id));
+	memset(&client_id, 0, sizeof(client_id));
 
 	/*
 	 * Make a string that we can print out to give more 
@@ -1254,6 +1255,8 @@ lease_to_client(struct data_string *reply_ret,
 	isc_boolean_t no_resources_avail = ISC_FALSE;
 #endif
 
+	memset(&packet_oro, 0, sizeof(packet_oro));
+
 	/* Locate the client.  */
 	if (shared_network_from_packet6(&reply.shared,
 					packet) != ISC_R_SUCCESS)
@@ -1276,7 +1279,6 @@ lease_to_client(struct data_string *reply_ret,
 	 * Get the ORO from the packet, if any.
 	 */
 	oc = lookup_option(&dhcpv6_universe, packet->options, D6O_ORO);
-	memset(&packet_oro, 0, sizeof(packet_oro));
 	if (oc != NULL) {
 		if (!evaluate_option_cache(&packet_oro, packet, 
 					   NULL, NULL, 
@@ -1519,6 +1521,8 @@ lease_to_client(struct data_string *reply_ret,
 		packet_dereference(&reply.packet, MDL);
 	if (reply.client_id.data != NULL)
 		data_string_forget(&reply.client_id, MDL);
+	if (packet_oro.buffer != NULL)
+		data_string_forget(&packet_oro, MDL);
 	reply.renew = reply.rebind = reply.prefer = reply.valid = 0;
 	reply.cursor = 0;
 }
@@ -1834,9 +1838,6 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 			ia_reference(&tmp->ia, reply->ia, MDL);
 
 			/* Commit 'hard' bindings. */
-			tmp->hard_lifetime_end_time =
-				tmp->soft_lifetime_end_time;
-			tmp->soft_lifetime_end_time = 0;
 			renew_lease6(tmp->ipv6_pool, tmp);
 			schedule_lease_timeout(tmp->ipv6_pool);
 
@@ -2495,9 +2496,6 @@ reply_process_ia_ta(struct reply_state *reply, struct option_cache *ia) {
 			ia_reference(&tmp->ia, reply->ia, MDL);
 
 			/* Commit 'hard' bindings. */
-			tmp->hard_lifetime_end_time =
-				tmp->soft_lifetime_end_time;
-			tmp->soft_lifetime_end_time = 0;
 			renew_lease6(tmp->ipv6_pool, tmp);
 			schedule_lease_timeout(tmp->ipv6_pool);
 
@@ -2683,9 +2681,11 @@ find_client_temporaries(struct reply_state *reply) {
 		if (status != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		if (reply->lease != NULL) {
-			iasubopt_dereference(&reply->lease, MDL);
-		}
+		/*
+		 * reply->lease can't be null as we use it above
+		 * add check if that changes
+		 */
+		iasubopt_dereference(&reply->lease, MDL);
 	}
 
       cleanup:
@@ -3367,9 +3367,6 @@ reply_process_ia_pd(struct reply_state *reply, struct option_cache *ia) {
 			ia_reference(&tmp->ia, reply->ia, MDL);
 
 			/* Commit 'hard' bindings. */
-			tmp->hard_lifetime_end_time =
-				tmp->soft_lifetime_end_time;
-			tmp->soft_lifetime_end_time = 0;
 			renew_lease6(tmp->ipv6_pool, tmp);
 			schedule_lease_timeout(tmp->ipv6_pool);
 		}
@@ -6037,7 +6034,7 @@ find_hosts_by_duid_chaddr(struct host_decl **host,
 		break;
 	}
 
-	if (hlen == 0)
+	if ((hlen == 0) || (hlen > HARDWARE_ADDR_LEN)) 
 		return 0;
 
 	/*

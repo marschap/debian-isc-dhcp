@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.h,v 1.3 2007-05-19 19:16:25 dhankins Exp $ */
+/* $Id: heap.h,v 1.3 2007/05/19 19:16:25 dhankins Exp $ */
 
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1

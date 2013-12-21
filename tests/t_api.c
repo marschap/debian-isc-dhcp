@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.4 2009-10-28 04:12:30 sar Exp $ */
+/* $Id: t_api.c,v 1.4 2009/10/28 04:12:30 sar Exp $ */
 
 /*! \file */
 

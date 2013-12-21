@@ -432,11 +432,17 @@ struct packet {
 	isc_boolean_t unicast;
 };
 
-/* A network interface's MAC address. */
+/*
+ * A network interface's MAC address.
+ * 20 bytes for the hardware address
+ * and 1 byte for the type tag
+ */
+
+#define HARDWARE_ADDR_LEN 20
 
 struct hardware {
 	u_int8_t hlen;
-	u_int8_t hbuf[21];
+	u_int8_t hbuf[HARDWARE_ADDR_LEN + 1];
 };
 
 #if defined(LDAP_CONFIGURATION)
@@ -1853,6 +1859,8 @@ void do_packet6(struct interface_info *, const char *,
 		int, int, const struct iaddr *, isc_boolean_t);
 int packet6_len_okay(const char *, int);
 
+int validate_packet(struct packet *);
+
 int add_option(struct option_state *options,
 	       unsigned int option_num,
 	       void *data,
@@ -2173,7 +2181,11 @@ unsigned cons_agent_information_options (struct option_state *,
 					 unsigned, unsigned);
 void get_server_source_address(struct in_addr *from,
 			       struct option_state *options,
+			       struct option_state *out_options,
 			       struct packet *packet);
+void setup_server_source_address(struct in_addr *from,
+				 struct option_state *options,
+				 struct packet *packet);
 
 /* dhcpleasequery.c */
 void dhcpleasequery (struct packet *, int);
@@ -2731,6 +2743,7 @@ void client_option_envadd (struct option_cache *, struct packet *,
 			   struct binding_scope **, struct universe *, void *);
 void script_write_params (struct client_state *, const char *,
 			  struct client_lease *);
+void script_write_requested (struct client_state *);
 int script_go (struct client_state *);
 void client_envadd (struct client_state *,
 		    const char *, const char *, const char *, ...)

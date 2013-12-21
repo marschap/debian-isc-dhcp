@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.bind,v 1.2.2.8 2012-04-05 22:17:08 sar Exp $
+# $Id: Makefile.bind,v 1.2.2.8 2012/04/05 22:17:08 sar Exp $
 
 # Configure and build the bind libraries for use by DHCP
 
