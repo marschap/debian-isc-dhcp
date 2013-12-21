@@ -17,7 +17,7 @@ Build-Depends:
  libssl-dev,
  libldap2-dev,
  hardening-wrapper,
-Standards-Version: 3.9.3
+Standards-Version: 3.9.5
 
 Package: isc-dhcp-server
 Priority: optional
