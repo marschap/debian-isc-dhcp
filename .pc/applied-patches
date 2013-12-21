@@ -1,4 +1,0 @@
-dhclient-script-exit-status
-fix_exit_hook_doc_manpage
-no_loopback_checksum
-dhclient-exit-hook.patch
