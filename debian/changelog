@@ -1,3 +1,10 @@
+isc-dhcp (4.2.4-7) unstable; urgency=low
+
+  * Set --with-ldapcrypto to restore openssl support (closes: #692808).
+    - Thanks to Christian Hoffmann and Stéphane Graber.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Mon, 27 May 2013 20:35:09 +0000
+
 isc-dhcp (4.2.4-6) unstable; urgency=high
 
   * Fix cve-2013-2494: issues with regular expression handling in the embedded

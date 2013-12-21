@@ -45,6 +45,7 @@ bind-stamp:
 build-ldap-stamp: bind-stamp
 	dh_testdir
 
+	test ! -f Makefile || $(MAKE) distclean
 	./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc/dhcp \
@@ -52,7 +53,8 @@ build-ldap-stamp: bind-stamp
 		--with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
 		--with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
 		--with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
-		--with-ldap
+		--with-ldap \
+		--with-ldapcrypto \
 		
 	$(MAKE) $(CROSS)
 
@@ -63,7 +65,7 @@ build-ldap-stamp: bind-stamp
 	
 build: build-arch build-indep
 
-build-arch: build-ldap-stamp clean build-non-ldap-stamp build-arch-stamp
+build-arch: build-ldap-stamp build-non-ldap-stamp build-arch-stamp
 build-indep:
 
 build-arch-stamp:
@@ -73,6 +75,7 @@ build-arch-stamp:
 build-non-ldap-stamp: bind-stamp
 	dh_testdir
 
+	test ! -f Makefile || $(MAKE) distclean
 	./configure \
 		--prefix=/usr \
 		--sysconfdir=/etc/dhcp \
@@ -88,6 +91,7 @@ build-non-ldap-stamp: bind-stamp
 clean:
 	dh_testdir
 	rm -f build*stamp install*stamp bind-stamp
+	rm -rf isc-dhcp-server-ldap
 
 	[ ! -f Makefile ] || $(MAKE) distclean
 	rm -f Makefile client/Makefile config.log config.status
