@@ -1,6 +1,6 @@
 usr/sbin/dhclient sbin
-etc/dhcp/dhclient.conf
-usr/share/man/man8/dhclient.8
-usr/share/man/man8/dhclient-script.8
-usr/share/man/man5/dhclient.conf.5
-usr/share/man/man5/dhclient.leases.5
+debian/dhclient.conf etc/dhcp
+debian/debug etc/dhcp/dhclient-exit-hooks.d
+debian/debug etc/dhcp/dhclient-enter-hooks.d
+
+usr/share/man/*/dhclient*
