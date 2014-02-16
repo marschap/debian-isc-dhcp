@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2007-05-31 15:22+0300\n"
 "Last-Translator: Mehmet Türker <mturker@innova.com.tr>\n"
 "Language-Team: Turkish <debian-l10n-turkish@lists.debian.org>\n"
@@ -89,47 +89,15 @@ msgstr "Lütfen DHCP anahtarlama (relay) sunucusu için ek seçenekleri belirtin
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Örnek: '-m replace' ya da '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "DHCP sunucusu kurulumdan sonra elle yapılandırma gerektirir"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-#, fuzzy
-#| msgid ""
-#| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
-#| "environment."
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"DHCP sunucusu kurulduktan sonra /etc/isc-dhcp/dhcpd.conf dosyasını "
-"düzenleyerek elle yapılandırmalısınız. Lütfen aklınızda bulunsun, paketle "
-"birlikte örnek bir dhcpd.conf dosyası sağlanmıştır. Fakat bu dosya sadece "
-"düzenlenmesi gereken bir örnektir ve bunu kendi ağ ortamınıza uyarlamanız "
-"gerekir."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Lütfen kurulum biter bitmez DHCP sunucusunu yapılandırın."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "DHCP sunucusunun dinleyeceği ağ arayüzleri:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -141,10 +109,35 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "Bu alan boş bırakılırsa arayüzler otomatik olarak bulunacaktır."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "DHCP sunucusu kurulumdan sonra elle yapılandırma gerektirir"
+
+#, fuzzy
+#~| msgid ""
+#~| "After the DHCP server is installed, you will need to manually configure "
+#~| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
+#~| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#~| "environment."
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "DHCP sunucusu kurulduktan sonra /etc/isc-dhcp/dhcpd.conf dosyasını "
+#~ "düzenleyerek elle yapılandırmalısınız. Lütfen aklınızda bulunsun, paketle "
+#~ "birlikte örnek bir dhcpd.conf dosyası sağlanmıştır. Fakat bu dosya sadece "
+#~ "düzenlenmesi gereken bir örnektir ve bunu kendi ağ ortamınıza uyarlamanız "
+#~ "gerekir."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "Lütfen kurulum biter bitmez DHCP sunucusunu yapılandırın."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "DHCP sunucusunun yetkisiz (Non-authoritative) sürümü"

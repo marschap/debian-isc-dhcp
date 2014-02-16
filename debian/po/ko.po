@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2007-06-19 23:09-0500\n"
 "Last-Translator: Sunjae Park <darehanl@gmail.com>\n"
 "Language-Team: Korean <debian-l10n-korean@lists.debian.org>\n"
@@ -89,45 +89,15 @@ msgstr "DHCP 중계 데몬이 사용할 추가적인 옵션을 지정해주십�
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "예: '-m replace'나 '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "설치 후 직접 설정 필요"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-#, fuzzy
-#| msgid ""
-#| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
-#| "environment."
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"DHCP 서버가 설치된 후 /etc/isc-dhcp/dhcpd.conf 파일을 고쳐서 서버를 직접 설정"
-"하셔야 합니다. 참고로 제공된 dhcpd.conf 파일은 예제일 뿐이므로 사용하시는 환"
-"경에 따라 변경하셔야 합니다."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "설치가 끝나면 곧바로 DHCP 서버를 설정해주십시오."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "DHCP 서버가 대기하고 있을 네트워크 인터페이스 목록:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -138,10 +108,33 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "이 항목을 비워둘 경우에는 인터페이스를 자동으로 감지합니다."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "설치 후 직접 설정 필요"
+
+#, fuzzy
+#~| msgid ""
+#~| "After the DHCP server is installed, you will need to manually configure "
+#~| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
+#~| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#~| "environment."
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "DHCP 서버가 설치된 후 /etc/isc-dhcp/dhcpd.conf 파일을 고쳐서 서버를 직접 "
+#~ "설정하셔야 합니다. 참고로 제공된 dhcpd.conf 파일은 예제일 뿐이므로 사용하"
+#~ "시는 환경에 따라 변경하셔야 합니다."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "설치가 끝나면 곧바로 DHCP 서버를 설정해주십시오."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "DHCP 서버의 비관장 버전"
@@ -211,8 +204,8 @@ msgstr "이 항목을 비워둘 경우에는 인터페이스를 자동으로 감
 #~ "Please consider using the hook infrastructure (see dhclient-script(8) for "
 #~ "more information) instead of modifying dhclient-script."
 #~ msgstr ""
-#~ "dhclient-script를 변경하기보다는 후크 기반(자세한 정보는 dhclient-script"
-#~ "(8) 참조)을 사용하길 권장합니다."
+#~ "dhclient-script를 변경하기보다는 후크 기반(자세한 정보는 dhclient-"
+#~ "script(8) 참조)을 사용하길 권장합니다."
 
 #~ msgid "dhclient needs restarting"
 #~ msgstr "dhclient를 재시작해야 합니다"

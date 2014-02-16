@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3 3.0.3-6\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2010-08-07 04:56+0100\n"
 "Last-Translator: Martin Bagge / brother <brother@bsnet.se>\n"
 "Language-Team: Swedish <debian-l10n-swedish@lists.debian.org>\n"
@@ -93,40 +93,15 @@ msgstr "Vänligen ange eventuella ytterligare flaggor för DHCP-relay demonen."
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Till exempel: '-m replace' eller '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "Manuell konfiguration krävs efter installationen"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"Efter att DHCP-servern är installerad behöver du manuellt konfigurera den "
-"genom att ändra i filen /etc/isc-dhcp/dhcpd.conf. Observera att dhcpd.conf-"
-"filen som skickas med endast är ett exempel och behöver ändras för att passa "
-"den aktuella nätverksmiljön."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Konfigurera DHCP-servern så fort som installationen är färdigställd."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "Nätverksgränssnitt där DHCP-servern skall lyssna:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -138,12 +113,31 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr ""
 "Nätverksgränssnitten kommer automatiskt identifieras om detta fält lämnas "
 "tomt."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "Manuell konfiguration krävs efter installationen"
+
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "Efter att DHCP-servern är installerad behöver du manuellt konfigurera den "
+#~ "genom att ändra i filen /etc/isc-dhcp/dhcpd.conf. Observera att dhcpd."
+#~ "conf-filen som skickas med endast är ett exempel och behöver ändras för "
+#~ "att passa den aktuella nätverksmiljön."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr ""
+#~ "Konfigurera DHCP-servern så fort som installationen är färdigställd."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "Icke-auktoritär version av DHCP server"

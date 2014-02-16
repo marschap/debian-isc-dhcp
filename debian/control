@@ -3,8 +3,8 @@ Section: net
 Priority: important
 Maintainer: Debian ISC DHCP maintainers <pkg-dhcp-devel@lists.alioth.debian.org>
 Uploaders: Andrew Pollock <apollock@debian.org>, Michael Gilbert <mgilbert@debian.org>
-Vcs-Git: git://git.debian.org/pkg-dhcp/isc-dhcp.git
-Vcs-Browser: http://git.debian.org/?p=pkg-dhcp/isc-dhcp.git;a=summary
+Vcs-Git: git://anonscm.debian.org/pkg-dhcp/isc-dhcp.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-dhcp/isc-dhcp.git;a=summary
 Build-Depends:
  groff,
  quilt,
@@ -31,8 +31,7 @@ Conflicts:
 Suggests:
  isc-dhcp-server-ldap,
 Description: ISC DHCP server for automatic IP address assignment
- This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ This is the Internet Software Consortium's DHCP server.
  .
  Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
  (actually dhcpd includes much of the functionality of bootpd). It
@@ -51,7 +50,7 @@ Depends:
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (server debug)
  This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ DHCP.
  .
  This is a transitional package that can be safely removed. 
 
@@ -70,8 +69,7 @@ Replaces:
  isc-dhcp-server-dbg (<< 4.3.0a1),
  isc-dhcp-relay-dbg (<< 4.3.0a1),
 Description: ISC DHCP server for automatic IP address assignment (debuging symbols)
- This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ This are debugging symbols for the Internet Software Consortium's DHCP tools.
  .
  This package contains the debugging symbols for isc-dhcp.
 
@@ -86,9 +84,9 @@ Depends:
  isc-dhcp-server (= ${binary:Version}),
 Conflicts:
  dhcp,
-Description: DHCP server able to use LDAP as backend
+Description: DHCP server that uses LDAP as its backend
  This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ DHCP.
  .
  Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
  (actually dhcpd includes much of the functionality of bootpd). It
@@ -99,14 +97,14 @@ Description: DHCP server able to use LDAP as backend
 
 Package: isc-dhcp-common
 Architecture: any
-Section: net
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
-Description: common files used by all the isc-dhcp* packages
- This package contains the files used by all the packages from ISC
- DHCP.
+Description: common files used by all of the isc-dhcp packages
+ This package includes all of the files that are used in common by the various
+ ISC DHCP packages, such as the dhcp-eval and dhcp-options manpages and the
+ OMAPI command shell.
 
 Package: isc-dhcp-dev
 Priority: optional
@@ -116,8 +114,9 @@ Depends:
  ${misc:Depends},
  libc6-dev,
 Description: API for accessing and modifying the DHCP server and client state
- OMAPI is an API for accessing and modifying the DHCP server and
- client state.
+ This package provides support for OMAPI (Object Management Application
+ Programming Interface), which is an API for accessing and modifying the DHCP
+ server and client state.
 
 Package: isc-dhcp-client
 Architecture: any
@@ -133,14 +132,8 @@ Suggests:
  avahi-autoipd
 Provides:
  dhcp-client,
-Conflicts:
- dhcp-client (<< 3.0),
- samba-common (<< 3.0.0beta1-2),
- resolvconf (<= 1.45),
- ifupdown (<< 0.6.8+nmu3)
 Description: ISC DHCP client
- This is the client from the Internet Software Consortium's implementation of
- DHCP. For more information visit http://www.isc.org.
+ This is the Internet Software Consortium's DHCP client. 
  .
  Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
  (actually dhcpd includes much of the functionality of bootpd). It
@@ -161,8 +154,8 @@ Depends:
  ${shlibs:Depends},
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (client debug)
- This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ This is the client from the Internet Software Consortium's implementation of
+ DHCP.
  .
  This is a transitional package that can be safely removed. 
 
@@ -187,9 +180,7 @@ Depends:
 Conflicts:
  dhcp-relay,
 Description: ISC DHCP relay daemon
- This is the relay from the Internet Software Consortium's implementation of
- DHCP. For more information visit
- http://www.isc.org.
+ This is the Internet Software Consortium's DHCP relay.
  .
  Installing this package will make the machine a DHCP relay, which
  requires a reachable DHCP or BOOTP server in order to function.
@@ -205,7 +196,7 @@ Depends:
  ${shlibs:Depends},
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (relay debug)
- This is the server from the Internet Software Consortium's implementation of
- DHCP. For more information, visit http://www.isc.org.
+ This is the relay from the Internet Software Consortium's implementation of
+ DHCP.
  .
  This is a transitional package that can be safely removed. 

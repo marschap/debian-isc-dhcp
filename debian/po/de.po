@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: isc-dhcp 4.1.1-P1-17\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2011-09-16 20:40+0200\n"
 "Last-Translator: Erik Schanze <eriks@debian.org>\n"
 "Language-Team: German <debian-l10n-german@lists.debian.org>\n"
@@ -101,55 +101,48 @@ msgstr "Bitte geben Sie zusätzliche Optionen für den DHCP-Relay-Dienst ein."
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Beispiel: »-m replace« oder »-a -D«."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "Manuelle Einstellungen nach der Installation erforderlich"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"Nachdem der DHCP-Server installiert wurde, müssen Sie ihn manuell durch "
-"Anpassen der Datei /etc/dhcp/dhcpd.conf einrichten. Bitte beachten Sie, dass "
-"die mitgelieferte Datei dhcpd.conf nur ein Beispiel ist und an die "
-"Netzwerkumgebung angepasst werden muss."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Bitte richten Sie den DHCP-Server sofort nach der Installation ein."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr ""
 "Netzwerkschnittstelle, an der der DHCP-Server auf Anfragen warten soll:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
 "separated list."
 msgstr ""
 "Bitte geben Sie die Netzwerkschnittstelle(n) ein, an der bzw. denen der DHCP-"
-"Server auf DHCP-Anfragen warten soll. Mehrere Schnittstellennamen sollten "
-"in einer Liste, durch Leerzeichen getrennt, eingegeben werden."
+"Server auf DHCP-Anfragen warten soll. Mehrere Schnittstellennamen sollten in "
+"einer Liste, durch Leerzeichen getrennt, eingegeben werden."
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr ""
 "Die Schnittstellen werden automatisch erkannt, falls hier nichts eingegeben "
 "wird."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "Manuelle Einstellungen nach der Installation erforderlich"
+
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "Nachdem der DHCP-Server installiert wurde, müssen Sie ihn manuell durch "
+#~ "Anpassen der Datei /etc/dhcp/dhcpd.conf einrichten. Bitte beachten Sie, "
+#~ "dass die mitgelieferte Datei dhcpd.conf nur ein Beispiel ist und an die "
+#~ "Netzwerkumgebung angepasst werden muss."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "Bitte richten Sie den DHCP-Server sofort nach der Installation ein."

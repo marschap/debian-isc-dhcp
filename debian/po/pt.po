@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: isc-dhcp 4.1.1-P1-9\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2010-09-12 22:43+0100\n"
 "Last-Translator: Pedro Ribeiro <p.m42.ribeiro@gmail.com>\n"
 "Language-Team: Portuguese <traduz@debianpt.org>\n"
@@ -91,39 +91,15 @@ msgstr ""
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Por Exemplo: '-m replace' ou '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "É necessária configuração manual depois da instalação"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"Depois de instalado o servidor de DHCP terá de o configurar manualmente "
-"editando o ficheiro /etc/dhcp/dhcpd.conf. Por favor note que o dhcpd.conf "
-"fornecido é apenas um exemplo e tem de ser adaptado ao ambiente de rede."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Por favor configure o servidor de DHCP mal acabe a instalação."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "Interfaces de rede nas quais o servidor DHCP deve ouvir:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -135,12 +111,29 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr ""
 "As interfaces vão ser detectadas automaticamente se este campo for deixado "
 "em branco."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "É necessária configuração manual depois da instalação"
+
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "Depois de instalado o servidor de DHCP terá de o configurar manualmente "
+#~ "editando o ficheiro /etc/dhcp/dhcpd.conf. Por favor note que o dhcpd.conf "
+#~ "fornecido é apenas um exemplo e tem de ser adaptado ao ambiente de rede."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "Por favor configure o servidor de DHCP mal acabe a instalação."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "Versão não autoritária do servidor DHCP"

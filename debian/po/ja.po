@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: isc-dhcp 4.1.1-P1-9\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2010-07-25 14:19+0900\n"
 "Last-Translator: Hideki Yamane <henrich@debian.org>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
@@ -98,39 +98,15 @@ msgstr "DHCP リレーデーモンへの追加オプションを指定してく�
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "例: '-m replace' または '-a -D'"
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "インストール後に手動での設定が必要です"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"DHCP サーバのインストール後、/etc/isc-dhcp/dhcpd.conf ファイルを編集して手動"
-"で設定を行う必要があります。提供されている dhcpd.conf は単なるサンプルであ"
-"り、ネットワーク環境に応じて修正が必要であることに注意してください。"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "インストール完了後、すぐに DHCP サーバの設定を行ってください。"
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "DHCP サーバが待ち受ける必要のあるネットワークインターフェイス:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -142,7 +118,24 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "値が入力されなかった場合、インターフェイスは自動的に検出されます。"
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "インストール後に手動での設定が必要です"
+
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "DHCP サーバのインストール後、/etc/isc-dhcp/dhcpd.conf ファイルを編集して手"
+#~ "動で設定を行う必要があります。提供されている dhcpd.conf は単なるサンプルで"
+#~ "あり、ネットワーク環境に応じて修正が必要であることに注意してください。"
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "インストール完了後、すぐに DHCP サーバの設定を行ってください。"

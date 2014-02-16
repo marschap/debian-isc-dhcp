@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: isc-dhcp 4.1.1-P1-9\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2010-08-16 15:31+0200\n"
 "Last-Translator: Michal Simunek <michal.simunek@gmail.com>\n"
 "Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
@@ -96,39 +96,15 @@ msgstr "Zadejte prosím jakékoliv další volby pro démona DHCP."
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Například: '-m replace', nebo '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "Po instalaci je třeba provést ruční nastavení"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"Po instalaci DHCP serveru jej bude třeba ještě ručně nastavit úpravou "
-"souboru /etc/dhcp/dhcpd.conf. Vezměte prosím v potaz, že dodávaný dhcpd.conf "
-"je pouze příklad a musí být přizpůsoben síťovému prostředí."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "DHCP server nastavte co nejdříve po dokončení instalace."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "Síťová rozhraní, na kterých má DHCP server naslouchat:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -139,11 +115,28 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr ""
 "Ponecháte-li toto políčko prázdné, rozhraní budou automaticky rozpoznána."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "Po instalaci je třeba provést ruční nastavení"
+
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "Po instalaci DHCP serveru jej bude třeba ještě ručně nastavit úpravou "
+#~ "souboru /etc/dhcp/dhcpd.conf. Vezměte prosím v potaz, že dodávaný dhcpd."
+#~ "conf je pouze příklad a musí být přizpůsoben síťovému prostředí."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "DHCP server nastavte co nejdříve po dokončení instalace."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "Neautoritativní verze DHCP serveru"

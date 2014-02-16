@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3, 3.0.6.dfsg-1\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2007-10-20 22:30+0200\n"
 "Last-Translator: Esko Arajärvi <edu@iki.fi>\n"
 "Language-Team: Finnish <debian-l10n-finnish@lists.debian.org>\n"
@@ -86,45 +86,15 @@ msgstr "Anna DHCP-välittäjätaustaohjelman mahdolliset lisäasetukset."
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "Esimerkiksi: ”-m replace” tai ”-a -D”."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "Asetuksia tulee muokata käsin asennuksen jälkeen"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-#, fuzzy
-#| msgid ""
-#| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
-#| "environment."
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"DHCP-palvelimen asetuksia tiedostossa /etc/isc-dhcp/dhcpd.conf tarvitsee "
-"muokata käsin asennuksen jälkeen. Huomaa, että toimitettu dhcpd.conf on vain "
-"malli ja se pitää mukauttaa verkkoympäristöön."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr "Muokkaa DHCP-palvelimen asetuksia heti asennuksen päätyttyä."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "Verkkoliitynnät, joita DHCP-palvelimen tulisi kuunnella:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -135,10 +105,33 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "Liitynnät etsitään automaattisesti, jos tämä kenttä jätetään tyhjäksi."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "Asetuksia tulee muokata käsin asennuksen jälkeen"
+
+#, fuzzy
+#~| msgid ""
+#~| "After the DHCP server is installed, you will need to manually configure "
+#~| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
+#~| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#~| "environment."
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "DHCP-palvelimen asetuksia tiedostossa /etc/isc-dhcp/dhcpd.conf tarvitsee "
+#~ "muokata käsin asennuksen jälkeen. Huomaa, että toimitettu dhcpd.conf on "
+#~ "vain malli ja se pitää mukauttaa verkkoympäristöön."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr "Muokkaa DHCP-palvelimen asetuksia heti asennuksen päätyttyä."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "DHCP-palvelimen ei-määräävä versio"

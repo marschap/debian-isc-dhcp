@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dhcp3\n"
 "Report-Msgid-Bugs-To: isc-dhcp@packages.debian.org\n"
-"POT-Creation-Date: 2010-07-07 18:58-0700\n"
+"POT-Creation-Date: 2014-01-10 04:22+0000\n"
 "PO-Revision-Date: 2007-06-09 14:38+0530\n"
 "Last-Translator: Dr.T.Vasudevan <agnihot3@gmail.com>\n"
 "Language-Team: TAMIL <ubuntu-l10n-tam@lists.ubuntu.com>\n"
@@ -91,47 +91,15 @@ msgstr ""
 msgid "For example: '-m replace' or '-a -D'."
 msgstr "உதாரணம் : '-m replace'  அல்லது '-a -D'."
 
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Manual configuration required after installation"
-msgstr "நிறுவலுக்குப்பின் கைமுறை வடிவமைப்பு தேவை"
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-#, fuzzy
-#| msgid ""
-#| "After the DHCP server is installed, you will need to manually configure "
-#| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
-#| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
-#| "environment."
-msgid ""
-"After the DHCP server is installed, you will need to manually configure it "
-"by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd.conf "
-"supplied is just a sample, and must be adapted to the network environment."
-msgstr ""
-"டிஹெச்சிபி(DHCP) சேவயகம் நிறுவப்பட்டதும் நீங்கள் அதை கைமுறையாக வடிவமைக்க வேண்டும். "
-"அதற்கு /etc/isc-dhcp/dhcpd.conf. கோப்பை திருத்தவும். dhcpd.conf என்பது உதாரணமே. "
-"வலையமைப்பு சூழலுக்கு ஏற்ப இது மாறுபடும்."
-
-#. Type: note
-#. Description
-#: ../isc-dhcp-server.templates:2001
-msgid "Please configure the DHCP server as soon as the installation finishes."
-msgstr ""
-"டிஹெச்சிபி(DHCP) சேவயகம் நிறுவப்பட்ட உடனேயே தயை செய்து நீங்கள் அதை கைமுறையாக "
-"வடிவமைக்க வேண்டும்."
-
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid "Network interfaces on which the DHCP server should listen:"
 msgstr "டிஹெச்சிபி(DHCP) சேவயகம் செவி சாய்க்க வலையமைப்பு இடைமுகங்கள்:"
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "Please specify on which network interface(s) the DHCP server should listen "
 "for DHCP requests. Multiple interface names should be entered as a space-"
@@ -142,10 +110,35 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../isc-dhcp-server.templates:3001
+#: ../isc-dhcp-server.templates:2001
 msgid ""
 "The interfaces will be automatically detected if this field is left blank."
 msgstr "இந்த புலம் வெற்றாக விடப்பட்டால் இடைமுகங்கள் தானியங்கியாக கண்டுபிடிக்கப்படும்."
+
+#~ msgid "Manual configuration required after installation"
+#~ msgstr "நிறுவலுக்குப்பின் கைமுறை வடிவமைப்பு தேவை"
+
+#, fuzzy
+#~| msgid ""
+#~| "After the DHCP server is installed, you will need to manually configure "
+#~| "it by editing the file /etc/isc-dhcp/dhcpd.conf. Please note that the "
+#~| "dhcpd.conf supplied is just a sample, and must be adapted to the network "
+#~| "environment."
+#~ msgid ""
+#~ "After the DHCP server is installed, you will need to manually configure "
+#~ "it by editing the file /etc/dhcp/dhcpd.conf. Please note that the dhcpd."
+#~ "conf supplied is just a sample, and must be adapted to the network "
+#~ "environment."
+#~ msgstr ""
+#~ "டிஹெச்சிபி(DHCP) சேவயகம் நிறுவப்பட்டதும் நீங்கள் அதை கைமுறையாக வடிவமைக்க வேண்டும். "
+#~ "அதற்கு /etc/isc-dhcp/dhcpd.conf. கோப்பை திருத்தவும். dhcpd.conf என்பது "
+#~ "உதாரணமே. வலையமைப்பு சூழலுக்கு ஏற்ப இது மாறுபடும்."
+
+#~ msgid ""
+#~ "Please configure the DHCP server as soon as the installation finishes."
+#~ msgstr ""
+#~ "டிஹெச்சிபி(DHCP) சேவயகம் நிறுவப்பட்ட உடனேயே தயை செய்து நீங்கள் அதை கைமுறையாக "
+#~ "வடிவமைக்க வேண்டும்."
 
 #~ msgid "Non-authoritative version of DHCP server"
 #~ msgstr "அதிகார பூர்வமாகாத டிஹெச்சிபி(DHCP) சேவையக வடிவ நிலை"

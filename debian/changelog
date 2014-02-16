@@ -1,3 +1,15 @@
+isc-dhcp (4.3.0a1-2) experimental; urgency=medium
+
+  * Remove unused template.
+  * Remove unnecessary breaks.
+  * Fix version control fields.
+  * Escape hyphens in manpages.
+  * Enable all build hardening flags.
+  * Fix init functions lintian warning.
+  * Create the /var/lib/dhcp directory (closes: #734773).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Fri, 10 Jan 2014 04:00:42 +0000
+
 isc-dhcp (4.3.0a1-1) experimental; urgency=medium
 
   * New upstream release.

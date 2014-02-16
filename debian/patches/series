@@ -3,3 +3,5 @@ fix_exit_hook_doc_manpage
 no_loopback_checksum
 dhclient-exit-hook.patch
 missing-comma.patch
+spelling-error.patch
+manpage-hyphens.patch

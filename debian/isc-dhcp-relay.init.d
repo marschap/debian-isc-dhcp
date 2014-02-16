@@ -21,6 +21,9 @@ if [ ! -f /etc/default/isc-dhcp-relay ]; then
 	exit 1
 fi
 
+# Source init functions
+. /lib/lsb/init-functions
+
 # Read init script configuration (interfaces the daemon should listen on
 # and the DHCP server we should forward requests to.)
 [ -f /etc/default/isc-dhcp-relay ] && . /etc/default/isc-dhcp-relay
