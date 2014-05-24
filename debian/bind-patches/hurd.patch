@@ -1,0 +1,34 @@
+--- bind-9.9.5b1/configure.in.orig	2013-12-12 06:59:59.000000000 +0100
++++ bind-9.9.5b1/configure.in	2014-03-25 09:33:41.000000000 +0100
+@@ -352,7 +352,7 @@ case "$host" in
+ 	# as it breaks how the two halves (Basic and Advanced) of the IPv6
+ 	# Socket API were designed to be used but we have to live with it.
+ 	# Define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
+-	*-linux* | *-kfreebsd*-gnu)
++	*-linux* | *-kfreebsd*-gnu | *-gnu*)
+ 		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
+ 		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+ 		;;
+--- bind-9.9.5b1/configure.orig	2013-12-12 06:59:59.000000000 +0100
++++ bind-9.9.5b1/configure	2014-03-25 09:33:41.000000000 +0100
+@@ -352,7 +352,7 @@ case "$host" in
+ 	# as it breaks how the two halves (Basic and Advanced) of the IPv6
+ 	# Socket API were designed to be used but we have to live with it.
+ 	# Define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
+-	*-linux* | *-kfreebsd*-gnu)
++	*-linux* | *-kfreebsd*-gnu | *-gnu*)
+ 		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
+ 		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+ 		;;
+--- bind-9.9.5b1/lib/isc/unix/net.c.orig	2013-12-12 06:59:59.000000000 +0100
++++ bind-9.9.5b1/lib/isc/unix/net.c	2014-03-25 10:21:08.000000000 +0100
+@@ -130,6 +130,9 @@ try_proto(int domain) {
+ #ifdef EAFNOSUPPORT
+ 		case EAFNOSUPPORT:
+ #endif
++#ifdef EPFNOSUPPORT
++		case EPFNOSUPPORT:
++#endif
+ #ifdef EPROTONOSUPPORT
+ 		case EPROTONOSUPPORT:
+ #endif

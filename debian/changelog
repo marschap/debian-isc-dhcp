@@ -1,3 +1,15 @@
+isc-dhcp (4.3.0a1-2.1) experimental; urgency=medium
+
+  * Non-Maintainer Upload
+  * rules: Fix bind patching.
+  * bind-patches/hurd: Add upstream patch to fix Hurd build.
+  * rules: Select proper backends in the Hurd case.
+  * dhclient-script.hurd, dhclient-script.hurd.udeb,
+    rfc3442-classless-routes.hurd: Add Hurd scripts.
+  * Closes: #616290.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 06 Apr 2014 22:14:44 +0200
+
 isc-dhcp (4.3.0a1-2) experimental; urgency=medium
 
   * Remove unused template.

@@ -1,0 +1,116 @@
+#!/bin/sh
+
+set -e
+
+# reduced dhclient-script for the Debian installer
+# changes by Joshua Kwan <joshk@triplehelix.org>,
+# Bastian Blank <waldi@debian.org>
+
+# dhclient-script for Linux. Dan Halbert, March, 1997.
+# Updated for Linux 2.[12] by Brian J. Murrell, January 1999.
+# Modified for Debian.  Matt Zimmerman and Eloy Paris, December 2003
+# Adapted the GNU/Linux script to GNU/Hurd, Svante Signell and Samuel Thibault,
+# February 2011.
+
+# update /etc/resolv.conf based on received values
+make_resolv_conf() {
+    local new_resolv_conf
+
+    if [ -n "$new_domain_name" ] || [ -n "$new_domain_name_servers" ]; then
+        new_resolv_conf=/etc/resolv.conf.dhclient-new
+        rm -f $new_resolv_conf
+
+        if [ -n "$new_domain_name" ]; then
+            echo "search $new_domain_name" >>$new_resolv_conf
+        fi
+
+        for nameserver in $new_domain_name_servers; do
+            echo "nameserver $nameserver" >>$new_resolv_conf
+        done
+
+        mv $new_resolv_conf /etc/resolv.conf
+    fi
+}
+
+set_hostname() {
+    local current_hostname
+    current_hostname=$(hostname)
+
+    if [ -z "$current_hostname" ] || [ "$current_hostname" = "(none)" ]; then
+        hostname "$new_host_name"
+    fi
+}
+
+# set up some variables for DHCP handlers below
+if [ -n "$new_subnet_mask" ]; then
+    new_subnet_arg="-m $new_subnet_mask"
+fi
+
+# Execute the operation
+case "$reason" in
+    MEDIUM|ARPCHECK|ARPSEND)
+        # Do nothing
+        ;;
+    PREINIT)
+        fsysopts /servers/socket/2 -i $interface
+
+        # We need to give the kernel some time to get the interface up.
+        sleep 1
+
+        ;;
+
+    BOUND|RENEW|REBIND|REBOOT)
+        set_hostname
+	pfinet_args="-i $interface"
+        
+        if [ -n "$old_ip_address" ] &&
+             [ "$old_ip_address" != "$new_ip_address" ]; then
+            # IP address changed. Bringing down the interface will delete all routes,
+            # and clear the ARP cache.
+            fsysopts /servers/socket/2 $pfinet_args
+        fi
+
+	# TODO: add MTU option to pfinet
+	#if [ -n "$new_interface_mtu" ]; then
+	#    pfinet_args="$pfinet_args --mtu $new_interface_mtu"
+	#    fsysopts /servers/socket/2 $pfinet_args
+	#fi
+
+        if [ -z "$old_ip_address" ] ||
+           [ "$old_ip_address" != "$new_ip_address" ] ||
+            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
+
+	    pfinet_args="$pfinet_args -a $new_ip_address $new_subnet_arg"
+
+            for router in $new_routers; do
+               pfinet_args="$pfinet_args -g $router"
+            done
+	    fsysopts /servers/socket/2 $pfinet_args
+        fi
+
+        make_resolv_conf
+
+        # Get the domain name into a file suitable for netcfg to read.
+        printf "$new_domain_name" > /tmp/domain_name
+
+        if [ -n "$new_ntp_servers" ]; then
+            printf "$new_ntp_servers" > /tmp/dhcp-ntp-servers
+        fi
+
+        ;;
+
+    EXPIRE|FAIL|RELEASE|STOP)
+        if [ -n "$old_ip_address" ]; then
+            # Shut down interface, which will delete routes and clear arp cache.
+	    fsysopts /servers/socket/2 -i $interface
+        fi
+
+        ;;
+
+    TIMEOUT)
+	fsysopts /servers/socket/2 -i $interface
+
+        ;;
+esac
+
+exit 0

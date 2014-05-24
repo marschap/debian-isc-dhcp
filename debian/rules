@@ -7,12 +7,6 @@ DEB_HOST_ARCH_OS=$(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
-ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
-CROSS=CC=$(DEB_HOST_GNU_TYPE)-gcc
-else
-CROSS=
-endif
-
 CFLAGS+=-Wall
 CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
 CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
@@ -22,9 +16,22 @@ CFLAGS+=-DNOMINUM
 CONFFLAGS=--prefix=/usr \
           --sysconfdir=/etc/dhcp \
           --with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
-	  --with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
-	  --with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
-	  --with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
+          --with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
+          --with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
+          --with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
+
+# cross-architecture building
+ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
+CROSS=CC=$(DEB_HOST_GNU_TYPE)-gcc
+else
+CROSS=
+endif
+
+# hurd support
+ifeq ($(DEB_HOST_ARCH_OS), hurd)
+export DO_LPF=1
+CONFFLAGS+=--enable-use-sockets
+endif
 
 %:
 	dh $@ --parallel --with autoreconf
@@ -34,7 +41,7 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	# extract and patch embedded bind
 	cd bind && tar xf bind.tar.gz && \
-	    cd bind-* && test -e debian/bind-patches/series && \
+	    cd bind-* && test -e ../../debian/bind-patches/series && \
 	    QUILT_PATCHES=../../debian/bind-patches quilt push -a || true
 	# ldap-enabled build
 	test -f Makefile && $(MAKE) distclean || true
@@ -60,4 +67,4 @@ override_dh_strip:
 
 override_dh_clean:
 	cd bind && rm -rf bind-* include lib bindvar.tmp *.log
-	dh_clean -- dhcpd config.report
+	dh_clean -- dhcpd config.log config.report
