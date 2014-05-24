@@ -1,17 +1,26 @@
 	      Internet Systems Consortium DHCP Distribution
-			     Version 4.3.0a1
-			     17 December 2013
+			      Version 4.3.0
+			     3 February 2014
 
 			      Release Notes
 
 			      NEW FEATURES
 
-ISC DHCP 4.2.x includes features that were not included in DHCP 4.1.x.
-These include:
+The major "theme" for ISC DHCP 4.3.x was to update the suport for
+DHCPv6 to include several of the features that have been available
+for DHCPv4.  These include:
 
-Processing the DHCP to DNS server transactions in an asyncrhonous fashion.
-The DHCP server or client can now continue with its processing while
-awaiting replies from the DNS server.
+- Support the use of classes
+
+- Support for on_commit, on_expiry and on_release statements
+
+- Better logging of address assignments
+
+- Support for using DHCPv6 relay options in expressions
+
+This release also adds suppport for the standard DDNS as described in the
+current RFCs as well as enhancing support for dynamically adding and removing
+subclasses via OMAPI.
 
 There are a number of DHCPv6 limitations and features missing in this
 release, which will be addressed in the future:
@@ -20,7 +29,7 @@ release, which will be addressed in the future:
 
 - DHCPv6 includes human-readable text in status code messages, in
   English.  A method to reconfigure or support other languages would
-  be preferrable.
+  be preferable.
 
 - The "host-identifier" option is limited to a simple token.
 
@@ -39,6 +48,10 @@ The system has only been tested on Linux, FreeBSD, and Solaris, and may not
 work on other platforms. Please report any problems and suggested fixes to
 <dhcp-users@isc.org>.
 
+ISC DHCP is open source software maintained by Internet Systems
+Consortium.  This product includes cryptographic software written
+by Eric Young (eay@cryptsoft.com).
+
 			Changes since 4.2.0 (new features)
 
 - If a client renews before 'dhcp-cache-threshold' percent of its lease
@@ -47,9 +60,9 @@ work on other platforms. Please report any problems and suggested fixes to
   than extend or renew the lease.  This absolves the server of needing
   to perform an fsync() operation on the lease database before reply,
   which improves performance. [ISC-Bugs #22228]
-  Update this patch to support asynchronous DDNS.  If the server is
+  Updated this patch to support asynchronous DDNS.  If the server is
   attempting to do DDNS on a lease it should be udpated and written to
-  disk even if that wouldn't be necessary due to the thresholding
+  disk even if that wouldn't be necessary due to the thresholding.
   [ISC-Bugs #26311]
 
 - The 'no available billing' log line now also logs the name of the last
@@ -70,7 +83,7 @@ work on other platforms. Please report any problems and suggested fixes to
   [ISC-Bugs #20680]
 
 - Add support in v6 for on-commit, on-expire and on-release.
-  [ISC-Bugs #27912
+  [ISC-Bugs #27912]
 
 - Add support for using classes with v6.
   [ISC-Bugs #26510]
@@ -104,13 +117,13 @@ work on other platforms. Please report any problems and suggested fixes to
 - Add support for accessing options from v6 relays.  The v6relay
   statement allows the administrator to choose which relay to
   use when searching for an option, see the dhcp-options man page
-  for a description.  The host-identifer option has also been
-  updated to support the use of relay options see the dhcpd.conf
+  for a description.  The host-identifier option has also been
+  updated to support the use of relay options, see the dhcpd.conf
   man page for a description.
   [ISC-Bugs #19598]
 
 - When doing DDNS if there isn't an appropriate zone statement attempt
-  to find a reasoanble nameserver via a DNS resolver.  This restores
+  to find a reasonable nameserver via a DNS resolver.  This restores
   some functionality that was lost in the transition to asynchronous
   DDNS.  Due to the lack of security and increase in fragility of the
   system when using this feature we strongly recommend the use of
@@ -127,7 +140,7 @@ work on other platforms. Please report any problems and suggested fixes to
   the server to not record a client's uid in its lease.  This
   violates the specification but may also be useful when a client
   can dual boot using different client ids but the same mac address.
-  Thank you to Brian De Wolf for the patch.
+  Thank you to Brian De Wolf at Cal Poly Pomona for the patch.
   [ISC-Bugs #32427]
   [ISC-Bugs #35066]
 
@@ -136,6 +149,34 @@ work on other platforms. Please report any problems and suggested fixes to
   Thanks to Christof Chen for testing and submitting the patch.
   [ISC-Bugs #35015]
 
+- Extend the hardware expression to look into the lease structure
+  for a hardware address if there is no packet.  This allows the
+  server to find the hardware address during on-expiry processing.
+  [ISC-Bugs #24584]
+
+- Add definitions for some options that have been specified by the IETF.
+  [ISC-Bugs #29268]
+  [ISC-Bugs #35198]
+
+			Changes since 4.3.0rc1
+
+- None
+			Changes since 4.3.0b1
+
+- Tidy up receive packet processing.
+  Thanks to Brad Plank of GTA for reporting the issue and suggesting
+  a possible patch.
+  [ISC-Bugs #34447]
+
+			Changes since 4.3.0a1
+
+- Modify the message displayed when a process hits a fatal error.
+  The new message is much shorter and simply points to the README
+  and our website for directions on bug submissions.
+  [ISC-Bugs #24789]
+
+- Handle an absent resolv.conf file better.
+  [ISC-Bugs #35194]
 
 			Changes since 4.2.5
 
@@ -188,6 +229,9 @@ work on other platforms. Please report any problems and suggested fixes to
 - Enhance the DHCPv6 server logging to include the addresses that are assigned
   to the clients.
   [ISC-Bugs #26377]
+
+- Fix an operation in the DDNS code to be a bitwise instead of logical or.
+  [ISC-Bugs #35138]
 
 			Changes since 4.2.4
 

@@ -4,7 +4,7 @@
 
 /*
  * 
- * Copyright (c) 2009-2013 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2009-2014 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2000-2003 by Internet Software Consortium
  *
@@ -552,7 +552,7 @@ ddns_updates(struct packet *packet, struct lease *lease, struct lease *old,
 	 * Perform updates.
 	 */
 
-	if (ddns_cb->flags && DDNS_UPDATE_ADDR) {
+	if (ddns_cb->flags & DDNS_UPDATE_ADDR) {
 		oc = lookup_option(&server_universe, options,
 				   SV_DDNS_CONFLICT_DETECT);
 		if (oc &&
