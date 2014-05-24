@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2009-2010,2013 by Internet Systems Consortium, Inc.("ISC")
+ * Copyright(c) 2009-2010,2013-2014 by Internet Systems Consortium, Inc.("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -50,7 +50,7 @@ dhcp_dns_client_setservers(void)
 
 	result = irs_resconf_load(dhcp_gbl_ctx.mctx, _PATH_RESOLV_CONF,
 				  &resconf);
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 		log_error("irs_resconf_load failed: %d.", result);
 		return (result);
 	}
