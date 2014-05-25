@@ -67,4 +67,4 @@ override_dh_strip:
 
 override_dh_clean:
 	cd bind && rm -rf bind-* include lib bindvar.tmp *.log
-	dh_clean -- dhcpd config.log config.report
+	dh_clean -- dhcpd config.*

@@ -1,3 +1,13 @@
+isc-dhcp (4.3.0+dfsg-1) unstable; urgency=medium
+
+  * New upstream stable release.
+  * Update debian/copyright to format 1.0.
+  * Depend on iproute2 instead of iproute (closes: #742151).
+  * Depend on freebsd-net-tools for kfreebsd (closes: #738934).
+  * Acknowledge and apply the non-maintainer upload (closes: #747017).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 24 May 2014 21:54:01 +0000
+
 isc-dhcp (4.3.0a1-2.1) experimental; urgency=medium
 
   * Non-Maintainer Upload

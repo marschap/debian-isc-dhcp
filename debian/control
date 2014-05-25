@@ -125,8 +125,7 @@ Depends:
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
  isc-dhcp-common (= ${binary:Version}),
- iproute [linux-any],
- inetutils-ping [!linux-any],
+ iproute2 [linux-any] | freebsd-net-tools [kfreebsd-any],
 Suggests:
  resolvconf,
  avahi-autoipd

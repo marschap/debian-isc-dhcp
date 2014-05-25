@@ -1,11 +1,9 @@
 description: escape hyphens in manpages
 author: Michael Gilbert <mgilbert@debian.org>
 
-Index: isc-dhcp/client/dhclient.8
-===================================================================
---- isc-dhcp.orig/client/dhclient.8	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/client/dhclient.8	2014-01-10 04:50:46.857566057 +0000
-@@ -228,7 +228,7 @@
+--- a/client/dhclient.8
++++ b/client/dhclient.8
+@@ -228,7 +228,7 @@ parameters.  This is the default and can
  .BI \-6
  Use the DHCPv6 protocol to obtain whatever IPv6 addresses are available
  along with configuration parameters.  It cannot be combined with
@@ -14,11 +12,9 @@ Index: isc-dhcp/client/dhclient.8
  \fB\-D\fR arguments provide more control over aspects of the DHCPv6
  processing.  Note: it is not recommended to mix queries of different
  types together or even to share the lease file between them.
-Index: isc-dhcp/server/dhcpd.8
-===================================================================
---- isc-dhcp.orig/server/dhcpd.8	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/server/dhcpd.8	2014-01-10 04:50:46.857566057 +0000
-@@ -93,7 +93,7 @@
+--- a/server/dhcpd.8
++++ b/server/dhcpd.8
+@@ -93,7 +93,7 @@ dhcpd - Dynamic Host Configuration Proto
  ]
  
  .B dhcpd
@@ -27,11 +23,9 @@ Index: isc-dhcp/server/dhcpd.8
  .SH DESCRIPTION
  The Internet Systems Consortium DHCP Server, dhcpd, implements the
  Dynamic Host Configuration Protocol (DHCP) and the Internet Bootstrap
-Index: isc-dhcp/client/dhclient-script.8
-===================================================================
---- isc-dhcp.orig/client/dhclient-script.8	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/client/dhclient-script.8	2014-01-10 04:50:46.857566057 +0000
-@@ -194,7 +194,7 @@
+--- a/client/dhclient-script.8
++++ b/client/dhclient-script.8
+@@ -191,7 +191,7 @@ The dhclient has been informed to shut d
  dhclient-script should unconfigure or shutdown the interface as
  appropriate.
  .SH RELEASE
@@ -40,11 +34,9 @@ Index: isc-dhcp/client/dhclient-script.8
  administrator wishes it to release its lease(s).  dhclient-script should
  unconfigure or shutdown the interface.
  .SH NBI
-Index: isc-dhcp/server/dhcpd.conf.5
-===================================================================
---- isc-dhcp.orig/server/dhcpd.conf.5	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/server/dhcpd.conf.5	2014-01-10 04:50:57.221566031 +0000
-@@ -1306,7 +1306,7 @@
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -1306,7 +1306,7 @@ dnssec-keygen.  If you are using BIND 9\
  dnssec-keygen, the above key would be created as follows:
  .PP
  .nf
@@ -53,7 +45,7 @@ Index: isc-dhcp/server/dhcpd.conf.5
  .fi
  .PP
  You may wish to enable logging of DNS updates on your DNS server.
-@@ -1821,7 +1821,7 @@
+@@ -1821,7 +1821,7 @@ A short min-lease-time enforces a step c
  min-lease-time allows for a gradual change.
  \fItime\fR is either second since epoch, or a UTC time string e.g.
  4 2007/08/24 09:14:32 or a string with time zone offset in seconds
@@ -62,7 +54,7 @@ Index: isc-dhcp/server/dhcpd.conf.5
  .SH REFERENCE: PARAMETERS
  The
  .I adaptive-lease-time-threshold
-@@ -2077,7 +2077,7 @@
+@@ -2077,7 +2077,7 @@ a second).
  .PP
  Please note that as delayed-ack is currently experimental, the delayed-ack
  feature is not compiled in by default, but must be enabled at compile time
@@ -71,7 +63,7 @@ Index: isc-dhcp/server/dhcpd.conf.5
  .RE
  .PP
  The 
-@@ -2458,8 +2458,8 @@
+@@ -2458,8 +2458,8 @@ The syntax of the \fIsyslog.conf\fR file
  operating systems - consult the \fIsyslog.conf\fR manual page to be
  sure.  To get syslog to start logging to the new file, you must first
  create the file with correct ownership and permissions (usually, the
@@ -82,11 +74,9 @@ Index: isc-dhcp/server/dhcpd.conf.5
  Some systems support log rollover using a shell script or program
  called newsyslog or logrotate, and you may be able to configure this
  as well so that your log file doesn't grow uncontrollably.
-Index: isc-dhcp/relay/dhcrelay.8
-===================================================================
---- isc-dhcp.orig/relay/dhcrelay.8	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/relay/dhcrelay.8	2014-01-10 04:50:46.857566057 +0000
-@@ -137,11 +137,11 @@
+--- a/relay/dhcrelay.8
++++ b/relay/dhcrelay.8
+@@ -137,11 +137,11 @@ downstream to the source of the original
  .PP
  \fIProtocol selection options:\fR
  .TP
@@ -100,7 +90,7 @@ Index: isc-dhcp/relay/dhcrelay.8
  Run dhcrelay as a DHCPv4/BOOTP relay agent.  This is the default mode of
  operation, so the argument is not necessary, but may be specified for
  clarity.  Incompatible with \fB-6\fR.
-@@ -153,32 +153,32 @@
+@@ -153,32 +153,32 @@ the command line, to which DHCP/BOOTP qu
  .PP
  \fIOptions available for both DHCPv4 and DHCPv6:\fR
  .TP
@@ -140,7 +130,7 @@ Index: isc-dhcp/relay/dhcrelay.8
  Append an agent option field to each request before forwarding it to
  the server.  Agent option fields in responses sent from servers to
  clients will be stripped before forwarding such responses back to the
-@@ -188,25 +188,25 @@
+@@ -188,25 +188,25 @@ be the printable name of the interface o
  received.  The client supports inclusion of a Remote ID suboption as well,
  but this is not used by default.
  .TP
@@ -170,7 +160,7 @@ Index: isc-dhcp/relay/dhcrelay.8
  Control the handling of incoming DHCPv4 packets which already contain
  relay agent options.  If such a packet does not have \fIgiaddr\fR set in
  its header, the DHCP standard requires that the packet be discarded.
-@@ -220,19 +220,19 @@
+@@ -220,19 +220,19 @@ To use this option you must also enable
  .PP
  \fIOptions available in DHCPv6 mode only:\fR
  .TP
@@ -193,7 +183,7 @@ Index: isc-dhcp/relay/dhcrelay.8
  Specifies the ``lower'' network interface for DHCPv6 relay mode: the
  interface on which queries will be received from clients or from other
  relay agents.  At least one \fB-l\fR option must be included in the command
-@@ -242,7 +242,7 @@
+@@ -242,7 +242,7 @@ if it isn't, dhcrelay will use the first
  on the interface.  The optional \fI#index\fR parameter specifies the
  interface index.
  .TP
@@ -202,11 +192,9 @@ Index: isc-dhcp/relay/dhcrelay.8
  Specifies the ``upper'' network interface for DHCPv6 relay mode: the
  interface to which queries from clients and other relay agents should be
  forwarded.  At least one \fB-u\fR option must be included in the command
-Index: isc-dhcp/server/dhcpd.leases.5
-===================================================================
---- isc-dhcp.orig/server/dhcpd.leases.5	2014-01-10 04:50:46.861566057 +0000
-+++ isc-dhcp/server/dhcpd.leases.5	2014-01-10 04:50:46.857566057 +0000
-@@ -128,7 +128,7 @@
+--- a/server/dhcpd.leases.5
++++ b/server/dhcpd.leases.5
+@@ -121,7 +121,7 @@ Lease times are specified in Universal C
  the local time zone.  There is probably nowhere in the world where the
  times recorded on a lease are always the same as wall clock times.  On
  most unix machines, you can display the current time in UTC by typing
@@ -215,3 +203,12 @@ Index: isc-dhcp/server/dhcpd.leases.5
  .PP
  If the \fBdb-time-format\fR was configured to \fIlocal\fR, then
  the \fIdate\fR fields appear as follows:
+--- a/dhcpctl/dhcpctl.3
++++ b/dhcpctl/dhcpctl.3
+@@ -491,5 +491,4 @@ omapi(3), omshell(1), dhcpd(8), dhclient
+ .Em dhcpctl
+ is maintained by ISC.  To learn more about Internet Systems Consortium,
+ see
+-.B https://www.isc.org
+-
++https://www.isc.org
