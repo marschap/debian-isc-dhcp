@@ -61,6 +61,8 @@ override_dh_install:
 	    debian/isc-dhcp-client-udeb/sbin/dhclient-script
 	cp debian/rfc3442-classless-routes.$(DEB_HOST_ARCH_OS) \
 	    debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/rfc3442-classless-routes
+	cp contrib/dhcp-lease-list.pl \
+	    debian/isc-dhcp-server/usr/sbin/dhcp-lease-list
 
 override_dh_strip:
 	dh_strip --dbg-package=isc-dhcp-dbg
