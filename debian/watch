@@ -1,3 +1,4 @@
 version=3
+opts="pgpsigurlmangle=s/$/.sha512.asc/" \
 http://ftp.isc.org/isc/dhcp/(\d+\..*)/dhcp-(\d.*)\.(?:tgz|tbz2|txz|tar\.(?:gz|bz2|xz)) \
 debian uupdate
