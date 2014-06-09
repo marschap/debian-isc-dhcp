@@ -1,6 +1,6 @@
-dhclient-script-exit-status
-fix_exit_hook_doc_manpage
-no_loopback_checksum
+dhclient-script-exit-status.patch
+fix-exit-hook-manpage.patch
+no-loopback-checksum.patch
 dhclient-exit-hook.patch
 spelling-error.patch
 manpage-hyphens.patch
