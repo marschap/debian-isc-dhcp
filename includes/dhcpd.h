@@ -730,6 +730,8 @@ struct lease_state {
 #define SV_DDNS_LOCAL_ADDRESS4		80
 #define SV_DDNS_LOCAL_ADDRESS6		81
 #define SV_IGNORE_CLIENT_UIDS		82
+#define SV_LOG_THRESHOLD_LOW		83
+#define SV_LOG_THRESHOLD_HIGH		84
 
 #if !defined (DEFAULT_PING_TIMEOUT)
 # define DEFAULT_PING_TIMEOUT 1
@@ -925,6 +927,8 @@ struct pool {
 #if defined (FAILOVER_PROTOCOL)
 	dhcp_failover_state_t *failover_peer;
 #endif
+	int logged;		/* already logged a message */
+	int low_threshold;	/* low threshold to restart logging */
 };
 
 struct shared_network {
@@ -1026,6 +1030,7 @@ struct client_lease {
 	unsigned int is_bootp: 1;  /* If set, lease was acquired with BOOTP. */
 
 	struct option_state *options;	     /* Options supplied with lease. */
+	struct iaddr next_srv_addr;	/* Address of the next server to use */
 };
 
 /* DHCPv6 lease structures */
@@ -1483,6 +1488,12 @@ typedef unsigned char option_mask [16];
 #define MAX_TIME 0x7fffffff
 #define MIN_TIME 0
 
+#ifdef USE_LOG_PID
+/* include the pid in the syslog messages */
+#define DHCP_LOG_OPTIONS LOG_NDELAY | LOG_PID
+#else
+#define DHCP_LOG_OPTIONS LOG_NDELAY
+#endif
 						/* these are referenced */
 typedef struct hash_table ia_hash_t;
 typedef struct hash_table iasubopt_hash_t;
@@ -1599,6 +1610,10 @@ struct ipv6_pond {
 	struct ipv6_pool **ipv6_pools;	/* NULL-terminated array */
 	int last_ipv6_pool;		/* offset of last IPv6 pool
 					   used to issue a lease */
+	int num_total;			/* Total number of elements in the pond */
+	int num_active;			/* Number of elements in the pond in use */
+	int logged;			/* already logged a message */
+	int low_threshold;		/* low threshold to restart logging */
 };
 
 /* Flags and state for dhcp_ddns_cb_t */
@@ -1767,6 +1782,11 @@ int get_option (struct data_string *, struct universe *,
 		struct option_state *, struct option_state *,
 		struct option_state *, struct binding_scope **, unsigned,
 		const char *, int);
+int get_option_int (int *, struct universe *,
+		    struct packet *, struct lease *, struct client_state *,
+		    struct option_state *, struct option_state *,
+		    struct option_state *, struct binding_scope **, unsigned,
+		    const char *, int);
 void set_option (struct universe *, struct option_state *,
 		 struct option_cache *, enum statement_op);
 struct option_cache *lookup_option (struct universe *,
@@ -2739,6 +2759,7 @@ extern char *path_dhclient_script;
 extern int interfaces_requested;
 extern struct data_string default_duid;
 extern int duid_type;
+extern const char *path_dhclient_duid;
 
 extern struct client_config top_level_config;
 
@@ -2913,6 +2934,7 @@ isc_result_t read_client_conf (void);
 int read_client_conf_file (const char *,
 			   struct interface_info *, struct client_config *);
 void read_client_leases (void);
+void read_client_duid (void);
 void parse_client_statement (struct parse *, struct interface_info *,
 			     struct client_config *);
 int parse_X (struct parse *, u_int8_t *, unsigned);
@@ -3608,3 +3630,12 @@ void mark_interfaces_unavailable(void);
 
 #define MAX_ADDRESS_STRING_LEN \
    (sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"))
+
+/* Find the percentage of count.  We need to try two different
+ * ways to avoid rounding mistakes.
+ */
+#define FIND_PERCENT(count, percent)	\
+	((count) > (INT_MAX / 100) ?	\
+	 ((count) / 100) * (percent) : ((count) * (percent)) / 100)
+
+	
