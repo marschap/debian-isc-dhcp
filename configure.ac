@@ -1,4 +1,4 @@
-AC_INIT([DHCP],[4.3.0],[dhcp-users@isc.org])
+AC_INIT([DHCP],[4.3.1b1],[dhcp-users@isc.org])
 
 # we specify "foreign" to avoid having to have the GNU mandated files,
 # like AUTHORS, COPYING, and such
@@ -169,6 +169,16 @@ AC_ARG_ENABLE(secs_byteorder,
 if test "$enable_secs_byteorder" = "yes" ; then
 	AC_DEFINE([SECS_BYTEORDER], [1],
 		[Define to correct bad byteorders in secs field.])
+fi
+
+# Include the PID in the log messages.  This is useful when there may
+# be multiple instances of a program.
+# This is off by default
+AC_ARG_ENABLE(log_pid,
+	AS_HELP_STRING([--enable-log-pid],[Include PIDs in syslog messages (default is no).]))
+if test "$enable_log_pid" = "yes" ; then
+	AC_DEFINE([USE_LOG_PID], [1],
+		[Define to include PIDs in syslog messages.])
 fi
 
 # Testing section
@@ -612,6 +622,7 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
 AC_CONFIG_FILES([
   Makefile
   client/Makefile
+  client/tests/Makefile
   common/Makefile
   common/tests/Makefile
   dhcpctl/Makefile

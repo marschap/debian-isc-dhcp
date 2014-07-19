@@ -623,7 +623,10 @@ cons_options(struct packet *inpacket, struct dhcp_packet *outpacket,
 	 * Set offsets for buffer data to be copied into filename
 	 * and servername fields 
 	 */
-	mb_max = mb_size;
+	if (mb_size > agent_size)
+		mb_max = mb_size - agent_size;
+	else
+		mb_max = mb_size;
 
 	if (overload_avail & 1) {
 		of1 = mb_max;
@@ -1167,7 +1170,7 @@ store_options(int *ocount,
 	/* Eliminate duplicate options from the parameter request list.
 	 * Enforce RFC-mandated ordering of options that are present.
 	 */
-	for (i = 0; i < priority_len - 1; i++) {
+	for (i = 0; i < priority_len; i++) {
 		/* Eliminate duplicates. */
 		tto = 0;
 		for (ix = i + 1; ix < priority_len + tto; ix++) {
@@ -2121,6 +2124,57 @@ int get_option (result, universe, packet, lease, client_state,
 				    file, line))
 		return 0;
 	return 1;
+}
+
+/*
+ * Look for the option and dig out the value assoicated with it.
+ * Currently this is used for 1 byte integers, it maybe expanded
+ * in the future to handle other integers at which point it will
+ * need a size argument.
+ */
+int get_option_int (result, universe, packet, lease, client_state,
+		    in_options, cfg_options, options, scope, code, file, line)
+	int *result;
+	struct universe *universe;
+	struct packet *packet;
+	struct lease *lease;
+	struct client_state *client_state;
+	struct option_state *in_options;
+	struct option_state *cfg_options;
+	struct option_state *options;
+	struct binding_scope **scope;
+	unsigned code;
+	const char *file;
+	int line;
+{
+	struct option_cache *oc;
+	struct data_string d1;
+	int rcode = 0;
+
+	/* basic sanity checks */
+	if ((options == NULL) || (universe->lookup_func == NULL))
+		return (0);
+
+	/* find the option cache */
+	oc = ((*universe->lookup_func)(universe, options, code));
+	if (!oc)
+		return (0);
+
+	/* if there is a value get it into the string */
+	memset(&d1, 0, sizeof(d1));	
+	if (!evaluate_option_cache(&d1, packet, lease, client_state,
+				   in_options, cfg_options, scope, oc,
+				   file, line))
+		return (0);
+
+	/* If the length matches extract the value for the return */
+	if (d1.len == 1) {
+		*result = d1.data[0];
+		rcode = 1;
+	}
+	data_string_forget(&d1, MDL);
+
+	return (rcode);
 }
 
 void set_option (universe, options, option, op)
