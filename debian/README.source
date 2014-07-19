@@ -1,0 +1,80 @@
+Importing a new upstream version
+--------------------------------
+
+First, define a couple environment variables:
+
+$ export version=4.3.1~b1
+$ export branch=experimental
+
+Fetch the new upstream source:
+
+$ uscan --verbose
+
+** Make sure that uscan's output states that the upstream signature is good **
+
+Import the new version into the upstream branch (this is a little complicated
+since upstream doesn't provide an importable vcs, and there are probably better
+ways to do it):
+
+$ quilt pop -a
+$ git stash
+$ get checkout upstream
+$ rm -rf *
+$ cd ..
+$ tar xf isc-dhcp_$(version).tar.xz
+$ cp -r dhcp-$(version)/* isc-dhcp
+$ cd isc-dhcp
+$ git add .
+$ git commit -m "import upstream $(version)"
+$ git tag upstream/$(version) -m "upstream $(version)"
+$ git checkout $(branch)
+$ git merge master
+$ git merge upstream
+$ git stash pop
+
+For each of the existing quilt patches, do these the next steps, resolving
+failed hunks and refreshing as you go:
+
+$ QUILT_PATCHES=debian/patches quilt push -f
+$ quilt refresh
+
+Commit changes made to the patches:
+
+$ git commit debian/patches -m "refresh patches"
+
+Update the changelog and do a test build:
+
+$ dch -v $(version)-1 -m New upstream release.
+$ debuild -sa
+
+It's useful to check lintian at this point:
+
+$ lintian -i -I ../isc-dhcp_$(version)-1_amd64.changes
+
+Make sure to push everything when you're done:
+
+$ git commit -a
+$ git tag debian/$(version)-1 -m "release $(version)-1"
+$ git push
+$ git checkout upstream
+$ git push
+$ git push --tags
+
+Handling cruft
+--------------
+
+If you kill the build, sometimes intermediate files will gum things up.  The
+easiest way to recover from this kind of situation is to do something like:
+
+$ quilt pop -af
+$ git stash
+$ git clean -f
+$ git stash pop
+
+The build creates a lot of temporary files that may make it hard to interpret
+the output of git-status.  The easiest thing to do is to clean the build:
+
+$ debuild clean
+
+Another option is to add those files to your local .git/ignore file.  Please
+don't add them to the global .gitignore.

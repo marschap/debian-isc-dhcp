@@ -1,3 +1,10 @@
+isc-dhcp (4.3.1~b1-1) experimental; urgency=medium
+
+  * New upstream beta release.
+  * Add debian/README.source.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 19 Jul 2014 22:06:23 +0000
+
 isc-dhcp (4.3.0+dfsg-2) unstable; urgency=medium
 
   * Ship dhcp-lease-list (closes: #741488).
