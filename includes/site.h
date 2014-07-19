@@ -235,16 +235,6 @@
 
 #define ACCEPT_LIST_IN_DOMAIN_NAME
 
-/* In RFC3315 section 17.2.2 stated that if the server was not going
-   to be able to assign any addresses to any IAs in a subsequent Request
-   from a client that the server should not include any IAs.  This
-   requirement was removed in an errata from August 2010.  Define the
-   following if you want the pre-errata version.  
-   You should only enable this option if you have clients that
-   require the original functionality. */
-
-/* #define RFC3315_PRE_ERRATA_2010_08 */
-
 /* In previous versions of the code when the server generates a NAK
    it doesn't attempt to determine if the configuration included a
    server ID for that client.  Defining this option causes the server
@@ -294,7 +284,26 @@
    entail updating all the records at once, probably at start
    up. */
 #define DDNS_UPDATE_SLOW_TRANSITION
-   
+
+/* Define the default prefix length passed from the client to
+   the script when modifying an IPv6 IA_NA or IA_TA address.
+   The two most useful values are 128 which is what the current
+   specifications call for or 64 which is what has been used in
+   the past.  For most OSes 128 will indicate that the address
+   is a host address and doesn't include any on-link information.
+   64 indicates that the first 64 bits are the subnet or on-link
+   prefix. */
+#define DHCLIENT_DEFAULT_PREFIX_LEN 64
+
+/* Enable the gentle shutdown signal handling.  Currently this
+   means that on SIGINT or SIGTERM a client will release its
+   address and a server in a failover pair will go through
+   partner down.  Both of which can be undesireable in some
+   situations.  We plan to revisit this feature and may
+   make non-backwards compatible changes including the
+   removal of this define.  Use at your own risk.  */
+/* #define ENABLE_GENTLE_SHUTDOWN */
+
 /* Include definitions for various options.  In general these
    should be left as is, but if you have already defined one
    of these and prefer your definition you can comment the 

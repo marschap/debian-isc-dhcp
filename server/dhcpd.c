@@ -220,7 +220,7 @@ main(int argc, char **argv) {
 	dhcp_common_objects_setup ();
 
 	/* Initially, log errors to stderr as well as to syslogd. */
-	openlog ("dhcpd", LOG_NDELAY, DHCPD_LOG_FACILITY);
+	openlog ("dhcpd", DHCP_LOG_OPTIONS, DHCPD_LOG_FACILITY);
 
 	for (i = 1; i < argc; i++) {
 		if (!strcmp (argv [i], "-p")) {
@@ -308,7 +308,13 @@ main(int argc, char **argv) {
 			local_family_set = 1;
 #endif /* DHCPv6 */
 		} else if (!strcmp (argv [i], "--version")) {
-			log_info("isc-dhcpd-%s", PACKAGE_VERSION);
+			const char vstring[] = "isc-dhcpd-";
+			IGNORE_RET(write(STDERR_FILENO, vstring,
+					 strlen(vstring)));
+			IGNORE_RET(write(STDERR_FILENO,
+					 PACKAGE_VERSION,
+					 strlen(PACKAGE_VERSION)));
+			IGNORE_RET(write(STDERR_FILENO, "\n", 1));
 			exit (0);
 #if defined (TRACING)
 		} else if (!strcmp (argv [i], "-tf")) {
@@ -394,6 +400,9 @@ main(int argc, char **argv) {
 		log_info (copyright);
 		log_info (arr);
 		log_info (url);
+		log_info ("Config file: %s", path_dhcpd_conf);
+		log_info ("Database file: %s", path_dhcpd_db);
+		log_info ("PID file: %s", path_dhcpd_pid);
 	} else {
 		quiet = 0;
 		log_perror = 0;
@@ -412,7 +421,9 @@ main(int argc, char **argv) {
 	trace_srandom = trace_type_register ("random-seed", (void *)0,
 					     trace_seed_input,
 					     trace_seed_stop, MDL);
+#if defined (NSUPDATE)
 	trace_ddns_init();
+#endif /* NSUPDATE */
 #endif
 
 #if defined (PARANOIA)
@@ -688,22 +699,6 @@ main(int argc, char **argv) {
 			exit (0);
 	}
  
-#if defined (PARANOIA)
-	/* change uid to the specified one */
-
-	if (set_gid) {
-		if (setgroups (0, (void *)0))
-			log_fatal ("setgroups: %m");
-		if (setgid (set_gid))
-			log_fatal ("setgid(%d): %m", (int) set_gid);
-	}	
-
-	if (set_uid) {
-		if (setuid (set_uid))
-			log_fatal ("setuid(%d): %m", (int) set_uid);
-	}
-#endif /* PARANOIA */
-
 	/*
 	 * Deal with pid files.  If the user told us
 	 * not to write a file we don't read one either
@@ -739,6 +734,22 @@ main(int argc, char **argv) {
 				  path_dhcpd_pid);
 		}
 	}
+
+#if defined (PARANOIA)
+	/* change uid to the specified one */
+
+	if (set_gid) {
+		if (setgroups (0, (void *)0))
+			log_fatal ("setgroups: %m");
+		if (setgid (set_gid))
+			log_fatal ("setgid(%d): %m", (int) set_gid);
+	}	
+
+	if (set_uid) {
+		if (setuid (set_uid))
+			log_fatal ("setuid(%d): %m", (int) set_uid);
+	}
+#endif /* PARANOIA */
 
 	/* If we were requested to log to stdout on the command line,
 	   keep doing so; otherwise, stop. */
@@ -776,9 +787,12 @@ main(int argc, char **argv) {
 	omapi_set_int_value ((omapi_object_t *)dhcp_control_object,
 			     (omapi_object_t *)0, "state", server_running);
 
+#if defined(ENABLE_GENTLE_SHUTDOWN)
+	/* no signal handlers until we deal with the side effects */
         /* install signal handlers */
 	signal(SIGINT, dhcp_signal_handler);   /* control-c */
 	signal(SIGTERM, dhcp_signal_handler);  /* kill */
+#endif
 
 	/* Log that we are about to start working */
 	log_info("Server starting service.");
@@ -1010,7 +1024,7 @@ void postconf_initialization (int quiet)
 					  &global_scope, oc, MDL)) {
 			if (db.len == 1) {
 				closelog ();
-				openlog("dhcpd", LOG_NDELAY, db.data[0]);
+				openlog("dhcpd", DHCP_LOG_OPTIONS, db.data[0]);
 				/* Log the startup banner into the new
 				   log file. */
 				if (!quiet) {
@@ -1352,6 +1366,8 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 	    free_everything ();
 	    omapi_print_dmalloc_usage_by_caller ();
 #endif
+	    if (no_pid_file == ISC_FALSE)
+		    (void) unlink(path_dhcpd_pid);
 	    exit (0);
 	}		
 #else
@@ -1361,6 +1377,8 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 		free_everything ();
 		omapi_print_dmalloc_usage_by_caller (); 
 #endif
+		if (no_pid_file == ISC_FALSE)
+			(void) unlink(path_dhcpd_pid);
 		exit (0);
 	}
 #endif

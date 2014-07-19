@@ -197,7 +197,7 @@ main(int argc, char **argv) {
 	else if (fd != -1)
 		close(fd);
 
-	openlog("dhcrelay", LOG_NDELAY, LOG_DAEMON);
+	openlog("dhcrelay", DHCP_LOG_OPTIONS, LOG_DAEMON);
 
 #if !defined(DEBUG)
 	setlogmask(LOG_UPTO(LOG_INFO));
@@ -591,9 +591,12 @@ main(int argc, char **argv) {
 		dhcpv6_packet_handler = do_packet6;
 #endif
 
+#if defined(ENABLE_GENTLE_SHUTDOWN)
+	/* no signal handlers until we deal with the side effects */
         /* install signal handlers */
 	signal(SIGINT, dhcp_signal_handler);   /* control-c */
 	signal(SIGTERM, dhcp_signal_handler);  /* kill */
+#endif
 
 	/* Start dispatching packets and timeouts... */
 	dispatch();
@@ -1717,5 +1720,9 @@ dhcp_set_control_state(control_object_state_t oldstate,
 		       control_object_state_t newstate) {
 	if (newstate != server_shutdown)
 		return ISC_R_SUCCESS;
+
+	if (no_pid_file == ISC_FALSE)
+		(void) unlink(path_dhcrelay_pid);
+
 	exit(0);
 }

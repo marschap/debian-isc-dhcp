@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2014 by Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -148,6 +148,29 @@ static struct iasubopt *prefix_compare(struct reply_state *reply,
 				       struct iasubopt *beta);
 static int find_hosts_by_duid_chaddr(struct host_decl **host,
 				     const struct data_string *client_id);
+static void schedule_lease_timeout_reply(struct reply_state *reply);
+
+/*
+ * Schedule lease timeouts for all of the iasubopts in the reply.
+ * This is currently used to schedule timeouts for soft leases.
+ */
+
+static void
+schedule_lease_timeout_reply(struct reply_state *reply) {
+	struct iasubopt *tmp;
+	int i;
+
+	/* sanity check the reply */
+	if ((reply == NULL) || (reply->ia == NULL) || (reply->ia->iasubopt == NULL))
+		return;
+
+	/* walk through the list, scheduling as we go */
+	for (i = 0 ; i < reply->ia->num_iasubopt ; i++) {
+		tmp = reply->ia->iasubopt[i];
+		schedule_lease_timeout(tmp->ipv6_pool);
+	}
+}
+
 /*
  * This function returns the time since DUID time start for the
  * given time_t value.
@@ -683,12 +706,6 @@ static const int required_opts[] = {
 	D6O_PREFERENCE,
 	0
 };
-static const int required_opts_NAA[] = {
-	D6O_CLIENTID,
-	D6O_SERVERID,
-	D6O_STATUS_CODE,
-	0
-};
 static const int required_opts_solicit[] = {
 	D6O_CLIENTID,
 	D6O_SERVERID,
@@ -800,6 +817,99 @@ set_status_code(u_int16_t status_code, const char *status_message,
 	}
 	data_string_forget(&d, MDL);
 	return ret_val;
+}
+
+void check_pool6_threshold(struct reply_state *reply,
+			   struct iasubopt *lease)
+{
+	struct ipv6_pond *pond;
+	int used, count, high_threshold, poolhigh = 0, poollow = 0;
+	char *shared_name = "no name";
+	char tmp_addr[INET6_ADDRSTRLEN];
+
+	if ((lease->ipv6_pool == NULL) || (lease->ipv6_pool->ipv6_pond == NULL))
+		return;
+	pond = lease->ipv6_pool->ipv6_pond;
+
+	count = pond->num_total;
+	used = pond->num_active;
+
+	/* The logged flag indicates if we have already crossed the high
+	 * threshold and emitted a log message.  If it is set we check to
+	 * see if we have re-crossed the low threshold and need to reset
+	 * things.  When we cross the high threshold we determine what
+	 * the low threshold is and save it into the low_threshold value.
+	 * When we cross that threshold we reset the logged flag and
+	 * the low_threshold to 0 which allows the high threshold message
+	 * to be emitted once again.
+	 * if we haven't recrossed the boundry we don't need to do anything.
+	 */
+	if (pond->logged !=0) {
+		if (used <= pond->low_threshold) {
+			pond->low_threshold = 0;
+			pond->logged = 0;
+			log_error("Pool threshold reset - shared subnet: %s; "
+				  "address: %s; low threshold %d/%d.",
+				  shared_name,
+				  inet_ntop(AF_INET6, &lease->addr,
+					    tmp_addr, sizeof(tmp_addr)),
+				  used, count);
+		}
+		return;
+	}
+
+	/* find the high threshold */
+	if (get_option_int(&poolhigh, &server_universe, reply->packet, NULL,
+			   NULL, reply->packet->options, reply->opt_state,
+			   reply->opt_state, &lease->scope,
+			   SV_LOG_THRESHOLD_HIGH, MDL) == 0) {
+		/* no threshold bail out */
+		return;
+	}
+
+	/* We do have a threshold for this pool, see if its valid */
+	if ((poolhigh <= 0) || (poolhigh > 100)) {
+		/* not valid */
+		return;
+	}
+
+	/* we have a valid value, have we exceeded it */
+	high_threshold = FIND_PERCENT(count, poolhigh);
+	if (used < high_threshold) {
+		/* nope, no more to do */
+		return;
+	}
+
+	/* we've exceeded it, output a message */
+	if ((pond->shared_network != NULL) &&
+	    (pond->shared_network->name != NULL)) {
+		shared_name = pond->shared_network->name;
+	}
+	log_error("Pool threshold exceeded - shared subnet: %s; "
+		  "address: %s; high threshold %d%% %d/%d.",
+		  shared_name,
+		  inet_ntop(AF_INET6, &lease->addr, tmp_addr, sizeof(tmp_addr)),
+		  poolhigh, used, count);
+
+	/* handle the low threshold now, if we don't
+	 * have one we default to 0. */
+	if ((get_option_int(&poollow, &server_universe, reply->packet, NULL,
+			    NULL, reply->packet->options, reply->opt_state,
+			    reply->opt_state, &lease->scope,
+			    SV_LOG_THRESHOLD_LOW, MDL) == 0) ||
+	    (poollow > 100)) {
+		poollow = 0;
+	}
+
+	/*
+	 * If the low theshold is higher than the high threshold we continue to log
+	 * If it isn't then we set the flag saying we already logged and determine
+	 * what the reset threshold is.
+	 */
+	if (poollow < poolhigh) {
+		pond->logged = 1;
+		pond->low_threshold = FIND_PERCENT(count, poollow);
+	}
 }
 
 /*
@@ -1312,9 +1422,6 @@ lease_to_client(struct data_string *reply_ret,
 	static struct reply_state reply;
 	struct option_cache *oc;
 	struct data_string packet_oro;
-#if defined (RFC3315_PRE_ERRATA_2010_08)
-	isc_boolean_t no_resources_avail = ISC_FALSE;
-#endif
 	int i;
 
 	memset(&packet_oro, 0, sizeof(packet_oro));
@@ -1397,15 +1504,6 @@ lease_to_client(struct data_string *reply_ret,
 		if ((status != ISC_R_SUCCESS) &&
 		    (status != ISC_R_NORESOURCES))
 			goto exit;
-
-#if defined (RFC3315_PRE_ERRATA_2010_08)
-		/*
-		 * If any address cannot be given to any IA, then set the
-		 * NoAddrsAvail status code.
-		 */
-		if (reply.client_resources == 0)
-			no_resources_avail = ISC_TRUE;
-#endif
 	}
 	oc = lookup_option(&dhcpv6_universe, packet->options, D6O_IA_TA);
 	for (; oc != NULL ; oc = oc->next) {
@@ -1424,15 +1522,6 @@ lease_to_client(struct data_string *reply_ret,
 		if ((status != ISC_R_SUCCESS) &&
 		    (status != ISC_R_NORESOURCES))
 			goto exit;
-
-#if defined (RFC3315_PRE_ERRATA_2010_08)
-		/*
-		 * If any address cannot be given to any IA, then set the
-		 * NoAddrsAvail status code.
-		 */
-		if (reply.client_resources == 0)
-			no_resources_avail = ISC_TRUE;
-#endif
 	}
 
 	/* Same for IA_PD's. */
@@ -1508,6 +1597,9 @@ lease_to_client(struct data_string *reply_ret,
 	 * the user, a Server Identifier option with the server's DUID,
 	 * and a Client Identifier option with the client's DUID.
 	 *
+	 * This has been updated by an errata such that the server
+	 * can always send an IA.
+	 *
 	 * Section 18.2.1 (Request):
 	 *
 	 * If the server cannot assign any addresses to an IA in the
@@ -1522,51 +1614,7 @@ lease_to_client(struct data_string *reply_ret,
 	 * the server.
 	 * Sends a Renew/Rebind if the IA is not in the Reply message.
 	 */
-#if defined (RFC3315_PRE_ERRATA_2010_08)
-	if (no_resources_avail && (reply.ia_count != 0) &&
-	    (reply.packet->dhcpv6_msg_type == DHCPV6_SOLICIT))
-	{
-		/* Set the NoAddrsAvail status code. */
-		if (!set_status_code(STATUS_NoAddrsAvail,
-				     "No addresses available for this "
-				     "interface.", reply.opt_state)) {
-			log_error("lease_to_client: Unable to set "
-				  "NoAddrsAvail status code.");
-			goto exit;
-		}
 
-		/* Rewind the cursor to the start. */
-		reply.cursor = REPLY_OPTIONS_INDEX;
-
-		/*
-		 * Produce an advertise that includes only:
-		 *
-		 * Status code.
-		 * Server DUID.
-		 * Client DUID.
-		 */
-		reply.buf.reply.msg_type = DHCPV6_ADVERTISE;
-		reply.cursor += store_options6((char *)reply.buf.data +
-							reply.cursor,
-					       sizeof(reply.buf) -
-					       		reply.cursor,
-					       reply.opt_state, reply.packet,
-					       required_opts_NAA,
-					       NULL);
-	} else {
-		/*
-		 * Having stored the client's IA's, store any options that
-		 * will fit in the remaining space.
-		 */
-		reply.cursor += store_options6((char *)reply.buf.data +
-							reply.cursor,
-					       sizeof(reply.buf) -
-							reply.cursor,
-					       reply.opt_state, reply.packet,
-					       required_opts_solicit,
-					       &packet_oro);
-	}
-#else /* defined (RFC3315_PRE_ERRATA_2010_08) */
 	/*
 	 * Having stored the client's IA's, store any options that
 	 * will fit in the remaining space.
@@ -1576,7 +1624,6 @@ lease_to_client(struct data_string *reply_ret,
 				       reply.opt_state, reply.packet,
 				       required_opts_solicit,
 				       &packet_oro);
-#endif /* defined (RFC3315_PRE_ERRATA_2010_08) */
 
 	/* Return our reply to the caller. */
 	reply_ret->len = reply.cursor;
@@ -2008,6 +2055,8 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 					     tmp, NULL, reply->opt_state);
 			}
 #endif
+			/* Do our threshold check. */
+			check_pool6_threshold(reply, tmp);
 		}
 
 		/* Remove any old ia from the hash. */
@@ -2026,6 +2075,8 @@ reply_process_ia_na(struct reply_state *reply, struct option_cache *ia) {
 			    ia_id->len, reply->ia, MDL);
 
 		write_ia(reply->ia);
+	} else {
+		schedule_lease_timeout_reply(reply);
 	}
 
       cleanup:
@@ -2724,6 +2775,8 @@ reply_process_ia_ta(struct reply_state *reply, struct option_cache *ia) {
 					     tmp, NULL, reply->opt_state);
 			}
 #endif
+			/* Do our threshold check. */
+			check_pool6_threshold(reply, tmp);
 		}
 
 		/* Remove any old ia from the hash. */
@@ -2742,6 +2795,8 @@ reply_process_ia_ta(struct reply_state *reply, struct option_cache *ia) {
 			    ia_id->len, reply->ia, MDL);
 
 		write_ia(reply->ia);
+	} else {
+		schedule_lease_timeout_reply(reply);
 	}
 
       cleanup:
@@ -3782,6 +3837,9 @@ reply_process_ia_pd(struct reply_state *reply, struct option_cache *ia) {
 				executable_statement_dereference
 					(&tmp->on_star.on_commit, MDL);
 			}
+
+			/* Do our threshold check. */
+			check_pool6_threshold(reply, tmp);
 		}
 
 		/* Remove any old ia from the hash. */
@@ -3800,6 +3858,8 @@ reply_process_ia_pd(struct reply_state *reply, struct option_cache *ia) {
 			    ia_id->len, reply->ia, MDL);
 
 		write_ia(reply->ia);
+	} else {
+		schedule_lease_timeout_reply(reply);
 	}
 
       cleanup:
