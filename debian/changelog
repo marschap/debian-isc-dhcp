@@ -1,3 +1,11 @@
+isc-dhcp (4.3.0+dfsg-2) unstable; urgency=medium
+
+  * Ship dhcp-lease-list (closes: #741488).
+  * Fix lease removal in postrm (closes: #724033).
+  * Add upstream public signing key for uscan verification.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Mon, 09 Jun 2014 01:07:09 +0000
+
 isc-dhcp (4.3.0+dfsg-1) unstable; urgency=medium
 
   * New upstream stable release.

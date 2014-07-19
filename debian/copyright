@@ -1,6 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
 Source: http://www.isc.org/downloads/dhcp
-Upstream-Name: isc-dhcp
 Files-Excluded:
  aclocal.m4
  compile
