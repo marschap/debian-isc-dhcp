@@ -228,7 +228,7 @@ case "$reason" in
 
 	    # if we have $new_rfc3442_classless_static_routes then we have to
 	    # ignore $new_routers entirely
-	    if [ ! "$new_rfc3442_classless_static_routers" ]; then
+	    if [ ! "$new_rfc3442_classless_static_routes" ]; then
 		    # set if_metric if IF_METRIC is set or there's more than one router
 		    if_metric="$IF_METRIC"
 		    if [ "${new_routers%% *}" != "${new_routers}" ]; then

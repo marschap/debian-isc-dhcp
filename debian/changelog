@@ -1,3 +1,12 @@
+isc-dhcp (4.3.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Avoid divide by zero issue (closes: #694650).
+  * Correct typo in dhclient-script.linux (closes: #748272).
+  * Ensure dhcpd.leases exists for the server init script (closes: #720860).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Wed, 13 Aug 2014 23:36:21 +0000
+
 isc-dhcp (4.3.1~b1-1) experimental; urgency=medium
 
   * New upstream beta release.

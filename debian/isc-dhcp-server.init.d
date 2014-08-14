@@ -52,6 +52,7 @@ test_config()
 		/usr/sbin/dhcpd -t $OPTIONS -cf "$DHCPD_CONF"
 		exit 1
 	fi
+	touch /var/lib/dhcp/dhcpd.leases
 }
 
 # single arg is -v for messages, -q for none

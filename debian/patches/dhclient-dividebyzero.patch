@@ -1,0 +1,41 @@
+Description: setting "backoff-cutoff 0;" in dhclient.conf will cause
+ dhclient to divide by zero and crash. It should be handled more
+ gracefully.
+Author: Kees Cook <kees@ubuntu.com>
+
+--- a/client/dhclient.c
++++ b/client/dhclient.c
+@@ -1928,9 +1928,12 @@ void send_discover (cpp)
+ 			client->interval += random() % (2 * client->interval);
+ 
+ 		/* Don't backoff past cutoff. */
+-		if (client->interval > client->config->backoff_cutoff)
+-			client->interval = (client->config->backoff_cutoff / 2)
+-				 + (random() % client->config->backoff_cutoff);
++		if (client->interval > client->config->backoff_cutoff) {
++			client->interval = (client->config->backoff_cutoff / 2);
++			if (client->config->backoff_cutoff)
++				client->interval += (random() %
++					client->config->backoff_cutoff);
++		}
+ 	} else if (!client->interval)
+ 		client->interval = client->config->initial_interval;
+ 
+@@ -2177,11 +2180,13 @@ void send_request (cpp)
+ 
+ 	/* Don't backoff past cutoff. */
+ 	if (client -> interval >
+-	    client -> config -> backoff_cutoff)
++	    client -> config -> backoff_cutoff) {
+ 		client -> interval =
+-			((client -> config -> backoff_cutoff / 2)
+-			 + ((random () >> 2) %
+-					client -> config -> backoff_cutoff));
++			(client -> config -> backoff_cutoff / 2);
++		if (client -> config -> backoff_cutoff)
++			client -> interval += ((random () >> 2) %
++				client -> config -> backoff_cutoff);
++	}
+ 
+ 	/* If the backoff would take us to the expiry time, just set the
+ 	   timeout to the expiry time. */

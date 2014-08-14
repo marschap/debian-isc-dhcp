@@ -36,7 +36,7 @@ For each of the existing quilt patches, do these the next steps, resolving
 failed hunks and refreshing as you go:
 
 $ QUILT_PATCHES=debian/patches quilt push -f
-$ quilt refresh
+$ quilt refresh -p ab --no-index
 
 Commit changes made to the patches:
 
