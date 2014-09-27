@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # dhclient-script for GNU, based on the script for Linux.
 # Dan Halbert, March, 1997.
@@ -11,7 +11,7 @@
 # Modified to work on point-to-point links. Andrew Pollock, June 2005
 # Modified to support passing the parameters called with to the hooks. Andrew Pollock, November 2005
 # Modified to work under GNU/Hurd for isc-dhcp-4.1.1 based on the
-# patch by Samuel Thibault for dhcp3. Svante Signell, February 2011.
+# patch by Samuel Thibault for dhcp. Svante Signell, February 2011.
 
 # The alias handling in here probably still sucks. -mdz
 

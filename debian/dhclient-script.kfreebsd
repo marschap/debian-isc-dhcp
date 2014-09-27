@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # dhclient-script for GNU/kFreeBSD. Aurelien Jarno, May, 2005.
 # Based on Linux and FreeBSD scripts.
 
@@ -67,7 +67,7 @@ run_hook() {
     shift	# discard the first argument, then the rest are the script's
 
     if [ -f $script ]; then
-        . $script "$@"
+        $script "$@"
     fi
 
     if [ -n "$exit_status" ] && [ "$exit_status" -ne 0 ]; then

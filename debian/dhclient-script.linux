@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # dhclient-script for Linux. Dan Halbert, March, 1997.
 # Updated for Linux 2.[12] by Brian J. Murrell, January 1999.
@@ -114,7 +114,7 @@ run_hook() {
     shift	# discard the first argument, then the rest are the script's
 
     if [ -f $script ]; then
-        . $script "$@"
+        $script "$@"
     fi
 
     if [ -n "$exit_status" ] && [ "$exit_status" -ne 0 ]; then
