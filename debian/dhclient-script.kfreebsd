@@ -64,10 +64,9 @@ run_hook() {
     local script
     local exit_status
     script="$1"
-    shift	# discard the first argument, then the rest are the script's
 
     if [ -f $script ]; then
-        $script "$@"
+        . $script
     fi
 
     if [ -n "$exit_status" ] && [ "$exit_status" -ne 0 ]; then
@@ -82,11 +81,10 @@ run_hookdir() {
     local dir
     local exit_status
     dir="$1"
-    shift	# See run_hook
 
     if [ -d "$dir" ]; then
         for script in $(run-parts --list $dir); do
-            run_hook $script "$@" || true
+            run_hook $script || true
             exit_status=$?
         done
     fi
@@ -99,12 +97,12 @@ exit_with_hooks() {
     exit_status=$1
 
     # Source the documented exit-hook script, if it exists
-    if ! run_hook /etc/dhcp/dhclient-exit-hooks "$@"; then
+    if ! run_hook /etc/dhcp/dhclient-exit-hooks; then
         exit_status=$?
     fi
 
     # Now run scripts in the Debian-specific directory.
-    if ! run_hookdir /etc/dhcp/dhclient-exit-hooks.d "$@"; then
+    if ! run_hookdir /etc/dhcp/dhclient-exit-hooks.d; then
         exit_status=$?
     fi
 
@@ -293,7 +291,7 @@ case "$reason" in
 
             make_resolv_conf
           else
-            exit_with_hooks 2 "$@"
+            exit_with_hooks 2
           fi
         else
           ifconfig $interface inet -alias $new_ip_address $medium
