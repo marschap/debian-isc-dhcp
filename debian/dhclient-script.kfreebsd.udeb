@@ -82,7 +82,7 @@ case "$reason" in
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
 
-            ifconfig $interface inet $new_ip_address $new_subnet_arg \
+            ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
                 ${new_broadcast_address:+broadcast $new_broadcast_address} $medium $mtu_arg
             route add $new_ip_address 127.1 $metric_arg >/dev/null 2>&1 || true
             for router in $new_routers; do

@@ -16,7 +16,7 @@ Files: *
 Copyright:
  2004-2014 by Internet Systems Consortium, Inc. ("ISC")
  1995-2003 by Internet Software Consortium
-License: ISC License
+License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
  copyright notice and this permission notice appear in all copies.
@@ -33,5 +33,5 @@ Files: debian/*
 Copyright:
  2008-2013 Andrew Pollock <apollock@debian.org>
  2011-2014 Michael Gilbert <mgilbert@debian.org>
-License: ISC License
+License: ISC
  See above.

@@ -1,0 +1,4 @@
+debian/tmp/usr/share/man/man5/dhcpd.conf.5
+debian/tmp/usr/share/man/man5/dhcpd.leases.5
+
+debian/tmp/usr/share/man/man8/dhcpd.8

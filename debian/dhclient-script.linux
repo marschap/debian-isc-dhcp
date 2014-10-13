@@ -278,7 +278,7 @@ case "$reason" in
 
         if [ -n "$alias_ip_address" ]; then
             # alias IP given => set it & add host route to it
-            ip -4 addr add ${alias_ip_address}${alias_network_arg} \
+            ip -4 addr add ${alias_ip_address}${alias_subnet_mask:+/$alias_subnet_mask} \
                 dev ${interface} label ${interface}:0
             ip -4 route add ${alias_ip_address} dev ${interface} >/dev/null 2>&1
         fi
