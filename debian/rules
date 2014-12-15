@@ -7,11 +7,13 @@ DEB_HOST_ARCH_OS=$(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+DHCLIENT_SCRIPT=/sbin/dhclient-script
+
 CFLAGS+=-Wall
-CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"/sbin/dhclient-script"'
+CFLAGS+=-I/usr/include/bind-export
+CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
 CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
-CFLAGS+=-DNOMINUM
 
 CONFFLAGS=--prefix=/usr \
           --sysconfdir=/etc/dhcp \
@@ -39,10 +41,6 @@ endif
 override_dh_auto_configure:
 
 override_dh_auto_build:
-	# extract and patch embedded bind
-	cd bind && tar xf bind.tar.gz && \
-	    cd bind-* && test -e ../../debian/bind-patches/series && \
-	    QUILT_PATCHES=../../debian/bind-patches quilt push -a || true
 	# ldap-enabled build
 	test -f Makefile && $(MAKE) distclean || true
 	./configure --with-ldap --with-ldapcrypto $(CONFFLAGS)
@@ -56,9 +54,9 @@ override_dh_auto_build:
 override_dh_install:
 	dh_install
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) \
-	    debian/isc-dhcp-client/sbin/dhclient-script
+	    debian/isc-dhcp-client$(DHCLIENT_SCRIPT)
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS).udeb \
-	    debian/isc-dhcp-client-udeb/sbin/dhclient-script
+	    debian/isc-dhcp-client-udeb$(DHCLIENT_SCRIPT)
 	cp debian/rfc3442-classless-routes.$(DEB_HOST_ARCH_OS) \
 	    debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/rfc3442-classless-routes
 	cp contrib/dhcp-lease-list.pl \
@@ -68,5 +66,5 @@ override_dh_strip:
 	dh_strip --dbg-package=isc-dhcp-dbg
 
 override_dh_clean:
-	cd bind && rm -rf bind-* include lib bindvar.tmp *.log
+	rm -rf bind
 	dh_clean -- dhcpd config.*

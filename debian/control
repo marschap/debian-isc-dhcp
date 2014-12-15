@@ -8,11 +8,11 @@ Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-dhcp/isc-dhcp.git;a=summary
 Homepage: http://www.isc.org
 Build-Depends:
  groff,
- quilt,
  pkg-config,
  po-debconf,
  libssl-dev,
  libldap2-dev,
+ libbind-export-dev (>= 1:9.9.5.dfsg-4.3),
  dh-autoreconf,
  debhelper (>= 9),
  dpkg-dev (>= 1.13.2),
@@ -47,7 +47,6 @@ Priority: extra
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends},
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (server debug)
  This is the server from the Internet Software Consortium's implementation of
@@ -61,7 +60,6 @@ Priority: extra
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends},
  debianutils (>= 2.8.2),
  isc-dhcp-common (= ${binary:Version}),
  lsb-base,
@@ -151,7 +149,6 @@ Priority: extra
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends},
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (client debug)
  This is the client from the Internet Software Consortium's implementation of
@@ -192,7 +189,6 @@ Priority: extra
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends},
  isc-dhcp-dbg (= ${binary:Version}),
 Description: ISC DHCP server for automatic IP address assignment (relay debug)
  This is the relay from the Internet Software Consortium's implementation of
