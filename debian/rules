@@ -62,6 +62,10 @@ override_dh_install:
 	cp contrib/dhcp-lease-list.pl \
 	    debian/isc-dhcp-server/usr/sbin/dhcp-lease-list
 
+override_dh_installinit:
+	dh_installinit -Nisc-dhcp-server
+	dh_installinit -pisc-dhcp-server --error-handler=init_script_error_handler
+
 override_dh_strip:
 	dh_strip --dbg-package=isc-dhcp-dbg
 
