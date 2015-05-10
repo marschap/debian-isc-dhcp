@@ -3,7 +3,7 @@
    Parser for dhcpd config file... */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -658,10 +658,10 @@ int parse_statement (cfile, group, type, host_decl, declaration)
 	      case POOL6:
 		skip_token(&val, NULL, cfile);
 		if (type == POOL_DECL) {
-			parse_warn (cfile, "pool declared within pool.");
+			parse_warn (cfile, "pool6 declared within pool.");
 			skip_to_semi(cfile);
 		} else if (type != SUBNET_DECL) {
-			parse_warn (cfile, "pool declared outside of network");
+			parse_warn (cfile, "pool6 declared outside of network");
 			skip_to_semi(cfile);
 		} else 
 			parse_pool6_statement (cfile, group, type);
@@ -906,7 +906,6 @@ void parse_failover_peer (cfile, group, type)
 
 	token = next_token (&val, (unsigned *)0, cfile);
 	if (token == SEMI) {
-		dfree (name, MDL);
 		if (type != SHARED_NET_DECL)
 			parse_warn (cfile, "failover peer reference not %s",
 				    "in shared-network declaration");
@@ -914,6 +913,7 @@ void parse_failover_peer (cfile, group, type)
 			if (!peer) {
 				parse_warn (cfile, "reference to unknown%s%s",
 					    " failover peer ", name);
+                                dfree (name, MDL);
 				return;
 			}
 			dhcp_failover_state_reference
@@ -921,15 +921,18 @@ void parse_failover_peer (cfile, group, type)
 				 peer, MDL);
 		}
 		dhcp_failover_state_dereference (&peer, MDL);
+                dfree (name, MDL);
 		return;
 	} else if (token == STATE) {
 		if (!peer) {
 			parse_warn (cfile, "state declaration for unknown%s%s",
 				    " failover peer ", name);
+                        dfree (name, MDL);
 			return;
 		}
 		parse_failover_state_declaration (cfile, peer);
 		dhcp_failover_state_dereference (&peer, MDL);
+                dfree (name, MDL);
 		return;
 	} else if (token != LBRACE) {
 		parse_warn (cfile, "expecting left brace");
@@ -941,6 +944,7 @@ void parse_failover_peer (cfile, group, type)
 		parse_warn (cfile, "redeclaration of failover peer %s", name);
 		skip_to_rbrace (cfile, 1);
 		dhcp_failover_state_dereference (&peer, MDL);
+                dfree (name, MDL);
 		return;
 	}
 
@@ -1078,8 +1082,9 @@ void parse_failover_peer (cfile, group, type)
 				return;
 			}
 			split = atoi (val);
-			if (split > 255) {
-				parse_warn (cfile, "split must be < 256");
+			if (split > 256) {
+				parse_warn (cfile, "split must be between "
+                                                   "0 and 256, inclusive");
 			} else {
 				memset (hba, 0, sizeof hba);
 				for (i = 0; i < split; i++) {
@@ -3837,12 +3842,40 @@ add_ipv6_pool_to_subnet(struct subnet *subnet, u_int16_t type,
 	 */
 	ipv6_pool_reference(&pond->ipv6_pools[num_pools], pool, MDL);
 	pond->ipv6_pools[num_pools+1] = NULL;
+
 	/* Update the number of elements in the pond.  Conveniently
 	 * we have the total size of the block in bits and the amount
 	 * we would allocate per element in units.  For an address units
 	 * will always be 128, for a prefix it will be something else.
-	 */
-	pond->num_total += 1 << (units - bits);
+	 *
+	 * We need to make sure the number of elements isn't too large
+	 * to track.  If so, we flag it to avoid wasting time with log
+	 * threshold logic.  We also emit a log stating that log-threshold
+	 * will be disabled for the shared-network but that's done
+	 * elsewhere via report_log_threshold().
+	 *
+	*/
+
+	/* Only bother if we aren't already flagged as jumbo */
+	if (pond->jumbo_range == 0) {
+		if ((units - bits) > (sizeof(isc_uint64_t) * 8)) {
+			pond->jumbo_range = 1;
+			pond->num_total = POND_TRACK_MAX;
+		}
+		else {
+			isc_uint64_t space_left
+				= POND_TRACK_MAX - pond->num_total;
+			isc_uint64_t addon
+				= (isc_uint64_t)(1) << (units - bits);
+
+			if (addon > space_left) {
+				pond->jumbo_range = 1;
+				pond->num_total = POND_TRACK_MAX;
+			} else {
+				pond->num_total += addon;
+			}
+		}
+	}
 }
 
 /*!
@@ -3957,6 +3990,14 @@ parse_address_range6(struct parse *cfile,
 		return;
 	}
 
+	/* Make sure starting address is within the subnet */
+	if (!addr_eq(group->subnet->net,
+		     subnet_number(lo, group->subnet->netmask))) {
+		parse_warn(cfile, "range6 start address is outside the subnet");
+                skip_to_semi(cfile);
+		return;
+	}
+
 	/*
 	 * zero out the net entry in case we use it
 	 */
@@ -3985,13 +4026,17 @@ parse_address_range6(struct parse *cfile,
 			skip_to_semi(cfile);
 			return;
 		}
-
+		if (bits < group->subnet->prefix_len) {
+			parse_warn(cfile,
+				   "network mask smaller than subnet mask");
+			skip_to_semi(cfile);
+			return;
+		}
 		if (!is_cidr_mask_valid(&net.cidrnet.lo_addr, bits)) {
 			parse_warn(cfile, "network mask too short");
 			skip_to_semi(cfile);
 			return;
 		}
-
 		/*
 		 * can be temporary (RFC 4941 like)
 		 */
@@ -4029,6 +4074,15 @@ parse_address_range6(struct parse *cfile,
 		 * the IPv6 pool.
 		 */
 		if (!parse_ip6_addr(cfile, &hi)) {
+			return;
+		}
+
+		/* Make sure ending address is within the subnet */
+		if (!addr_eq(group->subnet->net,
+			     subnet_number(hi, group->subnet->netmask))) {
+			parse_warn(cfile,
+				   "range6 end address is outside the subnet");
+			skip_to_semi(cfile);
 			return;
 		}
 
@@ -4106,7 +4160,26 @@ parse_prefix6(struct parse *cfile,
 	if (!parse_ip6_addr(cfile, &lo)) {
 		return;
 	}
+
+	/* Make sure starting prefix is within the subnet */
+	if (!addr_eq(group->subnet->net,
+		     subnet_number(lo, group->subnet->netmask))) {
+			      parse_warn(cfile, "prefix6 start prefix"
+                                                " is outside the subnet");
+			      skip_to_semi(cfile);
+		return;
+	}
+
 	if (!parse_ip6_addr(cfile, &hi)) {
+		return;
+	}
+
+	/* Make sure ending prefix is within the subnet */
+	if (!addr_eq(group->subnet->net,
+		     subnet_number(hi, group->subnet->netmask))) {
+			      parse_warn(cfile, "prefix6 end prefix"
+                                                " is outside the subnet");
+			      skip_to_semi(cfile);
 		return;
 	}
 
@@ -4132,9 +4205,15 @@ parse_prefix6(struct parse *cfile,
 		parse_warn(cfile, "networks have 0 to 128 bits (exclusive)");
 		return;
 	}
+	if (bits < group->subnet->prefix_len) {
+		parse_warn(cfile, "network mask smaller than subnet mask");
+		skip_to_semi(cfile);
+		return;
+	}
 	if (!is_cidr_mask_valid(&lo, bits) ||
 	    !is_cidr_mask_valid(&hi, bits)) {
 		parse_warn(cfile, "network mask too short");
+		skip_to_semi(cfile);
 		return;
 	}
 	token = next_token(NULL, NULL, cfile);
@@ -4304,8 +4383,9 @@ void parse_pool6_statement (cfile, group, type)
 					 group->subnet->shared_network,
 					 MDL);
 	else {
-		parse_warn(cfile, "Dynamic pool6s are only valid inside "
+		parse_warn(cfile, "pool6s are only valid inside "
 				  "subnet statements.");
+		ipv6_pond_dereference(&pond, MDL);
 		skip_to_semi(cfile);
 		return;
 	}
@@ -4456,6 +4536,7 @@ int parse_allow_deny (oc, cfile, flag)
 	      default:
 		parse_warn (cfile, "expecting allow/deny key");
 		skip_to_semi (cfile);
+		expression_dereference (&data, MDL);
 		return 0;
 	}
 	/* Reference on option is passed to option cache. */

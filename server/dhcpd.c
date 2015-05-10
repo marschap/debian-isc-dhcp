@@ -3,7 +3,7 @@
    DHCP Server Daemon. */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -27,7 +27,7 @@
  */
 
 static const char copyright[] =
-"Copyright 2004-2014 Internet Systems Consortium.";
+"Copyright 2004-2015 Internet Systems Consortium.";
 static const char arr [] = "All rights reserved.";
 static const char message [] = "Internet Systems Consortium DHCP Server";
 static const char url [] =
@@ -63,16 +63,17 @@ int server_identifier_matched;
 
 /* This stuff is always executed to figure the default values for certain
    ddns variables. */
-
 char std_nsupdate [] = "						    \n\
 option server.ddns-hostname =						    \n\
-  pick (option fqdn.hostname, option host-name);			    \n\
+  pick (option fqdn.hostname, option host-name, config-option host-name);   \n\
 option server.ddns-domainname =	config-option domain-name;		    \n\
 option server.ddns-rev-domainname = \"in-addr.arpa.\";";
 
 #endif /* NSUPDATE */
 int ddns_update_style;
 int dont_use_fsync = 0; /* 0 = default, use fsync, 1 = don't use fsync */
+int server_id_check = 0; /* 0 = default, don't check server id, 1 = do check */
+int prefix_length_mode = PLM_EXACT;
 
 const char *path_dhcpd_conf = _PATH_DHCPD_CONF;
 const char *path_dhcpd_db = _PATH_DHCPD_DB;
@@ -150,9 +151,9 @@ main(int argc, char **argv) {
 	char *s;
 	int cftest = 0;
 	int lftest = 0;
-#ifndef DEBUG
 	int pid;
 	char pbuf [20];
+#ifndef DEBUG
 	int daemon = 1;
 #endif
 	int quiet = 0;
@@ -400,11 +401,7 @@ main(int argc, char **argv) {
 		log_info (copyright);
 		log_info (arr);
 		log_info (url);
-		log_info ("Config file: %s", path_dhcpd_conf);
-		log_info ("Database file: %s", path_dhcpd_db);
-		log_info ("PID file: %s", path_dhcpd_pid);
 	} else {
-		quiet = 0;
 		log_perror = 0;
 	}
 
@@ -552,6 +549,7 @@ main(int argc, char **argv) {
 	dhcp_interface_setup_hook = dhcpd_interface_setup_hook;
 	bootp_packet_handler = do_packet;
 #ifdef DHCPv6
+	add_enumeration (&prefix_length_modes);
 	dhcpv6_packet_handler = do_packet6;
 #endif /* DHCPv6 */
 
@@ -616,14 +614,47 @@ main(int argc, char **argv) {
 		log_fatal ("Configuration file errors encountered -- exiting");
 
 	postconf_initialization (quiet);
- 
+
 #if defined (PARANOIA) && !defined (EARLY_CHROOT)
 	if (set_chroot) setup_chroot (set_chroot);
 #endif /* PARANOIA && !EARLY_CHROOT */
 
+#ifdef DHCPv6
+	/* log info about ipv6_ponds with large address ranges */
+	report_jumbo_ranges();
+#endif
+
         /* test option should cause an early exit */
  	if (cftest && !lftest) 
  		exit(0);
+
+	/*
+	 * First part of dealing with pid files.  Check to see if
+	 * we should continue running or not.  We run if:
+	 * - we are testing the lease file out
+	 * - we don't have a pid file to check
+	 * - there is no other process running
+	 */
+	if ((lftest == 0) && (no_pid_file == ISC_FALSE)) {
+		/*Read previous pid file. */
+		if ((i = open(path_dhcpd_pid, O_RDONLY)) >= 0) {
+			status = read(i, pbuf, (sizeof pbuf) - 1);
+			close(i);
+			if (status > 0) {
+				pbuf[status] = 0;
+				pid = atoi(pbuf);
+
+				/*
+				 * If there was a previous server process and
+				 * it is still running, abort
+				 */
+				if (!pid ||
+				    (pid != getpid() && kill(pid, 0) == 0))
+					log_fatal("There's already a "
+						  "DHCP server running.");
+			}
+		}
+	}
 
 	group_write_hook = group_writer;
 
@@ -652,7 +683,6 @@ main(int argc, char **argv) {
 		mark_interfaces_unavailable();
 	}
 #endif /* DHCPv6 */
-
 
 	/* Make up a seed for the random number generator from current
 	   time plus the sum of the last four bytes of each
@@ -700,34 +730,15 @@ main(int argc, char **argv) {
 	}
  
 	/*
-	 * Deal with pid files.  If the user told us
-	 * not to write a file we don't read one either
+	 * Second part of dealing with pid files.  Now
+	 * that we have forked we can write our pid if
+	 * appropriate.
 	 */
 	if (no_pid_file == ISC_FALSE) {
-		/*Read previous pid file. */
-		if ((i = open (path_dhcpd_pid, O_RDONLY)) >= 0) {
-			status = read(i, pbuf, (sizeof pbuf) - 1);
-			close (i);
-			if (status > 0) {
-				pbuf[status] = 0;
-				pid = atoi(pbuf);
-
-				/*
-				 * If there was a previous server process and
-				 * it is still running, abort
-				 */
-				if (!pid ||
-				    (pid != getpid() && kill(pid, 0) == 0))
-					log_fatal("There's already a "
-						  "DHCP server running.");
-			}
-		}
-
-		/* Write new pid file. */
 		i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC, 0644);
 		if (i >= 0) {
 			sprintf(pbuf, "%d\n", (int) getpid());
-			IGNORE_RET (write(i, pbuf, strlen(pbuf)));
+			IGNORE_RET(write(i, pbuf, strlen(pbuf)));
 			close(i);
 		} else {
 			log_error("Can't create PID file %s: %m.",
@@ -1018,6 +1029,12 @@ void postconf_initialization (int quiet)
 	}
 #endif
 
+	if (!quiet) {
+		log_info ("Config file: %s", path_dhcpd_conf);
+		log_info ("Database file: %s", path_dhcpd_db);
+		log_info ("PID file: %s", path_dhcpd_pid);
+	}
+
 	oc = lookup_option(&server_universe, options, SV_LOG_FACILITY);
 	if (oc) {
 		if (evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
@@ -1027,17 +1044,14 @@ void postconf_initialization (int quiet)
 				openlog("dhcpd", DHCP_LOG_OPTIONS, db.data[0]);
 				/* Log the startup banner into the new
 				   log file. */
-				if (!quiet) {
-					/* Don't log to stderr twice. */
-					tmp = log_perror;
-					log_perror = 0;
-					log_info("%s %s",
-						 message, PACKAGE_VERSION);
-					log_info(copyright);
-					log_info(arr);
-					log_info(url);
-					log_perror = tmp;
-				}
+				/* Don't log to stderr twice. */
+				tmp = log_perror;
+				log_perror = 0;
+				log_info("%s %s", message, PACKAGE_VERSION);
+				log_info(copyright);
+				log_info(arr);
+				log_info(url);
+				log_perror = tmp;
 			} else
 				log_fatal("invalid log facility");
 			data_string_forget(&db, MDL);
@@ -1078,6 +1092,27 @@ void postconf_initialization (int quiet)
 					  &global_scope, oc, MDL)) {
 		dont_use_fsync = 1;
 		log_error("Not using fsync() to flush lease writes");
+	}
+
+       oc = lookup_option(&server_universe, options, SV_SERVER_ID_CHECK);
+       if ((oc != NULL) &&
+	   evaluate_boolean_option_cache(NULL, NULL, NULL, NULL, options, NULL,
+					 &global_scope, oc, MDL)) {
+		log_info("Setting server-id-check true");
+		server_id_check = 1;
+	}
+
+	oc = lookup_option(&server_universe, options, SV_PREFIX_LEN_MODE);
+	if ((oc != NULL) && 
+	    evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
+					  &global_scope, oc, MDL)) {
+		if (db.len == 1) {
+			prefix_length_mode = db.data[0];
+		} else {
+			log_fatal("invalid prefix-len-mode");
+		}
+
+		data_string_forget(&db, MDL);
 	}
 
 	/* Don't need the options anymore. */

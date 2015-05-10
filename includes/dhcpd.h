@@ -3,7 +3,7 @@
    Definitions for dhcpd... */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -426,6 +426,10 @@ struct packet {
 	 * Only used in DHCPv6.
 	 */
 	isc_boolean_t unicast;
+
+	/* Propogates server value SV_ECHO_CLIENT_ID so it is available
+         * in cons_options() */
+	int sv_echo_client_id;
 };
 
 /*
@@ -588,6 +592,9 @@ struct lease {
 	 * update if we want to do a different update.
 	 */
 	struct dhcp_ddns_cb *ddns_cb;
+
+	/* Set when a lease has been disqualified for cache-threshold reuse */
+	unsigned short cannot_reuse;
 };
 
 struct lease_state {
@@ -732,6 +739,9 @@ struct lease_state {
 #define SV_IGNORE_CLIENT_UIDS		82
 #define SV_LOG_THRESHOLD_LOW		83
 #define SV_LOG_THRESHOLD_HIGH		84
+#define SV_ECHO_CLIENT_ID		85
+#define SV_SERVER_ID_CHECK		86
+#define SV_PREFIX_LEN_MODE		87
 
 #if !defined (DEFAULT_PING_TIMEOUT)
 # define DEFAULT_PING_TIMEOUT 1
@@ -779,6 +789,12 @@ struct lease_state {
 #if !defined (MIN_LEASE_WRITE)
 # define MIN_LEASE_WRITE 15
 #endif
+
+#define PLM_IGNORE 0
+#define PLM_PREFER 1
+#define PLM_EXACT 2
+#define PLM_MINIMUM 3
+#define PLM_MAXIMUM 4
 
 /* Client option names */
 
@@ -1574,7 +1590,8 @@ struct ipv6_pool {
 	int bits;				/* number of bits, CIDR style */
 	int units;				/* allocation unit in bits */
 	iasubopt_hash_t *leases;		/* non-free leases */
-	int num_active;				/* count of active leases */
+	isc_uint64_t num_active;		/* count of active leases */
+	isc_uint64_t num_abandoned;		/* count of abandoned leases */
 	isc_heap_t *active_timeouts;		/* timeouts for active leases */
 	int num_inactive;			/* count of inactive leases */
 	isc_heap_t *inactive_timeouts;		/* timeouts for expired or
@@ -1610,11 +1627,19 @@ struct ipv6_pond {
 	struct ipv6_pool **ipv6_pools;	/* NULL-terminated array */
 	int last_ipv6_pool;		/* offset of last IPv6 pool
 					   used to issue a lease */
-	int num_total;			/* Total number of elements in the pond */
-	int num_active;			/* Number of elements in the pond in use */
+	isc_uint64_t num_total;	    /* Total number of elements in the pond */
+	isc_uint64_t num_active;    /* Number of elements in the pond in use */
+	isc_uint64_t num_abandoned;	/* count of abandoned leases */
 	int logged;			/* already logged a message */
-	int low_threshold;		/* low threshold to restart logging */
+	isc_uint64_t low_threshold;	/* low threshold to restart logging */
+	int jumbo_range;
 };
+
+/*
+ * Max addresses in a pond that can be supported by log threshold
+ * Currently based on max value supported by isc_uint64_t.
+*/
+#define POND_TRACK_MAX ISC_UINT64_MAX
 
 /* Flags and state for dhcp_ddns_cb_t */
 #define DDNS_UPDATE_ADDR        0x01
@@ -1942,6 +1967,9 @@ extern struct timeval cur_tv;
 
 extern int ddns_update_style;
 extern int dont_use_fsync;
+extern int server_id_check;
+
+extern int prefix_length_mode;
 
 extern const char *path_dhcpd_conf;
 extern const char *path_dhcpd_db;
@@ -2210,6 +2238,8 @@ int find_bound_string (struct data_string *,
 		       struct binding_scope *, const char *);
 int unset (struct binding_scope *, const char *);
 int data_string_sprintfa(struct data_string *ds, const char *fmt, ...);
+int concat_dclists (struct data_string *, struct data_string *,
+                    struct data_string *);
 
 /* dhcp.c */
 extern int outstanding_pings;
@@ -2223,9 +2253,11 @@ void dhcprequest (struct packet *, int, struct lease *);
 void dhcprelease (struct packet *, int);
 void dhcpdecline (struct packet *, int);
 void dhcpinform (struct packet *, int);
-void nak_lease (struct packet *, struct iaddr *cip);
+void nak_lease (struct packet *, struct iaddr *cip, struct group*);
 void ack_lease (struct packet *, struct lease *,
 		unsigned int, TIME, char *, int, struct host_decl *);
+void echo_client_id(struct packet*, struct lease*, struct option_state*,
+		    struct option_state*);
 void delayed_ack_enqueue(struct lease *);
 void commit_leases_readerdry(void *);
 void flush_ackqueue(void *);
@@ -2250,9 +2282,10 @@ void get_server_source_address(struct in_addr *from,
 			       struct option_state *options,
 			       struct option_state *out_options,
 			       struct packet *packet);
-void setup_server_source_address(struct in_addr *from,
-				 struct option_state *options,
-				 struct packet *packet);
+
+void eval_network_statements(struct option_state **options,
+			    struct packet *packet,
+			    struct group *network_group);
 
 /* dhcpleasequery.c */
 void dhcpleasequery (struct packet *, int);
@@ -2269,7 +2302,8 @@ isc_result_t get_client_id(struct packet *, struct data_string *);
 void dhcpv6(struct packet *);
 
 /* bootp.c */
-void bootp (struct packet *);
+void bootp(struct packet *);
+void use_host_decl_name(struct packet *, struct lease* , struct option_state *);
 
 /* memory.c */
 extern int (*group_write_hook) (struct group_object *);
@@ -2375,6 +2409,8 @@ int option_state_reference (struct option_state **,
 			    struct option_state *, const char *, int);
 int option_state_dereference (struct option_state **,
 			      const char *, int);
+int data_string_new(struct data_string *, const char *, unsigned int,
+		    const char *, int);
 void data_string_copy(struct data_string *, const struct data_string *,
 		      const char *, int);
 void data_string_forget (struct data_string *, const char *, int);
@@ -2441,6 +2477,8 @@ void get_hw_addr(const char *name, struct hardware *hw);
 #if defined (USE_SOCKET_SEND) || defined (USE_SOCKET_RECEIVE) \
 	|| defined (USE_SOCKET_FALLBACK)
 int if_register_socket(struct interface_info *, int, int *, struct in6_addr *);
+
+void set_multicast_hop_limit(struct interface_info* info, int hop_limit);
 #endif
 
 #if defined (USE_SOCKET_FALLBACK) && !defined (USE_SOCKET_SEND)
@@ -2724,6 +2762,8 @@ extern struct enumeration ddns_styles;
 extern struct enumeration syslog_enum;
 void initialize_server_option_spaces (void);
 
+extern struct enumeration prefix_length_modes;
+
 /* inet.c */
 struct iaddr subnet_number (struct iaddr, struct iaddr);
 struct iaddr ip_addr (struct iaddr, struct iaddr, u_int32_t);
@@ -2878,7 +2918,7 @@ ssize_t decode_hw_header (struct interface_info *, unsigned char *,
 			  unsigned, struct hardware *);
 ssize_t decode_udp_ip_header (struct interface_info *, unsigned char *,
 			      unsigned, struct sockaddr_in *,
-			      unsigned, unsigned *);
+			      unsigned, unsigned *, int);
 
 /* ethernet.c */
 void assemble_ethernet_header (struct interface_info *, unsigned char *,
@@ -3331,7 +3371,7 @@ void new_shared_network_interface (struct parse *,
 int subnet_inner_than(const struct subnet *, const struct subnet *, int);
 void enter_subnet (struct subnet *);
 void enter_lease (struct lease *);
-int supersede_lease (struct lease *, struct lease *, int, int, int);
+int supersede_lease (struct lease *, struct lease *, int, int, int, int);
 void make_binding_state_transition (struct lease *);
 int lease_copy (struct lease **, struct lease *, const char *, int);
 void release_lease (struct lease *, struct packet *);
@@ -3410,6 +3450,7 @@ isc_result_t dhcp_failover_state_signal (omapi_object_t *,
 isc_result_t dhcp_failover_state_transition (dhcp_failover_state_t *,
 					     const char *);
 isc_result_t dhcp_failover_set_service_state (dhcp_failover_state_t *state);
+void dhcp_failover_rescind_updates (dhcp_failover_state_t *);
 isc_result_t dhcp_failover_set_state (dhcp_failover_state_t *,
 				      enum failover_state);
 isc_result_t dhcp_failover_peer_state_changed (dhcp_failover_state_t *,
@@ -3627,6 +3668,7 @@ void schedule_all_ipv6_lease_timeouts();
 void mark_hosts_unavailable(void);
 void mark_phosts_unavailable(void);
 void mark_interfaces_unavailable(void);
+void report_jumbo_ranges();
 
 #define MAX_ADDRESS_STRING_LEN \
    (sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"))
@@ -3638,4 +3680,7 @@ void mark_interfaces_unavailable(void);
 	((count) > (INT_MAX / 100) ?	\
 	 ((count) / 100) * (percent) : ((count) * (percent)) / 100)
 
-	
+#define FIND_POND6_PERCENT(count, percent)	\
+	((count) > (POND_TRACK_MAX / 100) ?	\
+	 ((count) / 100) * (percent) : ((count) * (percent)) / 100)
+

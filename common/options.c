@@ -43,17 +43,11 @@ static int prepare_option_buffer(struct universe *universe, struct buffer *bp,
 				 struct option_cache **opp);
 
 /* Parse all available options out of the specified packet. */
-
+/* Note, the caller is responsible for allocating packet->options. */
 int parse_options (packet)
 	struct packet *packet;
 {
-	struct option_cache *op = (struct option_cache *)0;
-
-	/* Allocate a new option state. */
-	if (!option_state_allocate (&packet -> options, MDL)) {
-		packet -> options_valid = 0;
-		return 0;
-	}
+	struct option_cache *op = NULL;
 
 	/* If we don't see the magic cookie, there's nothing to parse. */
 	if (memcmp (packet -> raw -> options, DHCP_OPTIONS_COOKIE, 4)) {
@@ -660,6 +654,15 @@ cons_options(struct packet *inpacket, struct dhcp_packet *outpacket,
 			if (priority_len < PRIORITY_COUNT)
 				priority_list[priority_len++] =
 					DHO_SUBNET_SELECTION;
+		}
+
+		/* If echo-client-id is on, then we add client identifier to
+		 * the priority_list. This way we'll send it whether or not it
+		 * is in the PRL. */
+		if ((inpacket != NULL) && (priority_len < PRIORITY_COUNT) &&
+		    (inpacket->sv_echo_client_id == ISC_TRUE)) {
+			priority_list[priority_len++] =
+				DHO_DHCP_CLIENT_IDENTIFIER;
 		}
 
 		data_string_truncate(prl, (PRIORITY_COUNT - priority_len));
@@ -1849,6 +1852,15 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 			 * of the last format type and we add 1 to
 			 * cover the entire first record.
 			 */
+
+			/* If format string had no valid entries prior to
+			 * 'a' hunkinc will be 0. Ex: "a", "oa", "aA" */
+			if (hunkinc == 0) {
+				log_error ("%s: invalid 'a' format: %s",
+					   option->name, option->format);
+				return ("<error>");
+			}
+
 			numhunk = ((len - hunksize) / hunkinc) + 1;
 			len_used = hunksize + ((numhunk - 1) * hunkinc);
 		} else {
@@ -1856,6 +1868,15 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 			 * It is an 'A' type array - we repeat the
 			 * entire record
 			 */
+
+			/* If format string had no valid entries prior to
+			 * 'A' hunksize will be 0. Ex: "A", "oA", "foA" */
+			if (hunksize == 0) {
+				log_error ("%s: invalid 'A' format: %s",
+					   option->name, option->format);
+				return ("<error>");
+			}
+
 			numhunk = len / hunksize;
 			len_used = numhunk * hunksize;
 		}
@@ -2246,6 +2267,30 @@ void set_option (universe, options, option, op)
 				break;
 			}
 		}
+
+		/* If we are trying to combine compressed domain-lists then
+		 * we need to change the expression opcode.  The lists must
+		 * be decompressed, combined, and then recompressed to work
+		 * correctly.  You cannot simply add two compressed lists
+		 * together. */
+		switch (((memcmp(option->option->format, "Dc", 2) == 0) +
+			 (memcmp(oc->option->format, "Dc", 2) == 0))) {
+			case 1:
+				/* Only one is "Dc", this won't work
+				 * Not sure if you can make this occur, but just
+				 * in case. */
+				log_error ("Both options must be Dc format");
+				option_cache_dereference (&noc, MDL);
+				return;
+			case 2:
+				/* Both are "Dc", change the code */
+				noc->expression->op = expr_concat_dclist;
+				break;
+			default:
+				/* Neither are "Dc", so as you were */
+				break;
+		}
+
 		option_reference(&(noc->option), oc->option, MDL);
 		save_option (universe, options, noc);
 		option_cache_dereference (&noc, MDL);
@@ -3829,12 +3874,15 @@ void do_packet (interface, packet, len, from_port, from, hfrom)
 		return;
 	}
 
+	/* Allocate packet->options now so it is non-null for all packets */
+	decoded_packet->options_valid = 0;
+	if (!option_state_allocate (&decoded_packet->options, MDL)) {
+		return;
+	}
+
 	/* If there's an option buffer, try to parse it. */
 	if (decoded_packet->packet_length >= DHCP_FIXED_NON_UDP + 4) {
 		if (!parse_options(decoded_packet)) {
-			if (decoded_packet->options)
-				option_state_dereference
-					(&decoded_packet->options, MDL);
 			packet_dereference (&decoded_packet, MDL);
 			return;
 		}
