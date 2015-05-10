@@ -120,6 +120,20 @@ isclib_cleanup(void)
 	return;
 }
 
+/* Installs a handler for a signal using sigaction */
+static void
+handle_signal(int sig, void (*handler)(int)) {
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handler;
+	sigfillset(&sa.sa_mask);
+	if (sigaction(sig, &sa, NULL) != 0) {
+		log_debug("handle_signal() failed for signal %d error: %s",
+                          sig, strerror(errno));
+	}
+}
+
 isc_result_t
 dhcp_context_create(int flags,
 		    struct in_addr  *local4,
@@ -175,6 +189,11 @@ dhcp_context_create(int flags,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dhcp_gbl_ctx.actx_started = ISC_TRUE;
+
+		/* Not all OSs support suppressing SIGPIPE through socket
+		 * options, so set the sigal action to be ignore.  This allows
+		 * broken connections to fail gracefully with EPIPE on writes */
+		handle_signal(SIGPIPE, SIG_IGN);
 
 		result = isc_taskmgr_createinctx(dhcp_gbl_ctx.mctx,
 						 dhcp_gbl_ctx.actx,
@@ -289,12 +308,24 @@ isclib_make_dst_key(char          *inname,
 	dns_name_t *name;
 	dns_fixedname_t name0;
 	isc_buffer_t b;
+	unsigned int algorithm_code;
 
 	isc_buffer_init(&b, secret, length);
 	isc_buffer_add(&b, length);
 
-	/* We only support HMAC_MD5 currently */
-	if (strcasecmp(algorithm, DHCP_HMAC_MD5_NAME) != 0) {
+	if (strcasecmp(algorithm, DHCP_HMAC_MD5_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACMD5;
+	} else if (strcasecmp(algorithm, DHCP_HMAC_SHA1_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACSHA1;
+	} else if (strcasecmp(algorithm, DHCP_HMAC_SHA224_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACSHA224;
+	} else if (strcasecmp(algorithm, DHCP_HMAC_SHA256_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACSHA256;
+	} else if (strcasecmp(algorithm, DHCP_HMAC_SHA384_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACSHA384;
+	} else if (strcasecmp(algorithm, DHCP_HMAC_SHA512_NAME) == 0) {
+		algorithm_code =  DST_ALG_HMACSHA512;
+	} else {
 		return(DHCP_R_INVALIDARG);
 	}
 
@@ -303,7 +334,7 @@ isclib_make_dst_key(char          *inname,
 		return(result);
 	}
 
-	return(dst_key_frombuffer(name, DST_ALG_HMACMD5, DNS_KEYOWNER_ENTITY,
+	return(dst_key_frombuffer(name, algorithm_code, DNS_KEYOWNER_ENTITY,
 				  DNS_KEYPROTO_DNSSEC, dns_rdataclass_in,
 				  &b, dhcp_gbl_ctx.mctx, dstkey));
 }

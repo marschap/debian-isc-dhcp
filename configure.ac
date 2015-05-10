@@ -1,4 +1,4 @@
-AC_INIT([DHCP],[4.3.1],[dhcp-users@isc.org])
+AC_INIT([DHCP],[4.3.2],[dhcp-users@isc.org])
 
 # we specify "foreign" to avoid having to have the GNU mandated files,
 # like AUTHORS, COPYING, and such
@@ -52,14 +52,16 @@ AC_DEFINE_UNQUOTED([DHCP_BYTE_ORDER], [$byte_order],
 # Optional compile-time DEBUGging.
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--enable-debug],[create a debug-only version of the software (default is no).]),
-		[enable_debug=yes],[enable_debug=no])
-# This is very much off by default.
-if test "$enable_debug" = "yes" ; then
-	AC_DEFINE([DEBUG], [1],
-		[Define to compile debug-only DHCP software.])
-	# Just override CFLAGS to totally to remove optimization.
-	CFLAGS="-g"
-fi
+  [case "${enableval}" in
+    yes) enable_debug=yes
+        AC_DEFINE([DEBUG], [1],
+            [Define to compile debug-only DHCP software.])
+        # Just override CFLAGS totally to remove optimization.
+        CFLAGS="-g";;
+    no)  enable_debug=no ;;
+    *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+  esac],[enable_debug=no])
+
 # XXX: there are actually quite a lot more DEBUG_ features we could enable,
 # but I don't want to pollute the --help space.
 #
@@ -203,24 +205,38 @@ if test "$atf_path" != "no" ; then
         do
             if test -f $d/lib/pkgconfig/atf-c.pc ; then
                 atf_pcp=$d/lib/pkgconfig
+                atf_path=$d
             elif test -f $d/lib64/pkgconfig/atf-c.pc ; then
                 atf_pcp=$d/lib64/pkgconfig
+                atf_path=$d
             fi
         done
     fi
+
     if test "$atf_pcp" = "" ; then
         AC_MSG_ERROR([Unable to find atf files in location specified])
     else
         ATF_CFLAGS="`PKG_CONFIG_PATH=$atf_pcp pkg-config --cflags atf-c` -DUNIT_TEST"
         ATF_LDFLAGS="`PKG_CONFIG_PATH=$atf_pcp pkg-config --libs atf-c`"
+        if  test -f $atf_pcp/atf-sh.pc ; then
+                ATF_BIN="`PKG_CONFIG_PATH=$atf_pcp pkg-config --variable=exec_prefix atf-sh`/bin"
+        else
+                # older versions don't have atf-sh, try usual place
+                ATF_BIN=$atf_path/bin
+        fi
+
+        if test ! -x $ATF_BIN/atf-run  -o  ! -x $ATF_BIN/atf-report ; then
+            AC_MSG_WARN([atf-run,atf-report not found, assuming they are in your path])
+        fi
+
         AC_SUBST(ATF_CFLAGS)
         AC_SUBST(ATF_LDFLAGS)
+        AC_SUBST(ATF_BIN)
     fi
 fi
 
 AM_CONDITIONAL(HAVE_ATF, test "$atf_pcp" != "")
-### Uncomment this once docs.lab.isc.org upgrades to automake 1.11
-### AM_COND_IF([HAVE_ATF], [AC_DEFINE([HAVE_ATF], [1], [ATF framework specified?])])
+AM_COND_IF([HAVE_ATF], [AC_DEFINE([HAVE_ATF], [1], [ATF framework specified?])])
 
 ###
 ### Path fun.  Older versions of DHCP were installed in /usr/sbin, so we
@@ -560,6 +576,10 @@ AC_CHECK_MEMBER(struct msghdr.msg_control,,
 #include <sys/socket.h>
 	])
 
+AC_CHECK_MEMBER(struct tpacket_auxdata.tp_vlan_tci,
+    [AC_DEFINE([VLAN_TCI_PRESENT], [1], [tpacket_auxdata.tp_vlan_tci present])]
+    ,, [#include <linux/if_packet.h>])
+
 libbind=
 AC_ARG_WITH(libbind,
 	AS_HELP_STRING([--with-libbind=PATH],[bind includes and libraries are in PATH 
@@ -632,6 +652,7 @@ AC_CONFIG_FILES([
   relay/Makefile
   server/Makefile
   tests/Makefile
+  tests/unittest.sh
   server/tests/Makefile
   doc/devel/doxyfile
 ])
@@ -669,6 +690,7 @@ if test "$atf_path" != "no"
 then
 echo "ATF_CFLAGS  : $ATF_CFLAGS" >> config.report
 echo "ATF_LDFLAGS : $ATF_LDFLAGS" >> config.report
+echo "ATF_BIN : $ATF_BIN" >> config.report
 echo
 fi
 

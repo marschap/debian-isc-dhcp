@@ -1,6 +1,6 @@
 .\"	dhcpd.conf.5
 .\"
-.\" Copyright (c) 2004-2013 by Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (c) 1996-2003 by Internet Software Consortium
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
@@ -675,7 +675,7 @@ The
 statement
 .RS 0.25i
 .PP
-.B split \fIindex\fR\fB;\fR
+.B split \fIbits\fR\fB;\fR
 .PP
 The split statement specifies the split between the primary and
 secondary for the purposes of load balancing.  Whenever a client
@@ -687,7 +687,9 @@ the secondary is responsible.  The \fBsplit\fR value determines
 how many of the leading bits are set to one.  So, in practice, higher
 split values will cause the primary to serve more clients than the
 secondary.  Lower split values, the converse.  Legal values are between
-0 and 255, of which the most reasonable is 128.
+0 and 256 inclusive, of which the most reasonable is 128.  Note that
+a value of 0 makes the secondary responsible for all clients and a value
+of 256 makes the primary responsible for all clients.
 .RE
 .PP
 The 
@@ -1151,17 +1153,23 @@ IP address, it can update its own A record, assuming that the
 .PP
 If the server is configured not to allow client updates, or if the
 client doesn\'t want to do its own update, the server will simply
-choose a name for the client from either the \fBfqdn\fR option (if present)
-or the hostname option (if present).  It will use its own
-domain name for the client.  It will then update both the A and PTR
-record, using the name that it chose for the client.  If the client
-sends a fully-qualified domain name in the \fBfqdn\fR option, the
-server uses only the leftmost part of the domain name - in the
-example above, "jschmoe" instead of "jschmoe.radish.org".
+choose a name for the client. By default, the server will choose
+from the following three values:
 .PP
-If the defaults for choosing the host name are not appropriate
+     1. \fBfqdn\fR option (if present)
+     2. hostname option (if present)
+     3. Configured hostname option (if defined).
+.PP
+If these defaults for choosing the host name are not appropriate
 you can write your own statement to set the ddns-hostname variable
-as you wish.
+as you wish.  If none of the above are found the server will use
+the host declaration name (if one) and use-host-decl-names is on.
+.PP
+It will use its own domain name for the client.  It will then update
+both the A and PTR record, using the name that it chose for the client.
+If the client sends a fully-qualified domain name in the \fBfqdn\fR option,
+the server uses only the leftmost part of the domain name - in the example
+above, "jschmoe" instead of "jschmoe.radish.org".
 .PP
 Further, if the \fIignore client-updates;\fR directive is used, then
 the server will in addition send a response in the DHCP packet, using
@@ -1303,6 +1311,18 @@ dnssec-keygen, the above key would be created as follows:
 .PP
 .nf
 	dnssec-keygen -a HMAC-MD5 -b 128 -n USER DHCP_UPDATER
+.fi
+.PP
+The key name, algorithm, and secret must match that being used by the DNS
+server. The DHCP server currently supports the following algorithms:
+.nf
+
+        HMAC-MD5
+        HMAC-SHA1
+        HMAC-SHA224
+        HMAC-SHA256
+        HMAC-SHA384
+        HMAC-SHA512
 .fi
 .PP
 You may wish to enable logging of DNS updates on your DNS server.
@@ -1696,11 +1716,42 @@ lease the server has offered is not valid.  When the server receives
 a DHCPDECLINE for a particular address, it normally abandons that
 address, assuming that some unauthorized system is using it.
 Unfortunately, a malicious or buggy client can, using DHCPDECLINE
-messages, completely exhaust the DHCP server's allocation pool.  The
-server will reclaim these leases, but while the client is running
-through the pool, it may cause serious thrashing in the DNS, and it
-will also cause the DHCP server to forget old DHCP client address
+messages, to completely exhaust the DHCP server's allocation pool.  The
+server will eventually reclaim these leases, but not while the client
+is running through the pool. This may cause serious thrashing in the DNS,
+and it will also cause the DHCP server to forget old DHCP client address
 allocations.
+.PP
+Currently, abandoned IPv6 addresses are reclaimed in one of two ways:
+    a) Client renews a specific address:
+    If a client using a given DUID submits a DHCP REQUEST containing the
+    last address abandoned by that DUID, the address will be reassigned to
+    that client.
+
+    b) Upon the second restart following an address abandonment.  When an
+    address is abandoned it is both recorded as such in the lease file and
+    retained as abandoned in server memory until the server is restarted. Upon
+    restart, the server will process the lease file and all addresses whose
+    last known state is abandoned will be retained as such in memory but not
+    rewritten to the lease file.  This means that a subsequent restart of the
+    server will not see the abandoned addresses in the lease file and 
+    therefore have no record of them as abandoned in memory and as such
+    perceive them as free for assignment.
+.PP
+The total number addresses in a pool, available for a given DUID value,
+is internally limited by the server's address generation mechanism.  If
+through mistaken configuration, multiple clients are using the same
+DUID they will competing for the same addresses causing the server to reach
+this internal limit rather quickly.  The internal limit isolates this type
+of activity such that address range is not exhausted for other DUID values.
+The appearance of the following error log, can be an indication of this
+condition:
+
+    "Best match for DUID <XX> is an abandoned address, This may be a result of
+     multiple clients attempting to use this DUID"
+
+    where <XX> is an actual DUID value depicted as colon separated string of
+    bytes in hexadecimal values.
 .PP
 The \fBdeclines\fR flag tells the DHCP server whether or not to honor
 DHCPDECLINE messages.  If it is set to \fBdeny\fR or \fBignore\fR in
@@ -2095,9 +2146,22 @@ update and write the database frequently resulting in a performance
 impact on the server.  The \fIdhcp-cache-threshold\fR
 statement instructs the DHCP server to avoid updating leases too
 frequently thus avoiding this behavior.  Instead the server assigns the
-same lease with no modifications except for CLTT (Client Last
+same lease (i.e. reuses it) with no modifications except for CLTT (Client Last
 Transmission Time) which does not require disk operations. This
 feature applies to IPv4 only.
+.PP
+When an existing lease is matched to a renewing client, it will be reused
+if all of the following conditions are true:
+.nf
+    1. The dhcp-cache-threshold is larger than zero
+    2. The current lease is active
+    3. The percentage of the lease time that has elapsed is less than
+    dhcp-cache-threshold
+    4. The client information provided in the renewal does not alter
+    any of the following:
+       a. DNS information and DNS updates are enabled
+       b. Billing class to which the lease is associated
+.fi
 .RE
 .PP
 The
@@ -2185,6 +2249,22 @@ timeout period, the lease duration is reset to \fIlength\fR, so a
 BOOTP client that boots frequently enough will never lose its lease.
 Needless to say, this parameter should be adjusted with extreme
 caution.
+.RE
+.PP
+The
+.I echo-client-id
+statement
+.RS 0.25i
+.PP
+.B echo-client-id\fR \fIflag\fR\fB;\fR
+.PP
+The \fIecho-client-id\fR statement is used to enable or disable RFC 6842
+compliant behavior.  If the echo-client-id statement is present and has a
+value of true or on, and a DHCP DISCOVER or REQUEST is received which contains
+the client identifier option (Option code 61), the server will copy the option
+into its response (DHCP ACK or NAK) per RFC 6842.  In other words if the
+client sends the option it will receive it back. By default, this flag is off
+and client identifiers will not echoed back to the client.
 .RE
 .PP
 The
@@ -2494,6 +2574,16 @@ threshold is not given, it default to a value of zero.
 A special case occurs when the low threshold is set to be higer than
 the high threshold.  In this case, a message will be generated each time
 a lease is acknowledged when the pool usage is above the high threshold.
+.PP
+Note that threshold logging will be automatically disabled for shared
+subnets whose total number of addresses is larger than (2^64)-1.  The server
+will emit a log statement at startup when threshold logging is disabled as
+shown below:
+
+    "Threshold logging disabled for shared subnet of ranges: <addresses>"
+
+This is likely to have no practical runtime effect as CPUs are unlikely
+to support a server actually reaching such a large number of leases.
 .RE
 .PP
 The
@@ -2696,6 +2786,80 @@ default lease time if none were specified.
 .RE
 .PP
 The
+.I prefix-length-mode
+statement
+.RS 0.25i
+.PP
+.B prefix-length-mode
+.I mode\fR\fB;\fR
+.PP
+According to RFC 3633, DHCPv6 clients may specify preferences when soliciting
+prefixes by including an IA_PD Prefix option within the IA_PD option. Among
+the preferences that may be conveyed is the "prefix-length". When non-zero it
+indicates a client's desired length for offered prefixes.  The RFC states that
+servers "MAY choose to use the information...to select prefix(es)" but does
+not specify any particular rules for doing so. The prefix-length-mode statement
+can be used to set the prefix selection rules employed by the server,
+when clients send a non-zero prefix-length value. The mode parameter must
+be one of \fBignore\fR, \fBprefer\fR, \fBexact\fR, \fBminimum\fR, or
+\fBmaximum\fR where:
+.PP
+1. ignore - The requested length is ignored. The server will offer the first
+available prefix.
+.PP
+2. prefer - The server will offer the first available prefix with the same
+length as the requested length.  If none are found then it will offer the
+first available prefix of any length.
+.PP
+3. exact - The server will offer the first available prefix with the same
+length as the requested length.  If none are found, it will return a status
+indicating no prefixes available.  This is the default behavior.
+.PP
+4. minimum - The server will offer the first available prefix with the same
+length as the requested length.  If none are found, it will return the first
+available prefix whose length is greater than (e.g. longer than), the
+requested value.  If none of those are found, it will return a status
+indicating no prefixes available.  For example, if client requests a length
+of /60, and the server has available prefixes of lengths /56 and /64, it will
+offer prefix of length /64.
+.PP
+5. maximum - The server will offer the first available prefix with the same
+length as the requested length.  If none are found, it will return the first
+available prefix whose length is less than (e.g. shorter than), the
+requested value.  If none of those are found, it will return a status
+indicating no prefixes available.  For example, if client requests a length
+of /60, and the server has available prefixes of lengths /56 and /64, it will
+offer a prefix of length /56.
+.PP
+In general "first available" is determined by the order in which pools are
+defined in the server's configuration.  For example, if a subnet is defined
+with three prefix pools A,B, and C:
+.PP
+.nf
+subnet 3000::/64 {
+	# pool A
+	pool6 {
+		:
+	}
+	# pool B
+	pool6 {
+		:
+	}
+	# pool C 
+	pool6 {
+		:
+	}
+}
+.fi
+.PP
+then the pools will be checked in the order A, B, C. For modes \fBprefer\fR,
+\fBminimum\fR, and \fBmaximum\fR this may mean checking the pools in that order
+twice.  A first pass through is made looking for an available prefix of exactly
+the preferred length.  If none are found, then a second pass is performed
+starting with pool A but with appropriately adjusted length criteria.
+.RE
+.PP
+The
 .I remote-port
 statement
 .RS 0.25i
@@ -2740,6 +2904,44 @@ that the clients use this IP address when contacting the server.
 .PP
 Supplying a value for the dhcp-server-identifier option is equivalent
 to using the server-identifier statement.
+.RE
+.PP
+The
+.I server-id-check
+statement
+.RS 0.25i
+.PP
+.B server-id-check \fIflag\fR\fB;\fR
+.PP
+The server-id-check statement is used to control whether or not a server,
+participating in failover, verifies that the value of the
+dhcp-server-identifier option in received DHCP REQUESTs match the server's
+id before processing the request. Server id checking is disabled by default.
+Setting this flag enables id checking and thereafter the server will only
+process requests that match.  Note the flag setting should be consistent
+between failover partners.
+.PP
+Unless overridden by use of the server-identifier statement, the value the
+server uses as its id will be the first IP address associated with the
+physical network interface on which the request arrived.
+.PP
+In order to reduce runtime overhead the server only checks for a server id
+option in the global and subnet scopes.  Complicated configurations
+may result in differnet server ids for this check and when the server id for
+a reply packet is determined, which would prohibit the server from responding.
+.PP
+The primary use for this option is when a client broadcasts a request
+but requires that the response come from a specific failover peer.
+An example of this would be when a client reboots while its lease is still
+active - in this case both servers will normally respond.  Most of the
+time the client won't check the server id and can use either of the responses.
+However if the client does check the server id it may reject the response
+if it came from the wrong peer.  If the timing is such that the "wrong"
+peer responds first most of the time the client may not get an address for
+some time.
+.PP
+Care should be taken before enabling this option.
+.PP
 .RE
 .PP
 The
@@ -2900,6 +3102,11 @@ is equivalent to
         option host-name "joe";
       }
 .fi
+.PP
+Additionally, enabling use-host-decl-names instructs the server to use
+the host declaration name in the the forward DNS name, if no other values
+are available.  This value selection process is discussed in more detail
+under DNS updates.
 .PP
 An \fIoption host-name\fR statement within a host declaration will
 override the use of the name in the host declaration.

@@ -34,6 +34,9 @@
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
+/* ATF framework specified? */
+#undef HAVE_ATF
+
 /* Define to 1 to use the Berkeley Packet Filter interface code. */
 #undef HAVE_BPF
 
@@ -181,6 +184,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* tpacket_auxdata.tp_vlan_tci present */
+#undef VLAN_TCI_PRESENT
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

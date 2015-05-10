@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2015 by Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -149,6 +149,10 @@ static struct iasubopt *prefix_compare(struct reply_state *reply,
 static int find_hosts_by_duid_chaddr(struct host_decl **host,
 				     const struct data_string *client_id);
 static void schedule_lease_timeout_reply(struct reply_state *reply);
+
+static int eval_prefix_mode(int thislen, int preflen, int prefix_mode);
+static isc_result_t pick_v6_prefix_helper(struct reply_state *reply,
+					  int prefix_mode);
 
 /*
  * Schedule lease timeouts for all of the iasubopts in the reply.
@@ -823,7 +827,8 @@ void check_pool6_threshold(struct reply_state *reply,
 			   struct iasubopt *lease)
 {
 	struct ipv6_pond *pond;
-	int used, count, high_threshold, poolhigh = 0, poollow = 0;
+	isc_uint64_t used, count, high_threshold;
+	int poolhigh = 0, poollow = 0;
 	char *shared_name = "no name";
 	char tmp_addr[INET6_ADDRSTRLEN];
 
@@ -831,8 +836,19 @@ void check_pool6_threshold(struct reply_state *reply,
 		return;
 	pond = lease->ipv6_pool->ipv6_pond;
 
+	/* If the address range is too large to track, just skip all this. */
+	if (pond->jumbo_range == 1) {
+		return;
+	}
+
 	count = pond->num_total;
 	used = pond->num_active;
+
+	/* get network name for logging */
+	if ((pond->shared_network != NULL) &&
+	    (pond->shared_network->name != NULL)) {
+		shared_name = pond->shared_network->name;
+	}
 
 	/* The logged flag indicates if we have already crossed the high
 	 * threshold and emitted a log message.  If it is set we check to
@@ -849,7 +865,7 @@ void check_pool6_threshold(struct reply_state *reply,
 			pond->low_threshold = 0;
 			pond->logged = 0;
 			log_error("Pool threshold reset - shared subnet: %s; "
-				  "address: %s; low threshold %d/%d.",
+				  "address: %s; low threshold %llu/%llu.",
 				  shared_name,
 				  inet_ntop(AF_INET6, &lease->addr,
 					    tmp_addr, sizeof(tmp_addr)),
@@ -874,19 +890,15 @@ void check_pool6_threshold(struct reply_state *reply,
 	}
 
 	/* we have a valid value, have we exceeded it */
-	high_threshold = FIND_PERCENT(count, poolhigh);
+	high_threshold = FIND_POND6_PERCENT(count, poolhigh);
 	if (used < high_threshold) {
 		/* nope, no more to do */
 		return;
 	}
 
 	/* we've exceeded it, output a message */
-	if ((pond->shared_network != NULL) &&
-	    (pond->shared_network->name != NULL)) {
-		shared_name = pond->shared_network->name;
-	}
 	log_error("Pool threshold exceeded - shared subnet: %s; "
-		  "address: %s; high threshold %d%% %d/%d.",
+		  "address: %s; high threshold %d%% %llu/%llu.",
 		  shared_name,
 		  inet_ntop(AF_INET6, &lease->addr, tmp_addr, sizeof(tmp_addr)),
 		  poolhigh, used, count);
@@ -908,7 +920,7 @@ void check_pool6_threshold(struct reply_state *reply,
 	 */
 	if (poollow < poolhigh) {
 		pond->logged = 1;
-		pond->low_threshold = FIND_PERCENT(count, poollow);
+		pond->low_threshold = FIND_POND6_PERCENT(count, poollow);
 	}
 }
 
@@ -1134,6 +1146,12 @@ pick_v6_address(struct reply_state *reply)
 	unsigned int attempts;
 	char tmp_buf[INET6_ADDRSTRLEN];
 	struct iasubopt **addr = &reply->lease;
+        isc_uint64_t total = 0;
+        isc_uint64_t active = 0;
+        isc_uint64_t abandoned = 0;
+	int jumbo_range = 0;
+	char *shared_name = (reply->shared->name ?
+			     reply->shared->name : "(no name)");
 
 	/*
 	 * Do a quick walk through of the ponds and pools
@@ -1170,6 +1188,8 @@ pick_v6_address(struct reply_state *reply)
 	 */
 
 	for (pond = reply->shared->ipv6_pond; pond != NULL; pond = pond->next) {
+		isc_result_t result = ISC_R_FAILURE;
+
 		if (((pond->prohibit_list != NULL) &&
 		     (permitted(reply->packet, pond->prohibit_list))) ||
 		    ((pond->permit_list != NULL) &&
@@ -1180,26 +1200,31 @@ pick_v6_address(struct reply_state *reply)
 		i = start_pool;
 		do {
 			p = pond->ipv6_pools[i];
-			if ((p->pool_type == D6O_IA_NA) &&
-			    (create_lease6(p, addr, &attempts,
-					   &reply->ia->iaid_duid,
-					   cur_time + 120) == ISC_R_SUCCESS)) {
-				/*
-				 * Record the pool used (or next one if there 
-				 * was a collision).
-				 */
-				if (attempts > 1) {
-					i++;
-					if (pond->ipv6_pools[i] == NULL) {
-						i = 0;
+			if (p->pool_type == D6O_IA_NA) {
+				result = create_lease6(p, addr, &attempts,
+					               &reply->ia->iaid_duid,
+					               cur_time + 120);
+				if (result == ISC_R_SUCCESS) {
+					/*
+					 * Record the pool used (or next one if
+					 * there was a collision).
+					 */
+					if (attempts > 1) {
+						i++;
+						if (pond->ipv6_pools[i]
+						    == NULL) {
+							i = 0;
+						}
 					}
-				}
-				pond->last_ipv6_pool = i;
 
-				log_debug("Picking pool address %s",
-					  inet_ntop(AF_INET6, &((*addr)->addr),
-						    tmp_buf, sizeof(tmp_buf)));
-				return (ISC_R_SUCCESS);
+					pond->last_ipv6_pool = i;
+
+					log_debug("Picking pool address %s",
+						  inet_ntop(AF_INET6,
+						  &((*addr)->addr),
+						  tmp_buf, sizeof(tmp_buf)));
+					return (ISC_R_SUCCESS);
+				}
 			}
 
 			i++;
@@ -1207,13 +1232,31 @@ pick_v6_address(struct reply_state *reply)
 				i = 0;
 			}
 		} while (i != start_pool);
+
+		if (result == ISC_R_NORESOURCES) {
+			jumbo_range += pond->jumbo_range;
+			total += pond->num_total;
+			active += pond->num_active;
+			abandoned += pond->num_abandoned;
+		}
 	}
 
 	/*
 	 * If we failed to pick an IPv6 address from any of the subnets.
 	 * Presumably that means we have no addresses for the client.
 	 */
-	log_debug("Unable to pick client address: no addresses available");
+	if (jumbo_range != 0) {
+		log_debug("Unable to pick client address: "
+			  "no addresses available  - shared network %s: "
+			  " 2^64-1 < total, %llu active,  %llu abandoned",
+			  shared_name, active - abandoned, abandoned);
+	} else {
+		log_debug("Unable to pick client address: "
+			  "no addresses available  - shared network %s: "
+			  "%llu total, %llu active,  %llu abandoned",
+			  shared_name, total, active - abandoned, abandoned);
+	}
+
 	return ISC_R_NORESOURCES;
 }
 
@@ -1280,9 +1323,27 @@ try_client_v6_prefix(struct iasubopt **pref,
  *
  * \brief  Get an IPv6 prefix for the client.
  *
- * Attempt to find a usable prefix for the client.  We walk through
- * the ponds checking for permit and deny then through the pools
- * seeing if they have an available prefix.
+ * Attempt to find a usable prefix for the client.  Based upon the prefix
+ * length mode and the plen supplied by the client (if one), we make one
+ * or more calls to pick_v6_prefix_helper() to find a prefix as follows:
+ *
+ * PLM_IGNORE or client specifies a plen of zero, use the first available
+ * prefix regardless of it's length.
+ *
+ * PLM_PREFER – look for an exact match to client's plen first, if none
+ * found, use the first available prefix of any length
+ *
+ * PLM_EXACT – look for an exact match first, if none found then fail. This
+ * is the default behavior.
+ *
+ * PLM_MAXIMUM  - look for an exact match first, then the first available whose
+ * prefix length is less than client's plen, otherwise fail.
+ *
+ * PLM_MINIMUM  - look for an exact match first, then the first available whose
+ * prefix length is greater than client's plen, otherwise fail.
+ *
+ * Note that the selection mode is configurable at the global scope only via
+ * prefix-len-mode.
  *
  * \param reply = the state structure for the current work on this request
  *                if we create a lease we return it using reply->lease
@@ -1297,21 +1358,17 @@ try_client_v6_prefix(struct iasubopt **pref,
  *                     hash the address.  After a number of failures we
  *                     conclude the pool is basically full.
  */
-
 static isc_result_t 
-pick_v6_prefix(struct reply_state *reply)
-{
-	struct ipv6_pool *p = NULL;
-	struct ipv6_pond *pond;
-	int i;
-	unsigned int attempts;
-	char tmp_buf[INET6_ADDRSTRLEN];
-	struct iasubopt **pref = &reply->lease;
+pick_v6_prefix(struct reply_state *reply) {
+        struct ipv6_pool *p = NULL;
+        struct ipv6_pond *pond;
+        int i;
+	isc_result_t result;
 
 	/*
 	 * Do a quick walk through of the ponds and pools
 	 * to see if we have any prefix pools
-	 */
+	*/
 	for (pond = reply->shared->ipv6_pond; pond != NULL; pond = pond->next) {
 		if (pond->ipv6_pools == NULL)
 			continue;
@@ -1331,13 +1388,93 @@ pick_v6_prefix(struct reply_state *reply)
 		return ISC_R_NORESOURCES;
 	}
 
+	if (reply->preflen <= 0) {
+		/* If we didn't get a plen (-1) or client plen is 0, then just
+		 * select first available (same as PLM_INGORE) */
+		result = pick_v6_prefix_helper(reply, PLM_IGNORE);
+	} else {
+		switch (prefix_length_mode) {
+		case PLM_PREFER:
+			/* First we look for an exact match, if not found
+			 * then first available */
+			result = pick_v6_prefix_helper(reply, PLM_EXACT);
+			if (result != ISC_R_SUCCESS) {
+				result = pick_v6_prefix_helper(reply,
+							      PLM_IGNORE);
+			}
+			break;
+
+		case PLM_EXACT:
+			/* Match exactly or fail */
+			result = pick_v6_prefix_helper(reply, PLM_EXACT);
+			break;
+
+		case PLM_MINIMUM:
+		case PLM_MAXIMUM:
+			/* First we look for an exact match, if not found
+			 * then first available by mode */
+			result = pick_v6_prefix_helper(reply, PLM_EXACT);
+			if (result != ISC_R_SUCCESS) {
+				result = pick_v6_prefix_helper(reply,
+							    prefix_length_mode);
+			}
+			break;
+
+		default:
+			/* First available */
+			result = pick_v6_prefix_helper(reply, PLM_IGNORE);
+			break;
+		}
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		char tmp_buf[INET6_ADDRSTRLEN];
+
+		log_debug("Picking pool prefix %s/%u",
+			  inet_ntop(AF_INET6, &(reply->lease->addr),
+				    tmp_buf, sizeof(tmp_buf)),
+				    (unsigned)(reply->lease->plen));
+		return (ISC_R_SUCCESS);
+	}
+
 	/*
-	 * We have at least one pool that could provide a prefix
-	 * Now we walk through the ponds and pools again and check
-	 * to see if the client is permitted and if an prefix is
-	 * available
-	 * 
-	 */
+	 * If we failed to pick an IPv6 prefix
+	 * Presumably that means we have no prefixes for the client.
+	*/
+	log_debug("Unable to pick client prefix: no prefixes available");
+	return ISC_R_NORESOURCES;
+}
+
+/*!
+ *
+ * \brief  Get an IPv6 prefix for the client based upon selection mode.
+ *
+ * We walk through the ponds checking for permit and deny. If a pond is
+ * permissable to use, loop through its PD pools checking prefix lengths
+ * against the client plen based on the prefix length mode, looking for
+ * available prefixes.
+ *
+ * \param reply = the state structure for the current work on this request
+ *                if we create a lease we return it using reply->lease
+ * \prefix_mode = selection mode to use
+ *
+ * \return
+ * ISC_R_SUCCESS = we were able to find a prefix and are returning a
+ *                 pointer to the lease
+ * ISC_R_NORESOURCES = there don't appear to be any free addresses.  This
+ *                     is probabalistic.  We don't exhaustively try the
+ *                     address range, instead we hash the duid and if
+ *                     the address derived from the hash is in use we
+ *                     hash the address.  After a number of failures we
+ *                     conclude the pool is basically full.
+ */
+isc_result_t
+pick_v6_prefix_helper(struct reply_state *reply, int prefix_mode) {
+	struct ipv6_pool *p = NULL;
+	struct ipv6_pond *pond;
+	int i;
+	unsigned int attempts;
+	struct iasubopt **pref = &reply->lease;
 
 	for (pond = reply->shared->ipv6_pond; pond != NULL; pond = pond->next) {
 		if (((pond->prohibit_list != NULL) &&
@@ -1347,35 +1484,62 @@ pick_v6_prefix(struct reply_state *reply)
 			continue;
 
 		for (i = 0; (p = pond->ipv6_pools[i]) != NULL; i++) {
-			if (p->pool_type != D6O_IA_PD) {
-				continue;
-			}
-
-			/*
-			 * Try only pools with the requested prefix length if any.
-			 */
-			if ((reply->preflen >= 0) && (p->units != reply->preflen)) {
-				continue;
-			}
-
-			if (create_prefix6(p, pref, &attempts, &reply->ia->iaid_duid,
-					   cur_time + 120) == ISC_R_SUCCESS) {
-				log_debug("Picking pool prefix %s/%u",
-					  inet_ntop(AF_INET6, &((*pref)->addr),
-						    tmp_buf, sizeof(tmp_buf)),
-					  (unsigned) (*pref)->plen);
-
+			if ((p->pool_type == D6O_IA_PD) &&
+			    (eval_prefix_mode(p->units, reply->preflen,
+					      prefix_mode) == 1) &&
+			    (create_prefix6(p, pref, &attempts,
+					    &reply->ia->iaid_duid,
+					    cur_time + 120) == ISC_R_SUCCESS)) {
 				return (ISC_R_SUCCESS);
 			}
 		}
 	}
 
-	/*
-	 * If we failed to pick an IPv6 prefix
-	 * Presumably that means we have no prefixes for the client.
-	 */
-	log_debug("Unable to pick client prefix: no prefixes available");
 	return ISC_R_NORESOURCES;
+}
+
+/*!
+ *
+ * \brief Test a prefix length against another based on prefix length mode
+ *
+ * \param len - prefix length to test
+ * \param preflen - preferred prefix length against which to test
+ * \param prefix_mode - prefix selection mode with which to test
+ *
+ * Note that the case of preferred length of 0 is not short-cut here as it
+ * is assumed to be done at a higher level.
+ *
+ * \return 1 if the given length is usable based upon mode and a preferred
+ * length, 0 if not.
+ */
+int
+eval_prefix_mode(int len, int preflen, int prefix_mode) {
+	int use_it = 1;
+	switch (prefix_mode) {
+	case PLM_EXACT:
+		use_it = (len == preflen);
+		break;
+	case PLM_MINIMUM:
+		/* they asked for a prefix length no "shorter" than preflen */
+		use_it = (len >= preflen);
+		break;
+	case PLM_MAXIMUM:
+		/* they asked for a prefix length no "longer" than preflen */
+		use_it = (len <= preflen);
+		break;
+	default:
+		/* otherwise use it */
+		break;
+	}
+
+#if defined (DEBUG)
+	log_debug("eval_prefix_mode: "
+		  "len %d, preflen %d, mode %s, use_it %d",
+		  len, preflen,
+		  prefix_length_modes.values[prefix_mode].name, use_it);
+#endif
+
+	return (use_it);
 }
 
 /*
@@ -3140,9 +3304,11 @@ find_client_address(struct reply_state *reply) {
 	/* Pick the abandoned lease as a last resort. */
 	if ((status == ISC_R_NORESOURCES) && (best_lease != NULL)) {
 		/* I don't see how this is supposed to be done right now. */
-		log_error("Reclaiming abandoned addresses is not yet "
-			  "supported.  Treating this as an out of space "
-			  "condition.");
+		log_error("Best match for DUID %s is an abandoned address,"
+			  " This may be a result of multiple clients attempting"
+			  " to use this DUID",
+			 print_hex_1(reply->client_id.len,
+				     reply->client_id.data, 60));
 		/* iasubopt_reference(&reply->lease, best_lease, MDL); */
 	}
 
@@ -3488,6 +3654,8 @@ lease_compare(struct iasubopt *alpha, struct iasubopt *beta) {
 			if (alpha->hard_lifetime_end_time <
 			    beta->hard_lifetime_end_time)
 				return alpha;
+			else
+				return beta;
 
 		      default:
 			log_fatal("Impossible condition at %s:%d.", MDL);
@@ -4700,6 +4868,8 @@ prefix_compare(struct reply_state *reply,
 			if (alpha->hard_lifetime_end_time <
 			    beta->hard_lifetime_end_time)
 				return alpha;
+			else
+				return beta;
 
 		      default:
 			log_fatal("Impossible condition at %s:%d.", MDL);

@@ -4,6 +4,7 @@
    Support Services in Vancouver, B.C. */
 
 /*
+ * Copyright (c) 2014-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2009,2012 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004,2007 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
@@ -35,8 +36,8 @@
 #include <asm/types.h>
 #include <linux/filter.h>
 #include <linux/if_ether.h>
+#include <linux/if_packet.h>
 #include <netinet/in_systm.h>
-#include <net/if_packet.h>
 #include "includes/netinet/ip.h"
 #include "includes/netinet/udp.h"
 #include "includes/netinet/if_ether.h"
@@ -44,6 +45,7 @@
 
 #if defined (USE_LPF_RECEIVE) || defined (USE_LPF_HWADDR)
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 #include <net/if.h>
 #endif
 
@@ -73,10 +75,14 @@ int if_register_lpf (info)
 	struct interface_info *info;
 {
 	int sock;
-	struct sockaddr sa;
+	union {
+		struct sockaddr_ll ll;
+		struct sockaddr common;
+		} sa;
+	struct ifreq ifr;
 
 	/* Make an LPF socket. */
-	if ((sock = socket(PF_PACKET, SOCK_PACKET,
+	if ((sock = socket(PF_PACKET, SOCK_RAW,
 			   htons((short)ETH_P_ALL))) < 0) {
 		if (errno == ENOPROTOOPT || errno == EPROTONOSUPPORT ||
 		    errno == ESOCKTNOSUPPORT || errno == EPFNOSUPPORT ||
@@ -91,11 +97,17 @@ int if_register_lpf (info)
 		log_fatal ("Open a socket for LPF: %m");
 	}
 
+	memset (&ifr, 0, sizeof ifr);
+	strncpy (ifr.ifr_name, (const char *)info -> ifp, sizeof ifr.ifr_name);
+	ifr.ifr_name[IFNAMSIZ-1] = '\0';
+	if (ioctl (sock, SIOCGIFINDEX, &ifr))
+		log_fatal ("Failed to get interface index: %m");
+
 	/* Bind to the interface name */
 	memset (&sa, 0, sizeof sa);
-	sa.sa_family = AF_PACKET;
-	strncpy (sa.sa_data, (const char *)info -> ifp, sizeof sa.sa_data);
-	if (bind (sock, &sa, sizeof sa)) {
+	sa.ll.sll_family = AF_PACKET;
+	sa.ll.sll_ifindex = ifr.ifr_ifindex;
+	if (bind (sock, &sa.common, sizeof sa)) {
 		if (errno == ENOPROTOOPT || errno == EPROTONOSUPPORT ||
 		    errno == ESOCKTNOSUPPORT || errno == EPFNOSUPPORT ||
 		    errno == EAFNOSUPPORT || errno == EINVAL) {
@@ -107,6 +119,7 @@ int if_register_lpf (info)
 			log_fatal ("configuration!");
 		}
 		log_fatal ("Bind socket to interface: %m");
+
 	}
 
 	get_hw_addr(info->name, &info->hw_address);
@@ -179,6 +192,20 @@ void if_register_receive (info)
 {
 	/* Open a LPF device and hang it on this interface... */
 	info -> rfdesc = if_register_lpf (info);
+
+#ifdef PACKET_AUXDATA
+	{
+	int val = 1;
+
+	if (setsockopt(info->rfdesc, SOL_PACKET, PACKET_AUXDATA,
+		       &val, sizeof(val)) < 0) {
+		if (errno != ENOPROTOOPT) {
+			log_fatal ("Failed to set auxiliary packet data: %m");
+		}
+	}
+	}
+#endif
+
 
 #if defined (HAVE_TR_SUPPORT)
 	if (info -> hw_address.hbuf [0] == HTYPE_IEEE802)
@@ -301,7 +328,6 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
 	double hh [16];
 	double ih [1536 / sizeof (double)];
 	unsigned char *buf = (unsigned char *)ih;
-	struct sockaddr_pkt sa;
 	int result;
 	int fudge;
 
@@ -321,18 +347,7 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
 				to -> sin_addr.s_addr, to -> sin_port,
 				(unsigned char *)raw, len);
 	memcpy (buf + ibufp, raw, len);
-
-	/* For some reason, SOCK_PACKET sockets can't be connected,
-	   so we have to do a sentdo every time. */
-	memset (&sa, 0, sizeof sa);
-	sa.spkt_family = AF_PACKET;
-	strncpy ((char *)sa.spkt_device,
-		 (const char *)interface -> ifp, sizeof sa.spkt_device);
-	sa.spkt_protocol = htons(ETH_P_IP);
-
-	result = sendto (interface -> wfdesc,
-			 buf + fudge, ibufp + len - fudge, 0, 
-			 (const struct sockaddr *)&sa, sizeof sa);
+	result = write(interface->wfdesc, buf + fudge, ibufp + len - fudge);
 	if (result < 0)
 		log_error ("send_packet: %m");
 	return result;
@@ -349,13 +364,65 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 {
 	int length = 0;
 	int offset = 0;
+	int csum_ready = 1;
 	unsigned char ibuf [1536];
 	unsigned bufix = 0;
 	unsigned paylen;
+	unsigned char cmsgbuf[CMSG_LEN(sizeof(struct tpacket_auxdata))];
+	struct iovec iov = {
+		.iov_base = ibuf,
+		.iov_len = sizeof ibuf,
+	};
+	struct msghdr msg = {
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+		.msg_control = cmsgbuf,
+		.msg_controllen = sizeof(cmsgbuf),
+	};
 
-	length = read (interface -> rfdesc, ibuf, sizeof ibuf);
+	length = recvmsg (interface->rfdesc, &msg, 0);
 	if (length <= 0)
 		return length;
+
+#ifdef PACKET_AUXDATA
+	{
+	/*  Use auxiliary packet data to:
+	 *
+	 *  a. Weed out extraneous VLAN-tagged packets - If the NIC driver is
+	 *  handling VLAN encapsulation (i.e. stripping/adding VLAN tags),
+	 *  then an inbound VLAN packet will be seen twice: Once by
+	 *  the parent interface (e.g. eth0) with a VLAN tag != 0; and once
+	 *  by the vlan interface (e.g. eth0.n) with a VLAN tag of 0 (i.e none).
+	 *  We want to discard the packet sent to the parent and thus respond
+	 *  only over the vlan interface.  (Drivers for Intel PRO/1000 series
+	 *  NICs perform VLAN encapsulation, while drivers for PCnet series
+	 *  do not, for example. The linux kernel makes stripped vlan info
+	 *  visible to user space via CMSG/auxdata, this appears to not be
+	 *  true for BSD OSs.).  NOTE: this is only supported on linux flavors
+	 *  which define the tpacket_auxdata.tp_vlan_tci.
+	 *
+	 *  b. Determine if checksum is valid for use. It may not be if
+	 *  checksum offloading is enabled on the interface.  */
+	struct cmsghdr *cmsg;
+
+	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		if (cmsg->cmsg_level == SOL_PACKET &&
+		    cmsg->cmsg_type == PACKET_AUXDATA) {
+			struct tpacket_auxdata *aux = (void *)CMSG_DATA(cmsg);
+			/* Discard packets with stripped vlan id */
+
+#ifdef VLAN_TCI_PRESENT
+			if (aux->tp_vlan_tci != 0)
+				return 0;
+#endif
+
+			csum_ready = ((aux->tp_status & TP_STATUS_CSUMNOTREADY)
+				      ? 0 : 1);
+		}
+	}
+
+	}
+#endif
 
 	bufix = 0;
 	/* Decode the physical header... */
@@ -373,7 +440,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 
 	/* Decode the IP and UDP headers... */
 	offset = decode_udp_ip_header (interface, ibuf, bufix, from,
-				       (unsigned)length, &paylen);
+				       (unsigned)length, &paylen, csum_ready);
 
 	/* If the IP or UDP checksum was bad, skip the packet... */
 	if (offset < 0)

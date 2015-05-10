@@ -227,7 +227,7 @@ isc_result_t dhcp_lease_set_value  (omapi_object_t *h,
 
 	    if (lease -> binding_state != bar) {
 		lease -> next_binding_state = bar;
-		if (supersede_lease (lease, 0, 1, 1, 1)) {
+		if (supersede_lease (lease, NULL, 1, 1, 1, 0)) {
 			log_info ("lease %s state changed from %s to %s",
 				  piaddr(lease->ip_addr), ols, nls);
 			return ISC_R_SUCCESS;
@@ -260,7 +260,7 @@ isc_result_t dhcp_lease_set_value  (omapi_object_t *h,
 		return status;
 	    old_lease_end = lease->ends;
 	    lease->ends = lease_end;
-	    if (supersede_lease (lease, 0, 1, 1, 1)) {
+	    if (supersede_lease (lease, NULL, 1, 1, 1, 0)) {
 		log_info ("lease %s end changed from %lu to %lu",
 			  piaddr(lease->ip_addr), old_lease_end, lease_end);
 		return ISC_R_SUCCESS;
@@ -279,7 +279,7 @@ isc_result_t dhcp_lease_set_value  (omapi_object_t *h,
 			   (lease->flags & ~EPHEMERAL_FLAGS);
 	    if(oldflags == lease->flags)
 		return ISC_R_SUCCESS;
-	    if (!supersede_lease(lease, NULL, 1, 1, 1)) {
+	    if (!supersede_lease(lease, NULL, 1, 1, 1, 0)) {
 		log_error("Failed to update flags for lease %s.",
 			  piaddr(lease->ip_addr));
 		return ISC_R_IOERROR;
@@ -1733,21 +1733,14 @@ class_set_value (omapi_object_t *h,
 	class = (struct class *)h;
 
 	if (!omapi_ds_strcmp(name, "name")) {
-		char *tname;
-
 		if (class->name)
 			return ISC_R_EXISTS;
 
-		if ((tname = dmalloc(value->u.buffer.len + 1, MDL)) == NULL) {
-			return ISC_R_NOMEMORY;
-		}
-
-		/* tname is null terminated from dmalloc() */
-		memcpy(tname, value->u.buffer.value, value->u.buffer.len);
-
 		if (issubclass) {
+			char tname[value->u.buffer.len + 1];
+			memcpy(tname, value->u.buffer.value, value->u.buffer.len);
+			tname[sizeof(tname)-1] = '\0';
 			status = find_class(&superclass, tname, MDL);
-			dfree(tname, MDL);
 
 			if (status == ISC_R_NOTFOUND)
 				return status;
@@ -2197,7 +2190,9 @@ isc_result_t dhcp_class_create (omapi_object_t **lp,
 	if (status != ISC_R_SUCCESS)
 		return (status);
 
-	clone_group(&cp->group, root_group, MDL);
+	if (clone_group(&cp->group, root_group, MDL) == 0)
+		return (ISC_R_NOMEMORY);
+
 	cp->flags = CLASS_DECL_DYNAMIC;
 	status = omapi_object_reference(lp, (omapi_object_t *)cp, MDL);
 	class_dereference(&cp, MDL);
