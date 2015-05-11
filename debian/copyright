@@ -2,6 +2,7 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
 Source: http://www.isc.org/downloads/dhcp
 Files-Excluded:
  aclocal.m4
+ bind
  compile
  config.*
  configure
@@ -14,8 +15,16 @@ Files-Excluded:
 
 Files: *
 Copyright:
- 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  1995-2003 by Internet Software Consortium
+License: ISC
+
+Files: debian/*
+Copyright:
+ 2008-2013 Andrew Pollock <apollock@debian.org>
+ 2011-2015 Michael Gilbert <mgilbert@debian.org>
+License: ISC
+
 License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -28,10 +37,3 @@ License: ISC
  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-Files: debian/*
-Copyright:
- 2008-2013 Andrew Pollock <apollock@debian.org>
- 2011-2014 Michael Gilbert <mgilbert@debian.org>
-License: ISC
- See above.
