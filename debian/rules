@@ -64,11 +64,7 @@ override_dh_install:
 
 override_dh_installinit:
 	dh_installinit -Nisc-dhcp-server
-	dh_installinit -pisc-dhcp-server --error-handler=init_script_error_handler
+	dh_installinit -pisc-dhcp-server --error-handler=true
 
 override_dh_strip:
 	dh_strip --dbg-package=isc-dhcp-dbg
-
-override_dh_clean:
-	rm -rf bind
-	dh_clean -- dhcpd config.*
