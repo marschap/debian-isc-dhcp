@@ -74,31 +74,7 @@ fi
 # ------------------------- Debconf questions end ---------------------
 db_stop
 
-if [ ! -e /var/lib/dhcp/dhcpd.leases ]; then
-    if test -e /var/lib/dhcp3/dhcpd.leases; then
-        cp /var/lib/dhcp3/dhcpd.leases /var/lib/dhcp/dhcpd.leases
-    else
-	touch /var/lib/dhcp/dhcpd.leases
-    fi
-fi
-
-# If we're upgrading from dhcp3, copy the config and leases over to the new
-# locations
-if [ -z "$2" ]; then
-	if [ -f /etc/dhcp3/dhcpd.conf ]; then
-		cp /etc/dhcp3/dhcpd.conf /etc/dhcp/dhcpd.conf
-	fi
-	if [ -f /var/lib/dhcp3/dhcpd.leases ]; then
-		cp /var/lib/dhcp3/dhcpd.leases /var/lib/dhcp/dhcpd.leases
-	fi
-fi
-
-[ -x /sbin/restorecon ] && restorecon /var/lib/dhcp/dhcpd.leases
-
-init_script_error_handler()
-{
-	return 0
-}
+restorecon /var/lib/dhcp/dhcpd.leases || true
 
 #DEBHELPER#
 
