@@ -1,3 +1,18 @@
+isc-dhcp (4.3.2-1) unstable; urgency=medium
+
+  * New upstream stable release.
+    - Many fixes to incorrect checksumming (closes: #353161, #652739).
+    - VLAN packets now only seen on VLAN interfaces (closes: #643564).
+  * Remove references to old dhcp3 packages (closes: #773476).
+  * Replace signing key with new upstream version.
+  * Fix typo in debug script (closes: #781768).
+  * Drop bind from the upstream tarball.
+  * Drop transitional debug packages.
+  * Drop dhcp3 conffile handling.
+  * Update debian/copyright.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 10 May 2015 22:44:17 +0000
+
 isc-dhcp (4.3.1-6) unstable; urgency=medium
 
   * Fix a regression in error handling for the server's init script
