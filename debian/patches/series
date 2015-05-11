@@ -2,8 +2,6 @@ dhclient-script-exit-status.patch
 dhclient-exit-hook.patch
 dhclient-dividebyzero.patch
 
-no-loopback-checksum.patch
-
 fix-exit-hook-manpage.patch
 spelling-error.patch
 manpage-hyphens.patch

@@ -36,7 +36,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .SH NBI
 --- a/server/dhcpd.conf.5
 +++ b/server/dhcpd.conf.5
-@@ -1302,7 +1302,7 @@ dnssec-keygen.  If you are using BIND 9\
+@@ -1310,7 +1310,7 @@ dnssec-keygen.  If you are using BIND 9\
  dnssec-keygen, the above key would be created as follows:
  .PP
  .nf
@@ -44,8 +44,8 @@ author: Michael Gilbert <mgilbert@debian.org>
 +	dnssec-keygen \-a HMAC-MD5 \-b 128 \-n USER DHCP_UPDATER
  .fi
  .PP
- You may wish to enable logging of DNS updates on your DNS server.
-@@ -1817,7 +1817,7 @@ A short min-lease-time enforces a step c
+ The key name, algorithm, and secret must match that being used by the DNS
+@@ -1868,7 +1868,7 @@ A short min-lease-time enforces a step c
  min-lease-time allows for a gradual change.
  \fItime\fR is either second since epoch, or a UTC time string e.g.
  4 2007/08/24 09:14:32 or a string with time zone offset in seconds
@@ -54,7 +54,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .SH REFERENCE: PARAMETERS
  The
  .I adaptive-lease-time-threshold
-@@ -2073,7 +2073,7 @@ a second).
+@@ -2124,7 +2124,7 @@ a second).
  .PP
  Please note that as delayed-ack is currently experimental, the delayed-ack
  feature is not compiled in by default, but must be enabled at compile time
@@ -63,7 +63,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .RE
  .PP
  The 
-@@ -2454,8 +2454,8 @@ The syntax of the \fIsyslog.conf\fR file
+@@ -2534,8 +2534,8 @@ The syntax of the \fIsyslog.conf\fR file
  operating systems - consult the \fIsyslog.conf\fR manual page to be
  sure.  To get syslog to start logging to the new file, you must first
  create the file with correct ownership and permissions (usually, the
@@ -194,7 +194,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  forwarded.  At least one \fB-u\fR option must be included in the command
 --- a/server/dhcpd.leases.5
 +++ b/server/dhcpd.leases.5
-@@ -108,7 +108,7 @@ Lease times are specified in Universal C
+@@ -109,7 +109,7 @@ Lease times are specified in Universal C
  the local time zone.  There is probably nowhere in the world where the
  times recorded on a lease are always the same as wall clock times.  On
  most unix machines, you can display the current time in UTC by typing

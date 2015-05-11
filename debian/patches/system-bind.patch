@@ -81,7 +81,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  
 --- a/configure.ac
 +++ b/configure.ac
-@@ -609,9 +609,6 @@ fi
+@@ -629,9 +629,6 @@ fi
  # AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[],[]) & etc).
  CFLAGS="$CFLAGS $STD_CWARNINGS"
  
@@ -91,7 +91,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  case "$host" in
  *-darwin*)
      CFLAGS="$CFLAGS -D__APPLE_USE_RFC_3542" ;;
-@@ -637,8 +634,6 @@ AC_CONFIG_FILES([
+@@ -658,8 +655,6 @@ AC_CONFIG_FILES([
  ])
  AC_OUTPUT
  
