@@ -41,19 +41,6 @@ Description: ISC DHCP server for automatic IP address assignment
  .
  This server can handle multiple ethernet interfaces.
 
-Package: isc-dhcp-server-dbg
-Section: oldlibs
-Priority: extra
-Architecture: any
-Depends:
- ${misc:Depends},
- isc-dhcp-dbg (= ${binary:Version}),
-Description: ISC DHCP server for automatic IP address assignment (server debug)
- This is the server from the Internet Software Consortium's implementation of
- DHCP.
- .
- This is a transitional package that can be safely removed. 
-
 Package: isc-dhcp-dbg
 Section: debug
 Priority: extra
@@ -143,19 +130,6 @@ Description: DHCP client for automatically obtaining an IP address
  .
  Extra documentation can be found in the package isc-dhcp-common.
 
-Package: isc-dhcp-client-dbg
-Section: oldlibs
-Priority: extra
-Architecture: any
-Depends:
- ${misc:Depends},
- isc-dhcp-dbg (= ${binary:Version}),
-Description: ISC DHCP server for automatic IP address assignment (client debug)
- This is the client from the Internet Software Consortium's implementation of
- DHCP.
- .
- This is a transitional package that can be safely removed. 
-
 Package: isc-dhcp-client-udeb
 Priority: extra
 Architecture: any
@@ -182,16 +156,3 @@ Description: ISC DHCP relay daemon
  requires a reachable DHCP or BOOTP server in order to function.
  .
  Extra documentation can be found in the package isc-dhcp-common.
-
-Package: isc-dhcp-relay-dbg
-Section: oldlibs
-Priority: extra
-Architecture: any
-Depends:
- ${misc:Depends},
- isc-dhcp-dbg (= ${binary:Version}),
-Description: ISC DHCP server for automatic IP address assignment (relay debug)
- This is the relay from the Internet Software Consortium's implementation of
- DHCP.
- .
- This is a transitional package that can be safely removed. 
