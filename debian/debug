@@ -26,7 +26,7 @@ if [ "$RUN" = "yes" ]; then
 			       ip6_address ip6_prefix ip6_prefixlen \
 			       dhcp6_domain_search dhcp6_name_servers ; do
 			var="${prefix}${basevar}"
-			eval "content=\$var"
+			eval "content=\$$var"
 
 			# show only variables with values set
 			if [ -n "${content}" ]; then
