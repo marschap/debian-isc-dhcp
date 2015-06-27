@@ -70,6 +70,7 @@ Depends:
  isc-dhcp-server (= ${binary:Version}),
 Conflicts:
  dhcp,
+Enhances: isc-dhcp-server
 Description: DHCP server that uses LDAP as its backend
  This is the server from the Internet Software Consortium's implementation of
  DHCP.
