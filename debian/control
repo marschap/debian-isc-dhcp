@@ -27,6 +27,7 @@ Depends:
  debianutils (>= 2.8.2),
  isc-dhcp-common (= ${binary:Version}),
  lsb-base,
+ policycoreutils,
 Conflicts:
  dhcp,
 Suggests:
