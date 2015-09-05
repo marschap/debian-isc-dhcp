@@ -11,11 +11,13 @@ DHCLIENT_SCRIPT=/sbin/dhclient-script
 
 CFLAGS+=-Wall
 CFLAGS+=-I/usr/include/bind-export
-CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
 CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
 CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
+CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
 
 CONFFLAGS=--prefix=/usr \
+          --disable-tracing \
+          --disable-failover \
           --sysconfdir=/etc/dhcp \
           --with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
           --with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
