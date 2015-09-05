@@ -30,6 +30,7 @@ Depends:
  policycoreutils,
 Conflicts:
  dhcp,
+ logcheck-database (<= 1.3.17~)
 Suggests:
  isc-dhcp-server-ldap,
 Description: ISC DHCP server for automatic IP address assignment

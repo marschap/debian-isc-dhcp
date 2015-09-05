@@ -1,6 +1,8 @@
 isc-dhcp (4.3.2-2) UNRELEASED; urgency=medium
 
   * Add uversionmangle to debian/watch.
+  * Add a logcheck snippet for the dhcp server (closes: #688339).
+    - Thanks to Jonathan Wiltshire.
   * Restore Enhances field for the ldap package (closes: #790164).
   * Fix undefined variables in dhclient-script.kfreebsd (closes: #691090).
     - Thanks to Peter Marschall.
