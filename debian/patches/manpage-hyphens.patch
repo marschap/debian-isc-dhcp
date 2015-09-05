@@ -14,7 +14,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  types together or even to share the lease file between them.
 --- a/server/dhcpd.8
 +++ b/server/dhcpd.8
-@@ -93,7 +93,7 @@ dhcpd - Dynamic Host Configuration Proto
+@@ -105,7 +105,7 @@ dhcpd - Dynamic Host Configuration Proto
  ]
  
  .B dhcpd
@@ -45,7 +45,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .fi
  .PP
  The key name, algorithm, and secret must match that being used by the DNS
-@@ -1868,7 +1868,7 @@ A short min-lease-time enforces a step c
+@@ -1881,7 +1881,7 @@ A short min-lease-time enforces a step c
  min-lease-time allows for a gradual change.
  \fItime\fR is either second since epoch, or a UTC time string e.g.
  4 2007/08/24 09:14:32 or a string with time zone offset in seconds
@@ -54,7 +54,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .SH REFERENCE: PARAMETERS
  The
  .I adaptive-lease-time-threshold
-@@ -2124,7 +2124,7 @@ a second).
+@@ -2137,7 +2137,7 @@ a second).
  .PP
  Please note that as delayed-ack is currently experimental, the delayed-ack
  feature is not compiled in by default, but must be enabled at compile time
@@ -63,7 +63,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  .RE
  .PP
  The 
-@@ -2534,8 +2534,8 @@ The syntax of the \fIsyslog.conf\fR file
+@@ -2577,8 +2577,8 @@ The syntax of the \fIsyslog.conf\fR file
  operating systems - consult the \fIsyslog.conf\fR manual page to be
  sure.  To get syslog to start logging to the new file, you must first
  create the file with correct ownership and permissions (usually, the

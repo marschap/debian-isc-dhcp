@@ -2,7 +2,7 @@ description: check that exit status is 2
 
 --- a/client/dhclient.c
 +++ b/client/dhclient.c
-@@ -1255,7 +1255,7 @@ void bind_lease (client)
+@@ -1256,7 +1256,7 @@ void bind_lease (client)
  	/* If the BOUND/RENEW code detects another machine using the
  	   offered address, it exits nonzero.  We need to send a
  	   DHCPDECLINE and toss the lease. */

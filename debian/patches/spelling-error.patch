@@ -3,7 +3,7 @@ Author: Michael Gilbert <mgilbert@debian.org>
 
 --- a/common/parse.c
 +++ b/common/parse.c
-@@ -1270,7 +1270,7 @@ parse_option_name (cfile, allocate, know
+@@ -1278,7 +1278,7 @@ parse_option_name (cfile, allocate, know
  			option_reference(opt, option, MDL);
  		} else
  			log_info("option %s has been redefined as option %s.  "

@@ -60,28 +60,28 @@ author: Michael Gilbert <mgilbert@debian.org>
  dhcpd_CFLAGS = $(LDAP_CFLAGS)
  dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
 -	      ../dhcpctl/libdhcpctl.a ../bind/lib/libirs.a \
--	      ../bind/lib/libdns.a ../bind/lib/libisccfg.a ../bind/lib/libisc.a
-+	      ../dhcpctl/libdhcpctl.a -lirs-export -ldns-export -lisc-export
+-	      ../bind/lib/libdns.a ../bind/lib/libisccfg.a ../bind/lib/libisc.a \
++	      ../dhcpctl/libdhcpctl.a -lirs-export -ldns-export -lisc-export \
+ 	      $(LDAP_LIBS)		
  
  man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
- EXTRA_DIST = $(man_MANS)
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -22,10 +22,9 @@ EXTRA_DIST = RELNOTES LICENSE \
  	     doc/devel/arch.dox doc/devel/atf.dox doc/devel/contrib.dox \
  	     doc/devel/debug.dox doc/devel/isc-logo.jpg doc/devel/mainpage.dox \
  	     doc/devel/omapi.dox doc/devel/qa.dox util/bindvar.sh \
--	     bind/Makefile bind/bind.tar.gz bind/version.tmp \
+-	     bind/Makefile.in bind/bind.tar.gz bind/version.tmp \
  	     common/tests/Atffile server/tests/Atffile
  
--SUBDIRS = bind includes tests common dst omapip client dhcpctl relay server
-+SUBDIRS = includes tests common dst omapip client dhcpctl relay server
+-SUBDIRS = bind includes tests common omapip client dhcpctl relay server
++SUBDIRS = includes tests common omapip client dhcpctl relay server
  
  nobase_include_HEADERS = dhcpctl/dhcpctl.h
  
 --- a/configure.ac
 +++ b/configure.ac
-@@ -629,9 +629,6 @@ fi
+@@ -699,9 +699,6 @@ fi
  # AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[],[]) & etc).
  CFLAGS="$CFLAGS $STD_CWARNINGS"
  
@@ -91,7 +91,15 @@ author: Michael Gilbert <mgilbert@debian.org>
  case "$host" in
  *-darwin*)
      CFLAGS="$CFLAGS -D__APPLE_USE_RFC_3542" ;;
-@@ -658,8 +655,6 @@ AC_CONFIG_FILES([
+@@ -711,7 +708,6 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
+ 
+ AC_CONFIG_FILES([
+   Makefile
+-  bind/Makefile
+   client/Makefile
+   client/tests/Makefile
+   common/Makefile
+@@ -728,8 +724,6 @@ AC_CONFIG_FILES([
  ])
  AC_OUTPUT
  
