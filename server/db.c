@@ -3,7 +3,7 @@
    Persistent database management routines for DHCPD... */
 
 /*
- * Copyright (c) 2012-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2012-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
@@ -1017,9 +1017,6 @@ int commit_leases ()
 		return (0);
 	}
 
-	/* send out all deferred ACKs now */
-	flush_ackqueue(NULL);
-
 	/* If we haven't rewritten the lease database in over an
 	   hour, rewrite it now.  (The length of time should probably
 	   be configurable. */
@@ -1128,6 +1125,22 @@ int new_lease_file ()
 		log_error ("Can't create new lease file: %m");
 		return 0;
 	}
+
+#if defined (PARANOIA)
+	/*
+	 * If we are currently root and plan to change the
+	 * uid and gid change the file information so we
+	 * can manipulate it later, after we've changed
+	 * our group and user (that is dropped privileges.)
+	 */
+	if ((set_uid != 0) && (geteuid() == 0) &&
+	    (set_gid != 0) && (getegid() == 0)) {
+		if (fchown(db_fd, set_uid, set_gid)) {
+			log_fatal ("Can't chown new lease file: %m");
+		}
+	}
+#endif /* PARANOIA */
+
 	if ((new_db_file = fdopen(db_fd, "w")) == NULL) {
 		log_error("Can't fdopen new lease file: %m");
 		close(db_fd);

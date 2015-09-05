@@ -3,7 +3,7 @@
    Common parser code for dhcpd and dhclient. */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -384,10 +384,11 @@ parse_ip6_addr(struct parse *cfile, struct iaddr *addr) {
 	 */
 	v6_len = 0;
 	for (;;) {
-		if ((((token == NAME) || (token == NUMBER_OR_NAME)) && 
+		if ((((token == NAME) || (token == NUMBER_OR_NAME)) &&
 		     is_hex_string(val)) ||
-		    (token == NUMBER) || 
-		    (token == DOT) || 
+		    (token == NUMBER) ||
+		    (token == TOKEN_ADD) ||
+		    (token == DOT) ||
 		    (token == COLON)) {
 
 			next_raw_token(&val, NULL, cfile);
@@ -1107,6 +1108,13 @@ parse_date_core(cfile)
 			   "Time zone offset or semicolon expected.");
 		return((TIME)0);
 	}
+
+	/* If the year is 2038 or greater return the max time to avoid
+	 * overflow issues.  We could try and be more precise but there
+	 * doesn't seem to be a good reason to worry about it and waste
+	 * the cpu looking at the rest of the date. */
+	if (year >= 138)
+		return(MAX_TIME);
 
 	/* Guess the time value... */
 	guess = ((((((365 * (year - 70) +	/* Days in years since '70 */
@@ -2630,6 +2638,22 @@ int parse_executable_statement (result, cfile, lose, case_context)
 			*lose = 1;
 			return 0;
 		}
+		break;
+
+	      case PARSE_VENDOR_OPT:
+		/* The parse-vendor-option; The statement has no arguments.
+		 * We simply set up the statement and when it gets executed it
+		 * will find all information it needs in the packet and options.
+		 */
+		skip_token(&val, NULL, cfile);
+		if (!parse_semi(cfile)) {
+			*lose = 1;
+			return (0);
+		}
+
+		if (!executable_statement_allocate(result, MDL))
+			log_fatal("no memory for execute statement.");
+		(*result)->op = vendor_opt_statement;
 		break;
 
 		/* Not really a statement, but we parse it here anyway

@@ -1540,17 +1540,24 @@ This statement is currently global but it should have a shared-network scope.
 .PP
 The
 .B host
-declaration provides a scope in which to provide configuration information about
-a specific client, and also provides a way to assign a client a fixed address.
-The host declaration provides a way for the DHCP server to identify a DHCP or
-BOOTP client, and also a way to assign the client a static IP address.
+declaration provides a way for the DHCP server to identify a DHCP or
+BOOTP client.  This allows the server to provide configuration
+information including fixed addresses or, in DHCPv6, fixed prefixes
+for a specific client.
 .PP
 If it is desirable to be able to boot a DHCP or BOOTP client on more than one
-subnet with fixed addresses, more than one address may be specified in the
+subnet with fixed v4 addresses, more than one address may be specified in the
 .I fixed-address
 declaration, or more than one
 .B host
 statement may be specified matching the same client.
+.PP
+The
+.I fixed-address6
+delcaration is used for v6 addresses.  At this time it only works with a single
+address.  For multiple addresses specify multiple
+.B host
+statements.
 .PP
 If client-specific boot parameters must change based on the network
 to which the client is attached, then multiple 
@@ -1716,27 +1723,38 @@ lease the server has offered is not valid.  When the server receives
 a DHCPDECLINE for a particular address, it normally abandons that
 address, assuming that some unauthorized system is using it.
 Unfortunately, a malicious or buggy client can, using DHCPDECLINE
-messages, to completely exhaust the DHCP server's allocation pool.  The
+messages, completely exhaust the DHCP server's allocation pool.  The
 server will eventually reclaim these leases, but not while the client
 is running through the pool. This may cause serious thrashing in the DNS,
 and it will also cause the DHCP server to forget old DHCP client address
 allocations.
 .PP
+The \fBdeclines\fR flag tells the DHCP server whether or not to honor
+DHCPDECLINE messages.  If it is set to \fBdeny\fR or \fBignore\fR in
+a particular scope, the DHCP server will not respond to DHCPDECLINE
+messages.
+.PP
+The \fBdeclines\fR flag is only supported by DHCPv4 servers.  Given the large
+IPv6 address space and the internal limits imposed by the server's
+address generation mechanism we don't think it is necessary for DHCPv6
+servers at this time.
+.PP
 Currently, abandoned IPv6 addresses are reclaimed in one of two ways:
     a) Client renews a specific address:
-    If a client using a given DUID submits a DHCP REQUEST containing the
-    last address abandoned by that DUID, the address will be reassigned to
-    that client.
+    If a client using a given DUID submits a DHCP REQUEST containing
+    the last address abandoned by that DUID, the address will be
+    reassigned to that client.
 
-    b) Upon the second restart following an address abandonment.  When an
-    address is abandoned it is both recorded as such in the lease file and
-    retained as abandoned in server memory until the server is restarted. Upon
-    restart, the server will process the lease file and all addresses whose
-    last known state is abandoned will be retained as such in memory but not
-    rewritten to the lease file.  This means that a subsequent restart of the
-    server will not see the abandoned addresses in the lease file and 
-    therefore have no record of them as abandoned in memory and as such
-    perceive them as free for assignment.
+    b) Upon the second restart following an address abandonment.  When
+    an address is abandoned it is both recorded as such in the lease
+    file and retained as abandoned in server memory until the server
+    is restarted. Upon restart, the server will process the lease file
+    and all addresses whose last known state is abandoned will be
+    retained as such in memory but not rewritten to the lease file.
+    This means that a subsequent restart of the server will not see the
+    abandoned addresses in the lease file and therefore have no record
+    of them as abandoned in memory and as such perceive them as free
+    for assignment.
 .PP
 The total number addresses in a pool, available for a given DUID value,
 is internally limited by the server's address generation mechanism.  If
@@ -1747,16 +1765,11 @@ of activity such that address range is not exhausted for other DUID values.
 The appearance of the following error log, can be an indication of this
 condition:
 
-    "Best match for DUID <XX> is an abandoned address, This may be a result of
-     multiple clients attempting to use this DUID"
+    "Best match for DUID <XX> is an abandoned address, This may be a
+     result of multiple clients attempting to use this DUID"
 
-    where <XX> is an actual DUID value depicted as colon separated string of
-    bytes in hexadecimal values.
-.PP
-The \fBdeclines\fR flag tells the DHCP server whether or not to honor
-DHCPDECLINE messages.  If it is set to \fBdeny\fR or \fBignore\fR in
-a particular scope, the DHCP server will not respond to DHCPDECLINE
-messages.
+    where <XX> is an actual DUID value depicted as colon separated
+    string of bytes in hexadecimal values.
 .PP
 .B The
 .I client-updates
@@ -2310,6 +2323,36 @@ declaration
 The \fIfixed-address6\fR declaration is used to assign a fixed
 IPv6 addresses to a client.  It should only appear in a \fIhost\fR
 declaration.
+.RE
+.PP
+The
+.I fixed-prefix6
+declaration
+.RS 0.25i
+.PP
+.B fixed-prefix6\fR \fIlow-address\fR \fB/\fR \fIbits\fR\fB;\fR
+.PP
+The \fIfixed-prefix6\fR declaration is used to assign a fixed
+IPv6 prefix to a client.  It should only appear in a \fIhost\fR
+declaration, but multiple \fIfixed-prefix6\fR statements may appear
+in a single \fIhost\fR declaration.
+.PP
+The \fIlow-address\fR specifies the start of the prefix and the \fIbits\fR
+specifies the size of the prefix in bits.
+.PP
+If there are multiple prefixes for a given host entry the server will
+choose one that matches the requested prefix size or, if none match,
+the first one.
+.PP
+If there are multiple \fIhost\fR delcarations the server will try to
+choose a declaration where the \fIfixed-address6\fR matches the client's
+subnet.  If none match it will choose one that doesn't have a \fIfixed-address6\fR
+statement.
+.PP
+Note Well: Unlike the fixed address the fixed prefix does not need to match
+a subnet in order to be served.  This allows you to provide a prefix to
+a client that is outside of the subnet on which the client makes the request
+to the the server.
 .RE
 .PP
 The
@@ -2927,7 +2970,7 @@ physical network interface on which the request arrived.
 .PP
 In order to reduce runtime overhead the server only checks for a server id
 option in the global and subnet scopes.  Complicated configurations
-may result in differnet server ids for this check and when the server id for
+may result in different server ids for this check and when the server id for
 a reply packet is determined, which would prohibit the server from responding.
 .PP
 The primary use for this option is when a client broadcasts a request
@@ -2963,6 +3006,10 @@ Otherwise the server will generate a DUID of the specified type.
 .PP
 If you choose EN, you must include the enterprise number and the
 enterprise-identifier.
+.PP
+If there is a server-duid statement in the lease file it will take precedence
+over the server-duid statement from the config file and a
+dhcp6.server-id option in the config file will override both.
 .PP
 The default server-duid type is LLT.
 .RE
