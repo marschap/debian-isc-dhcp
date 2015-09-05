@@ -99,7 +99,7 @@ set_hostname() {
            [ "$current_hostname" = '(none)' ] ||
            [ "$current_hostname" = 'localhost' ] ||
            [ "$current_hostname" = "$old_host_name" ]; then
-           if [ "$new_host_name" != "$old_host_name" ]; then
+           if [ "$new_host_name" != "$current_host_name" ]; then
                hostname "$new_host_name"
            fi
         fi
