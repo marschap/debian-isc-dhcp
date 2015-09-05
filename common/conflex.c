@@ -3,7 +3,7 @@
    Lexical scanner for dhcpd config file... */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -147,13 +147,21 @@ save_parse_state(struct parse *cfile) {
 /*
  * Return the parser to the previous saved state.
  *
- * You must call save_parse_state() before calling 
- * restore_parse_state(), but you can call restore_parse_state() any
- * number of times after that.
+ * You must call save_parse_state() every time before calling
+ * restore_parse_state().
+ *
+ * Note: When the read function callback is in use in ldap mode,
+ * a call to get_char() may reallocate the buffer and will append
+ * config data to the buffer until a state restore.
+ * Do not restore to the (freed) pointer and size, but use new one.
  */
 isc_result_t
 restore_parse_state(struct parse *cfile) {
 	struct parse *saved_state;
+#if defined(LDAP_CONFIGURATION)
+	char *inbuf = cfile->inbuf;
+	size_t size = cfile->bufsiz;
+#endif
 
 	if (cfile->saved_state == NULL) {
 		return DHCP_R_NOTYET;
@@ -161,7 +169,13 @@ restore_parse_state(struct parse *cfile) {
 
 	saved_state = cfile->saved_state;
 	memcpy(cfile, saved_state, sizeof(*cfile));
-	cfile->saved_state = saved_state;
+	dfree(saved_state, MDL);
+	cfile->saved_state = NULL;
+
+#if defined(LDAP_CONFIGURATION)
+	cfile->inbuf = inbuf;
+	cfile->bufsiz = size;
+#endif
 	return ISC_R_SUCCESS;
 }
 
@@ -476,6 +490,8 @@ read_whitespace(int c, struct parse *cfile) {
 		}
 		cfile->tokbuf[ofs++] = c;
 		c = get_char(cfile);
+		if (c == EOF)
+			return END_OF_FILE;
 	} while (!((c == '\n') && cfile->eol_token) && 
 		 isascii(c) && isspace(c));
 
@@ -1214,6 +1230,8 @@ intern(char *atom, enum dhcp_token dfv) {
 			return OWNER;
 		break;
 	      case 'p':
+		if (!strcasecmp (atom + 1, "arse-vendor-option"))
+			return PARSE_VENDOR_OPT;
 		if (!strcasecmp (atom + 1, "repend"))
 			return PREPEND;
 		if (!strcasecmp(atom + 1, "referred-life"))

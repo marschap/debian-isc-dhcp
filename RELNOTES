@@ -1,6 +1,6 @@
                 Internet Systems Consortium DHCP Distribution
-                             Version 4.3.2
-                             05 March 2015
+                             Version 4.3.3
+                            03 September 2015
 
                              Release Notes
 
@@ -52,8 +52,170 @@ ISC DHCP is open source software maintained by Internet Systems
 Consortium.  This product includes cryptographic software written
 by Eric Young (eay@cryptsoft.com).
 
-			Changes since 4.3.2rc2
+			Changes since 4.3.3b1
 
+- None
+
+			Changes since 4.3.2
+
+- The server now does a better check to see if it can allocate the memory
+  for large blocks of v4 leases and should provide a slightly better error
+  message.  Note well: the server pre-allocates v4 addresses, if you use
+  a large range, such as a /8, the server will attempt to use a large
+  amount of memory and may not start if there either isn't enough memory
+  or the size exceeds what the code supports.
+  [ISC-Bugs #38637]
+
+- The server will now reject unicast Request, Renew, Decline, and Release
+  messages from a client unless the server would have sent that client the
+  dhcp6.unicast option.  This behavior is in compliance with paragraph 1 in
+  each of the sections 18.2,1, 18.2.3, 18.2.6, and 18.2.7 of RFC 3315. Prior
+  to this, the server would simply accept the messages.  Now, in order for
+  the server to accept such a message, the server configuration must include
+  the dhcp6.unicast option either globally or within the shared network to
+  which the requested lease belongs. In other words, the server will map
+  the first IA_XX address found within the client message to a shared-network
+  and look for the presence of the unicast option there and then globally.
+  Thanks to Jiri Popelka at Red Hat for this issue and his patch which
+  inspired the fix.
+  [ISC-Bugs #21235]
+
+- The ATF (Automated Testing Framework) tools used for optional unit tests
+  can now be built from its embedded sources in bind, solving the
+  atf-run / atf-report issue with recent (>= 0.20) versions of ATF.
+  The new configuration option is "./configure --with-atf=bind".
+  [ISC-Bugs #38754, #39300]
+
+- Corrected a compilation error introduced by the fix for ISC-Bugs #22806.
+  On older linuxes that do not include the tpacket_auxdata structure don't
+  bother allocating the cmsgbuf as it isn't necessary and we don't have
+  a proper length for it.
+  [ISC-Bugs #39209]
+
+- Remove the dst directory.  This was replaced in 4.2.0 with the dst
+  code from the Bind libraries but we continued to include it for
+  backwards compatibility.  As we have now released 4.3.x it seems
+  reasonable to remove it.
+  [ISC-Buts #39019]
+
+- Write out the DUID server id on startup in all cases, previously if it
+  was read in from server-duid option in the config or lease files for 
+  DHCPv4 it would not be written to the new lease file.
+  [ISC-Bugs #37791]
+
+- When parsing dates for leases convert dates past 2038 to "never".
+  This avoids problems with integer overflows in the date and time
+  handling code for people that decide to use very large lease times
+  or add a lease entry with a date far in the future.
+  [ISC-Bugs #33056]
+
+- Leave the siaddr field clear when sending a NACK as per RFC 2131
+  table 3.
+  [ISC-Bugs #38769]
+
+- In the client don't send expired addresses to the script as part of
+  the binding process.  Thanks to Sven Trenkel at Google for reporting
+  the issue and suggesting the patch.
+  [ISC-Bugs #38631]
+
+- While parsing IPv6 addresses treat "add" as part of the address instead
+  of as a token.
+  [ISC-Bugs #39529]
+
+- Add support for accessing the v4 lease queues (active, free etc) in a
+  binary fashion instead of needing to walk through a linear list to
+  insert, find or remove an entry from the queues.  In addition add a
+  compile time option "--enable-binary-leases" to enable the new code
+  or to continue using the old code.  The old code is the default.
+  Thanks to Fernando Soto from BlueCat Networks for the patch.
+  [ISC-Bugs #39078]
+
+- Delayed-ack now works properly with Failover. Prior to this, bind updates
+  post startup were being queued but never delivered. Among other things, this
+  was causing leases to not transition from expired or released to free.
+  [ISC-Bugs #31474]
+
+- Clean up parsing of v6 lease files a bit to avoid infinite loops if the
+  lease file is corrupt in certain ways.
+  [ISC-Bugs #39760]
+
+- Corrected a crash in dhclient that occurs during lease renewal if the
+  client is performing its own DNS updates.  Thanks to Jiri Popelka at Red Hat
+  for the bug report.
+  [ISC-Bugs #38639]
+
+- Corrected an issue in v6 lease file parsing. Prior to this, when encountering
+  a lease with an address for which no configured pool exists, the server was
+  declaring the lease file corrupt and incorrectly skipping over the subsequent
+  entry in the file.  The server will now emit a log message indicating that
+  no pool was found for the address (or prefix) and correctly resume parsing
+  with the next entry in the lease file.  Our thanks to Michal Žejdl for 
+  reporting the issue.
+  [ISC-Bugs #39314]
+
+- Be more liberal in finding a subnet group associated with a static
+  prefix.  When we added the class matching code for v6 we also added
+  a requirement that the static prefix must be within a subnet the
+  client was in, in order to find the proper statements.  We now
+  look for a subnet based on the prefix, failing that on the static
+  address for the client and failing that on the shared network
+  itself.
+  [ISC-Bugs #38329]
+
+- Add a new action expression "parse_vendor_options", which can be used
+  to parse a vendor-encapsualted-option received by the server based on
+  the encoding specified by the vendor-option-space statement.
+  [ISC-Bugs #36449]
+
+- Enhance the PARANOIA patch to include fchown() the lease file to
+  allow it to be manipulated after the server does a chown().
+  Thanks to Jiri Popelka at Red Hat for the patch.
+  [ISC-Bugs #36978]
+
+- Relax the requirement that prefix pools must be within the subnet.
+  This was added in as part of #32453 in order to avoid configuration
+  mistakes but is being removed as prefixes aren't required to be
+  within the same subnet and many people configure them in that fashion.
+  [ISC-Bugs #40077]
+
+- Fixed a server crash that could occur when the server attempts to remove
+  the billing class from the last lease billed to a dynamic class after said
+  class has been deleted.  Our thanks to Lasse Pesonen for reporting the
+  issue.
+  [ISC-Bugs #39978]
+
+- LDAP Patches - Numerous small patches submitted by contributors have
+  been applied to the contributed code which supplies LDAP support.
+  In addition, two larger submissions have also been included.  The
+  first adds support for IPv6 configuration and the second provides
+  GSSAPI authentication. We would like to thank the following for their
+  contributions (alphabetically):
+    Alex Novak at SUSE
+    Bill Parker (wp02855 at gmail dot com)
+    Jiri Popelka at Red Hat
+    Marius Tomaschewski at SUSE
+    (william at adelaide.edu.au), The University of Adelaide
+  [ISC-Bugs #39056]
+  [ISC-Bugs #22742]
+  [ISC-Bugs #24449]
+  [ISC-Bugs #28545]
+  [ISC-Bugs #29873]
+  [ISC-Bugs #30183]
+  [ISC-Bugs #30402]
+  [ISC-Bugs #32217]
+  [ISC-Bugs #32240]
+  [ISC-Bugs #33176]
+  [ISC-Bugs #33178]
+  [ISC-Bugs #36409]
+  [ISC-Bugs #36774]
+  [ISC-Bugs #37876]
+
+- Handle an out of memory condition in the client a bit better.
+  Thanks to Frédéric Perrin from Brocade for finding the issue
+  and suggesting a patch.
+  [ISC-Bugs #39279]
+
+			Changes since 4.3.2rc2
 - None
 
 			Changes since 4.3.2rc1
@@ -125,7 +287,7 @@ by Eric Young (eay@cryptsoft.com).
   have been #ifdeffed for now and will be removed at a future date.
   See site.h for the #define to include them again, but you should
   switch to using the DHCP_R_* versions instead of the ISC_R_* versions.
-  Also ISC_R_MULTIPLE has been removed as it is also deifned in bind.
+  Also ISC_R_MULTIPLE has been removed as it is also defined in bind.
   [ISC-Bugs #37128]
 
 - Added checks in range6 and prefix6 statement parsing to ensure addresses
@@ -209,10 +371,10 @@ by Eric Young (eay@cryptsoft.com).
 - Added the server-id-check parameter to the server configuration.
   This parameter allows run-time control over whether or not a server,
   participating in failover, verifies the dhcp-server-identifier option in
-  DHCP REQUESTs against the server’s id before processing the request.
+  DHCP REQUESTs against the server's id before processing the request.
   Formerly, enabling this behavior was done at compilation time through
   the use of the #define, SERVER_ID_CHECK, which has been removed from site.h
-  The functionality is now only available through the new runtime paramater.
+  The functionality is now only available through the new runtime parameter.
   [ISC-Bugs #37551]
 
 - During startup, when the server encounters a lease whose binding state is
@@ -462,7 +624,7 @@ by Eric Young (eay@cryptsoft.com).
   to perform an fsync() operation on the lease database before reply,
   which improves performance. [ISC-Bugs #22228]
   Updated this patch to support asynchronous DDNS.  If the server is
-  attempting to do DDNS on a lease it should be udpated and written to
+  attempting to do DDNS on a lease it should be updated and written to
   disk even if that wouldn't be necessary due to the thresholding.
   [ISC-Bugs #26311]
 
@@ -727,7 +889,7 @@ by Eric Young (eay@cryptsoft.com).
   [ISC-Bugs #19761] Restore address when doing a rebind in DHCPv6
   [ISC-Bugs #19945] Properly close the quote on some arguments.
   [ISC-Bugs #20952] Add 64 bit types to configure.ac
-  [ISC-Bugs #21308] Add "PATH=" to CLIENT_PATH envrionment variable
+  [ISC-Bugs #21308] Add "PATH=" to CLIENT_PATH environment variable
 
 - Update the code to parse dhcpv6 lease files to accept a semi-colon at
   the end of the max-life and preferred-life clauses.  In order to be
@@ -766,7 +928,7 @@ by Eric Young (eay@cryptsoft.com).
   Passing it through to the handlers caused the omshell program to fail
   to connect to the server.  [ISC-Bugs #21839]
 
-- Fix the paranthesis in the code to process configuration statements
+- Fix the parenthesis in the code to process configuration statements
   beginning with "auth".  The previous arrangement caused
   "auto-partner-down" to be processed incorrectly.  [ISC-Bugs #21854]
 
@@ -1192,7 +1354,7 @@ by Eric Young (eay@cryptsoft.com).
 - Tidy up some compiler issues in the debug code.
   [ISC-Bugs #26460]
 
-- Move the dhcpd.conf exmample file to dhcpd.conf.example to avoid
+- Move the dhcpd.conf example file to dhcpd.conf.example to avoid
   overwriting the dhcpd.conf file when installing a new version of
   ISC DHCP.  The user will now need to manual copy and edit the
   dhcpd.conf file as desired.
@@ -1300,7 +1462,7 @@ by Eric Young (eay@cryptsoft.com).
   calculations.  Invalid renew and rebinding times (e.g., greater than the
   determined lease time) are omitted.
 
-- Processing the DHCP to DNS server transactions in an asyncrhonous fashion,
+- Processing the DHCP to DNS server transactions in an asynchronous fashion,
   the DHCP server or client can now continue with its processing while
   awaiting replies from the DNS server.
 
@@ -1577,7 +1739,7 @@ by Eric Young (eay@cryptsoft.com).
 - A warning was added since the DHCPv6 processing software does not yet
   support class statements.
 
-- Compliation warnings on GCC 4.3 relating to bootp source address
+- Compilation warnings on GCC 4.3 relating to bootp source address
   selection were repaired.
 
 - The v6 BSD socket method was updated to use a single UDP BSD socket
@@ -1632,7 +1794,7 @@ by Eric Young (eay@cryptsoft.com).
   allows the client to work in 'captive' network environments, where the
   operator does not want clients to crosstalk directly.
 
-- MINUS tokens should be parseable again.
+- MINUS tokens should be parsable again.
 
 - Multiple (up to "delayed-ack x;" maximum) DHCPv4 packets are now queued and
   released in bursts after single fsync() events when the upper limit is
@@ -1794,7 +1956,7 @@ by Eric Young (eay@cryptsoft.com).
 			Changes since 4.0.0b1
 
 - Use different paths for PID and lease files when running in DHCPv4
-  or DHCPv6 mode, so that servers for both protcols can be run
+  or DHCPv6 mode, so that servers for both protocols can be run
   simultaneously on a single interface.
 
 - Fixed a buffer overflow error which could have allowed a denial
@@ -2031,7 +2193,7 @@ by Eric Young (eay@cryptsoft.com).
 
 			Changes since 3.1.0rc1
 
-- The parse warning that 'deny dyanmic bootp;' must be configured for
+- The parse warning that 'deny dynamic bootp;' must be configured for
   failover protected subnets was removed.
 
 			Changes since 3.1.0b2
@@ -2699,7 +2861,7 @@ by Eric Young (eay@cryptsoft.com).
 - A host byte order problem in tracefiles was repaired.
 
 - Pools configured in DHCPD for failover possessing permission lists that
-  previously were assumed to not include dyanmic bootp clients are now
+  previously were assumed to not include dynamic bootp clients are now
   a little more pessimistic.  The result is, dhcpd will nag you about just
   about most pools that possess a 'allow' statement with no 'deny' that
   would definitely match a dynamic bootp client.

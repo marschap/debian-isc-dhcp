@@ -1,7 +1,7 @@
 /* dhc6.c - DHCPv6 client routines. */
 
 /*
- * Copyright (c) 2012-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2012-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 2006-2010 by Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -2798,6 +2798,12 @@ init_handler(struct packet *packet, struct client_state *client)
 
 	lease = dhc6_leaseify(packet);
 
+	/* Out of memory or corrupt packet condition...hopefully a temporary
+	 * problem.  Returning now makes us try to retransmit later.
+	 */
+	if (lease == NULL)
+		return;
+
 	if (dhc6_check_advertise(lease) != ISC_R_SUCCESS) {
 		log_debug("PRC: Lease failed to satisfy.");
 		dhc6_lease_destroy(&lease, MDL);
@@ -2915,7 +2921,7 @@ rapid_commit_handler(struct packet *packet, struct client_state *client)
 
 	lease = dhc6_leaseify(packet);
 
-	/* This is an out of memory condition...hopefully a temporary
+	/* Out of memory or corrupt packet condition...hopefully a temporary
 	 * problem.  Returning now makes us try to retransmit later.
 	 */
 	if (lease == NULL)
@@ -3729,7 +3735,7 @@ reply_handler(struct packet *packet, struct client_state *client)
 
 	lease = dhc6_leaseify(packet);
 
-	/* This is an out of memory condition...hopefully a temporary
+	/* Out of memory or corrupt packet condition...hopefully a temporary
 	 * problem.  Returning now makes us try to retransmit later.
 	 */
 	if (lease == NULL)
@@ -4259,6 +4265,10 @@ start_bound(struct client_state *client)
 			oldia = NULL;
 
 		for (addr = ia->addrs ; addr != NULL ; addr = addr->next) {
+			/* Don't try to use the address if it's already expired */
+			if (addr->flags & DHC6_ADDR_EXPIRED)
+				continue;
+
 			if (oldia != NULL) {
 				if (ia->ia_type != D6O_IA_PD)
 					oldaddr = find_addr(oldia->addrs,

@@ -1759,6 +1759,14 @@ void parse_pool_statement (cfile, group, type)
 			pool_dereference(&lp->pool, MDL);
 			pool_reference(&lp->pool, pp, MDL);
 		}
+
+#if defined (BINARY_LEASES)
+		/* If we are doing binary leases we also need to add the
+		 * addresses in for leasechain allocation.
+		 */
+		pp->lease_count += pool->lease_count;
+#endif
+
 		break;
 	}
 
@@ -4161,6 +4169,12 @@ parse_prefix6(struct parse *cfile,
 		return;
 	}
 
+#if 0
+	/* Prefixes are not required to be within the subnet, but I'm not
+	 * entirely sure that we won't want to revive this code as a warning
+	 * in the future so I'm ifdeffing it
+	 */
+
 	/* Make sure starting prefix is within the subnet */
 	if (!addr_eq(group->subnet->net,
 		     subnet_number(lo, group->subnet->netmask))) {
@@ -4169,10 +4183,17 @@ parse_prefix6(struct parse *cfile,
 			      skip_to_semi(cfile);
 		return;
 	}
+#endif
 
 	if (!parse_ip6_addr(cfile, &hi)) {
 		return;
 	}
+
+#if 0
+	/* Prefixes are not required to be within the subnet, but I'm not
+	 * entirely sure that we won't want to revive this code as a warning
+	 * in the future so I'm ifdeffing it
+	 */
 
 	/* Make sure ending prefix is within the subnet */
 	if (!addr_eq(group->subnet->net,
@@ -4182,6 +4203,7 @@ parse_prefix6(struct parse *cfile,
 			      skip_to_semi(cfile);
 		return;
 	}
+#endif
 
 	/*
 	 * Next is '/' number ';'.
@@ -4205,11 +4227,20 @@ parse_prefix6(struct parse *cfile,
 		parse_warn(cfile, "networks have 0 to 128 bits (exclusive)");
 		return;
 	}
+
+#if 0
+	/* Prefixes are not required to be within the subnet, but I'm not
+	 * entirely sure that we won't want to revive this code as a warning
+	 * in the future so I'm ifdeffing it
+	 */
+
 	if (bits < group->subnet->prefix_len) {
 		parse_warn(cfile, "network mask smaller than subnet mask");
 		skip_to_semi(cfile);
 		return;
 	}
+#endif
+
 	if (!is_cidr_mask_valid(&lo, bits) ||
 	    !is_cidr_mask_valid(&hi, bits)) {
 		parse_warn(cfile, "network mask too short");
@@ -4650,6 +4681,15 @@ parse_ia_na_declaration(struct parse *cfile) {
 			if (token == RBRACE) break;
 
 			switch(token) {
+			     case END_OF_FILE:
+			        /* We hit the end of file and don't know
+				 * what parts of the lease we may be missing
+				 * don't try to salvage the lease
+			         */
+				parse_warn(cfile, "corrupt lease file; "
+					   "unexpected end of file");
+				return;
+
 				/* Lease binding state. */
 			     case BINDING:
 				token = next_token(&val, NULL, cfile);
@@ -4938,9 +4978,10 @@ parse_ia_na_declaration(struct parse *cfile) {
 				   &iaaddr->addr) != ISC_R_SUCCESS) {
 			inet_ntop(AF_INET6, &iaaddr->addr,
 				  addr_buf, sizeof(addr_buf));
-			parse_warn(cfile, "no pool found for address %s",
-				   addr_buf);
-			return;
+			log_error("No pool found for IA_NA address %s",
+				  addr_buf);
+			iasubopt_dereference(&iaaddr, MDL);
+			continue;
 		}
 
 		/* remove old information */
@@ -5092,6 +5133,15 @@ parse_ia_ta_declaration(struct parse *cfile) {
 			if (token == RBRACE) break;
 
 			switch(token) {
+			     case END_OF_FILE:
+			        /* We hit the end of file and don't know
+				 * what parts of the lease we may be missing
+				 * don't try to salvage the lease
+			         */
+				parse_warn(cfile, "corrupt lease file; "
+					   "unexpected end of file");
+				return;
+
 				/* Lease binding state. */
 			     case BINDING:
 				token = next_token(&val, NULL, cfile);
@@ -5380,9 +5430,10 @@ parse_ia_ta_declaration(struct parse *cfile) {
 				   &iaaddr->addr) != ISC_R_SUCCESS) {
 			inet_ntop(AF_INET6, &iaaddr->addr,
 				  addr_buf, sizeof(addr_buf));
-			parse_warn(cfile, "no pool found for address %s",
-				   addr_buf);
-			return;
+			log_error("No pool found for IA_TA address %s",
+				  addr_buf);
+			iasubopt_dereference(&iaaddr, MDL);
+			continue;
 		}
 
 		/* remove old information */
@@ -5535,6 +5586,15 @@ parse_ia_pd_declaration(struct parse *cfile) {
 			if (token == RBRACE) break;
 
 			switch(token) {
+			     case END_OF_FILE:
+			        /* We hit the end of file and don't know
+				 * what parts of the lease we may be missing
+				 * don't try to salvage the lease
+			         */
+				parse_warn(cfile, "corrupt lease file; "
+					   "unexpected end of file");
+				return;
+
 				/* Prefix binding state. */
 			     case BINDING:
 				token = next_token(&val, NULL, cfile);
@@ -5823,9 +5883,9 @@ parse_ia_pd_declaration(struct parse *cfile) {
 				   &iapref->addr) != ISC_R_SUCCESS) {
 			inet_ntop(AF_INET6, &iapref->addr,
 				  addr_buf, sizeof(addr_buf));
-			parse_warn(cfile, "no pool found for address %s",
-				   addr_buf);
-			return;
+			log_error("No pool found for prefix %s", addr_buf);
+			iasubopt_dereference(&iapref, MDL);
+			continue;
 		}
 
 		/* remove old information */

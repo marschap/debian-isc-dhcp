@@ -1,6 +1,6 @@
 .\"	$Id: dhcp-options.5,v 1.50 2011/05/20 13:48:32 tomasz Exp $
 .\"
-.\" Copyright (c) 2012-2014 by Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (c) 2012-2015 by Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (c) 2004-2010 by Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (c) 1996-2003 by Internet Software Consortium
 .\"
@@ -771,7 +771,7 @@ preference.
 \fIip-address\fR... ]\fB;\fR
 .RS 0.25i
 .PP
-The NNTP server option specifies a list of NNTP servesr available
+The NNTP server option specifies a list of NNTP servers available
 to the client.  Servers should be listed in order of preference.
 .RE
 .PP
@@ -814,7 +814,7 @@ information.
 .I ip-address \fR...]\fB;\fR
 .RS 0.25i
 .PP
-This option contains infomration about the rapid deployment option.  It is
+This option contains information about the rapid deployment option.  It is
 8 bits of ipv4 mask length, 8 bits of 6rd prefix length, an ipv6 prefix as
 an ipv6 address and a list of one or more ipv4 addresses.
 .PP
@@ -896,8 +896,8 @@ to the client.  Servers should be listed in order of preference.
 .RS 0.25i
 .PP
 The rdnss-selection option specifies an 8 bit flags field, a primary and secondary
-ip address for the name server and a domainlist of domains for whcih the RDNSS has
-sepcial knowledge.
+ip address for the name server and a domainlist of domains for which the RDNSS has
+special knowledge.
 .PP
 This option is included based on RFC 6731.
 .RE
@@ -1556,11 +1556,14 @@ software, and is not meant for user configuration.
 .RS 0.25i
 .PP
 The \fBunicast\fR option is provided by DHCPv6 servers which are
-willing (or prefer) to receive Renew packets from their clients
-by exchanging UDP unicasts with them.  Normally, DHCPv6 clients
-will multicast their Renew messages.  This may be configured on
-the server, and should be configured as an address the server
-is ready to reply to.
+willing (or prefer) to receive Request, Renew, Decline, and Release packets
+from their clients via unicast.  Normally, DHCPv6 clients will multicast
+these messages.  Per RFC 3315, the server will reject a unicast message received
+from a client unless it previously sent (or would have sent) the unicast option
+to that client.  This option may be configured on the server at the global and
+shared network level.  When a unicast message is received, the server will
+check for an applicable definition of the unicast option.  If such an option
+is found the message will be accepted, if not it will be rejected.
 .RE
 .PP
 .B option \fBdhcp6.status-code\fR \fIstatus-code\fR [ \fIstring\fR ] \fB;\fR
@@ -1615,7 +1618,7 @@ informationally only.
 .RS 0.25i
 .PP
 The \fBreconf-accept\fR option is included by DHCPv6 clients that
-support the Reconfigure extentions, advertising that they will
+support the Reconfigure extensions, advertising that they will
 respond if the server were to ask them to Reconfigure.  There is
 no support for DHCPv6 Reconfigure extensions, and this option is
 documented informationally only.

@@ -230,6 +230,42 @@ typedef time_t TIME;
 	 (((x) >> OPTION_HASH_EXP) & \
 	  (OPTION_HASH_PTWO - 1))) % OPTION_HASH_SIZE;
 
+/* Lease queue information.  We have two ways of storing leases.
+ * The original is a linear linked list which is slower but uses
+ * less memory while the other adds a binary array on top of that
+ * list to make insertions faster.  We define several macros
+ * based on which is in use to allow the code to be cleaner by
+ * avoiding #ifdefs.
+ *
+ * POOL_DESTROYP is used for debugging purposes
+ */
+
+#if !defined (BINARY_LEASES)
+#define LEASE_STRUCT struct lease *
+#define LEASE_STRUCT_PTR struct lease **
+#define LEASE_GET_FIRST(LQ) LQ
+#define LEASE_GET_FIRSTP(LQ) *(LQ)
+#define LEASE_GET_NEXT(LQ, LEASE) LEASE->next
+#define LEASE_GET_NEXTP(LQ, LEASE) LEASE->next
+#define LEASE_INSERTP(LQ, LEASE) lease_insert(LQ, LEASE)
+#define LEASE_REMOVEP(LQ, LEASE) lease_remove(LQ, LEASE)
+#define LEASE_NOT_EMPTY(LQ) LQ
+#define LEASE_NOT_EMPTYP(LQ) *LQ
+#define POOL_DESTROYP(LQ) lease_remove_all(LQ)
+#else
+#define LEASE_STRUCT struct leasechain
+#define LEASE_STRUCT_PTR struct leasechain *
+#define LEASE_GET_FIRST(LQ) lc_get_first_lease(&LQ)
+#define LEASE_GET_FIRSTP(LQ) lc_get_first_lease(LQ)
+#define LEASE_GET_NEXT(LQ, LEASE) lc_get_next(&LQ, LEASE)
+#define LEASE_GET_NEXTP(LQ, LEASE) lc_get_next(LQ, LEASE)
+#define LEASE_INSERTP(LQ, LEASE) lc_add_sorted_lease(LQ, LEASE)
+#define LEASE_REMOVEP(LQ, LEASE) lc_unlink_lease(LQ, LEASE)
+#define LEASE_NOT_EMPTY(LQ) lc_not_empty(&LQ)
+#define LEASE_NOT_EMPTYP(LQ) lc_not_empty(LQ)
+#define POOL_DESTROYP(LQ) lc_delete_all(LQ)
+#endif
+
 enum dhcp_shutdown_state {
 	shutdown_listeners,
 	shutdown_omapi_connections,
@@ -511,10 +547,17 @@ struct on_star {
 struct lease {
 	OMAPI_OBJECT_PREAMBLE;
 	struct lease *next;
+#if defined (BINARY_LEASES)
+	struct lease *prev;
+	struct leasechain *lc;
+#endif
 	struct lease *n_uid, *n_hw;
 
 	struct iaddr ip_addr;
 	TIME starts, ends, sort_time;
+#if defined (BINARY_LEASES)
+	long int sort_tiebreaker;
+#endif
 	char *client_hostname;
 	struct binding_scope *scope;
 	struct host_decl *host;
@@ -731,6 +774,11 @@ struct lease_state {
 # define SV_LDAP_TLS_CIPHERS            76
 # define SV_LDAP_TLS_RANDFILE           77
 #endif
+# define SV_LDAP_INIT_RETRY            178
+#if defined (LDAP_USE_GSSAPI)
+# define SV_LDAP_GSSAPI_KEYTAB         179
+# define SV_LDAP_GSSAPI_PRINCIPAL      180
+#endif
 #endif
 #define SV_CACHE_THRESHOLD		78
 #define SV_DONT_USE_FSYNC		79
@@ -919,6 +967,18 @@ struct permit {
 	TIME after;	/* date after which this clause applies */
 };
 
+#if defined (BINARY_LEASES)
+struct leasechain {
+	struct lease **list; /* lease list */
+	size_t total;	     /* max number of elements in this list,
+			      * including free pointers at the end if any */
+	size_t nelem;	     /* the number of elements, also the next index to use */
+	size_t growth;	     /* the growth factor to use when increase an array
+			      * this is set after parsing the pools and before
+			      * creatin an array.  */
+};
+#endif
+
 struct pool {
 	OMAPI_OBJECT_PREAMBLE;
 	struct pool *next;
@@ -926,12 +986,12 @@ struct pool {
 	struct shared_network *shared_network;
 	struct permit *permit_list;
 	struct permit *prohibit_list;
-	struct lease *active;
-	struct lease *expired;
-	struct lease *free;
-	struct lease *backup;
-	struct lease *abandoned;
-	struct lease *reserved;
+	LEASE_STRUCT active;
+	LEASE_STRUCT expired;
+	LEASE_STRUCT free;
+	LEASE_STRUCT backup;
+	LEASE_STRUCT abandoned;
+	LEASE_STRUCT reserved;
 	TIME next_event_time;
 	int lease_count;
 	int free_leases;
@@ -1961,6 +2021,13 @@ int add_option(struct option_state *options,
 	       void *data,
 	       unsigned int data_len);
 
+void parse_vendor_option(struct packet *packet,
+			 struct lease *lease,
+			 struct client_state *client_state,
+			 struct option_state *in_options,
+			 struct option_state *out_options,
+			 struct binding_scope **scope);
+
 /* dhcpd.c */
 extern struct timeval cur_tv;
 #define cur_time cur_tv.tv_sec
@@ -1977,6 +2044,11 @@ extern const char *path_dhcpd_pid;
 
 extern int dhcp_max_agent_option_packet_length;
 extern struct eventqueue *rw_queue_empty;
+
+#if defined (PARANOIA)
+extern uid_t set_uid;
+extern gid_t set_gid;
+#endif
 
 int main(int, char **);
 void postconf_initialization(int);
@@ -2258,9 +2330,7 @@ void ack_lease (struct packet *, struct lease *,
 		unsigned int, TIME, char *, int, struct host_decl *);
 void echo_client_id(struct packet*, struct lease*, struct option_state*,
 		    struct option_state*);
-void delayed_ack_enqueue(struct lease *);
-void commit_leases_readerdry(void *);
-void flush_ackqueue(void *);
+
 void dhcp_reply (struct lease *);
 int find_lease (struct lease **, struct packet *,
 		struct shared_network *, int *, int *, struct lease *,
@@ -2898,7 +2968,6 @@ isc_result_t write_named_billing_class(const void *, unsigned, void *);
 void write_billing_classes (void);
 int write_billing_class (struct class *);
 void commit_leases_timeout (void *);
-void commit_leases_readerdry(void *);
 int commit_leases (void);
 int commit_leases_timed (void);
 void db_startup (int);
@@ -3063,7 +3132,7 @@ void classify (struct packet *, struct class *);
 isc_result_t unlink_class (struct class **class);
 isc_result_t find_class (struct class **, const char *,
 			 const char *, int);
-int unbill_class (struct lease *, struct class *);
+void unbill_class (struct lease *);
 int bill_class (struct lease *, struct class *);
 
 /* execute.c */
@@ -3393,6 +3462,14 @@ void hw_hash_add (struct lease *);
 void hw_hash_delete (struct lease *);
 int write_leases (void);
 int write_leases6(void);
+#if !defined(BINARY_LEASES)
+void lease_insert(struct lease **, struct lease *);
+void lease_remove(struct lease **, struct lease *);
+#if defined (DEBUG_MEMORY_LEAKAGE) || \
+		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
+void lease_remove_all(struct lease **);
+#endif
+#endif
 int lease_enqueue (struct lease *);
 isc_result_t lease_instantiate(const void *, unsigned, void *);
 void expire_all_pools (void);
@@ -3576,6 +3653,8 @@ int find_haddr_in_ldap (struct host_decl **, int, unsigned,
 			const unsigned char *, const char *, int);
 int find_subclass_in_ldap (struct class *, struct class **,
 			   struct data_string *);
+int find_client_in_ldap (struct host_decl **, struct packet*,
+               struct option_state *, const char *, int);
 #endif
 
 /* mdb6.c */
@@ -3669,6 +3748,20 @@ void mark_hosts_unavailable(void);
 void mark_phosts_unavailable(void);
 void mark_interfaces_unavailable(void);
 void report_jumbo_ranges();
+
+#if defined (BINARY_LEASES)
+/* leasechain.c */
+int lc_not_empty(struct leasechain *lc);
+void lc_add_sorted_lease(struct leasechain *lc, struct lease *lp);
+void lc_unlink_lease(struct leasechain *lc, struct lease *lp);
+struct lease *lc_get_first_lease(struct leasechain *lc);
+struct lease *lc_get_next(struct leasechain *lc, struct lease *lp);
+void lc_init_growth(struct leasechain *lc, size_t growth);
+#if defined (DEBUG_MEMORY_LEAKAGE) || \
+		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
+void lc_delete_all(struct leasechain *lc);
+#endif
+#endif /* BINARY_LEASES */
 
 #define MAX_ADDRESS_STRING_LEN \
    (sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"))

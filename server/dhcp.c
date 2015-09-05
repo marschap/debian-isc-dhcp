@@ -3,7 +3,7 @@
    DHCP Protocol engine. */
 
 /*
- * Copyright (c) 2004-2014 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -31,7 +31,6 @@
 #include <limits.h>
 #include <sys/time.h>
 
-static void commit_leases_ackout(void *foo);
 static void maybe_return_agent_options(struct packet *packet,
 				       struct option_state *options);
 static int reuse_lease (struct packet* packet, struct lease* new_lease,
@@ -39,6 +38,11 @@ static int reuse_lease (struct packet* packet, struct lease* new_lease,
 			int offer);
 
 int outstanding_pings;
+
+#if defined(DELAYED_ACK)
+static void delayed_ack_enqueue(struct lease *);
+static void delayed_acks_timer(void *);
+
 
 struct leasequeue *ackqueue_head, *ackqueue_tail;
 static struct leasequeue *free_ackqueue;
@@ -49,6 +53,7 @@ int max_outstanding_acks = DEFAULT_DELAYED_ACK;
 int max_ack_delay_secs = DEFAULT_ACK_DELAY_SECS;
 int max_ack_delay_usecs = DEFAULT_ACK_DELAY_USECS;
 int min_ack_delay_usecs = DEFAULT_MIN_ACK_DELAY_USECS;
+#endif
 
 static char dhcp_message [256];
 static int site_code_min;
@@ -1513,7 +1518,7 @@ void dhcpinform (packet, ms_nulltp)
 #endif
 	memset (to.sin_zero, 0, sizeof to.sin_zero);
 
-	/* RFC2131 states the server SHOULD unciast to ciaddr.
+	/* RFC2131 states the server SHOULD unicast to ciaddr.
 	 * There are two wrinkles - relays, and when ciaddr is zero.
 	 * There's actually no mention of relays at all in rfc2131 in
 	 * regard to DHCPINFORM, except to say we might get packets from
@@ -1695,8 +1700,6 @@ void nak_lease (packet, cip, network_group)
 	option_state_dereference (&options, MDL);
 
 /*	memset (&raw.ciaddr, 0, sizeof raw.ciaddr);*/
-	if (packet->interface->address_count)
-		raw.siaddr = packet->interface->addresses[0];
 	raw.giaddr = packet -> raw -> giaddr;
 	memcpy (raw.chaddr, packet -> raw -> chaddr, sizeof raw.chaddr);
 	raw.hlen = packet -> raw -> hlen;
@@ -2318,7 +2321,7 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 				    lease -> billing_class)
 					break;
 			if (i == packet -> class_count) {
-				unbill_class (lease, lease -> billing_class);
+				unbill_class(lease);
 				/* Active lease billing change negates reuse */
 				if (lease->binding_state == FTS_ACTIVE) {
 					lease->cannot_reuse = 1;
@@ -2370,7 +2373,7 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 			if (offer == DHCPOFFER &&
 			    lease->billing_class != NULL &&
 			    lease->binding_state != FTS_ACTIVE)
-				unbill_class(lease, lease->billing_class);
+				unbill_class(lease);
 
 			/* Lease billing change negates reuse */
 			if (lease->billing_class != NULL) {
@@ -3370,6 +3373,8 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 	}
 }
 
+#if defined(DELAYED_ACK)
+
 /*
  * CC: queue single ACK:
  * - write the lease (but do not fsync it yet)
@@ -3379,7 +3384,7 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
  *   but only up to the max timer value.
  */
 
-void
+static void
 delayed_ack_enqueue(struct lease *lease)
 {
 	struct leasequeue *q;
@@ -3407,11 +3412,9 @@ delayed_ack_enqueue(struct lease *lease)
 
 	outstanding_acks++;
 	if (outstanding_acks > max_outstanding_acks) {
-		commit_leases();
-
-		/* Reset max_fsync and cancel any pending timeout. */
-		memset(&max_fsync, 0, sizeof(max_fsync));
-		cancel_timeout(commit_leases_ackout, NULL);
+		/* Cancel any pending timeout and call handler directly */
+		cancel_timeout(delayed_acks_timer, NULL);
+		delayed_acks_timer(NULL);
 	} else {
 		struct timeval next_fsync;
 
@@ -3442,44 +3445,68 @@ delayed_ack_enqueue(struct lease *lease)
 			next_fsync.tv_usec = max_fsync.tv_usec;
 		}
 
-		add_timeout(&next_fsync, commit_leases_ackout, NULL,
+		add_timeout(&next_fsync, delayed_acks_timer, NULL,
 			    (tvref_t) NULL, (tvunref_t) NULL);
 	}
 }
 
-static void
-commit_leases_ackout(void *foo)
-{
-	if (outstanding_acks) {
-		commit_leases();
-
-		memset(&max_fsync, 0, sizeof(max_fsync));
-	}
-}
-
-/* CC: process the delayed ACK responses:
-   - send out the ACK packets
-   - move the queue slots to the free list
+/* Processes any delayed acks:
+ * Commits the leases and then for each delayed ack:
+ *  - Update the failover peer if we're in failover
+ *  - Send the REPLY to the client
  */
-void
-flush_ackqueue(void *foo) 
+static void
+delayed_acks_timer(void *foo)
 {
 	struct leasequeue *ack, *p;
+
+	/* Reset max fsync */
+	memset(&max_fsync, 0, sizeof(max_fsync));
+
+	if (!outstanding_acks) {
+		/* Nothing to do, so punt, shouldn't happen? */
+		return;
+	}
+
+	/* Commit the leases first */
+	commit_leases();
+
+	/* Now process the delayed ACKs
+	 - update failover peer
+	 - send out the ACK packets
+	 - move the queue slots to the free list
+	*/
+
 	/*  process from bottom to retain packet order */
 	for (ack = ackqueue_tail ; ack ; ack = p) { 
 		p = ack->prev;
+
+#if defined(FAILOVER_PROTOCOL)
+		/* If we're in failover we need to send any deferred
+		* bind updates as well as the replies */
+		if (ack->lease->pool) {
+			dhcp_failover_state_t *fpeer;
+
+			fpeer = ack->lease->pool->failover_peer;
+			if (fpeer && fpeer->link_to_peer) {
+				dhcp_failover_send_updates(fpeer);
+			}
+		}
+#endif
 
 		/* dhcp_reply() requires that the reply state still be valid */
 		if (ack->lease->state == NULL)
 			log_error("delayed ack for %s has gone stale",
 				  piaddr(ack->lease->ip_addr));
-		else
+		else {
 			dhcp_reply(ack->lease);
+		}
 
 		lease_dereference(&ack->lease, MDL);
 		ack->next = free_ackqueue;
 		free_ackqueue = ack;
 	}
+
 	ackqueue_head = NULL;
 	ackqueue_tail = NULL;
 	outstanding_acks = 0;
@@ -3501,6 +3528,8 @@ relinquish_ackqueue(void)
 	}
 }
 #endif
+
+#endif /* defined(DELAYED_ACK) */
 
 void dhcp_reply (lease)
 	struct lease *lease;
@@ -4550,8 +4579,9 @@ int mockup_lease (struct lease **lp, struct packet *packet,
 int allocate_lease (struct lease **lp, struct packet *packet,
 		    struct pool *pool, int *peer_has_leases)
 {
-	struct lease *lease = (struct lease *)0;
-	struct lease *candl = (struct lease *)0;
+	struct lease *lease = NULL;
+	struct lease *candl = NULL;
+	struct lease *peerl = NULL;
 
 	for (; pool ; pool = pool -> next) {
 		if ((pool -> prohibit_list &&
@@ -4577,7 +4607,7 @@ int allocate_lease (struct lease **lp, struct packet *packet,
 		 * owned by a failover peer. */
 		if (pool->failover_peer != NULL) {
 			if (pool->failover_peer->i_am == primary) {
-				candl = pool->free;
+				candl = LEASE_GET_FIRST(pool->free);
 
 				/*
 				 * In normal operation, we never want to touch
@@ -4585,27 +4615,25 @@ int allocate_lease (struct lease **lp, struct packet *packet,
 				 * operation, we need to be able to pick up
 				 * the peer's leases after STOS+MCLT.
 				 */
-				if (pool->backup != NULL) {
+				peerl = LEASE_GET_FIRST(pool->backup);
+				if (peerl != NULL) {
 					if (((candl == NULL) ||
-					     (candl->ends >
-					      pool->backup->ends)) &&
-					    lease_mine_to_reallocate(
-							    pool->backup)) {
-						candl = pool->backup;
+					     (candl->ends > peerl->ends)) &&
+					    lease_mine_to_reallocate(peerl)) {
+						candl = peerl;
 					} else {
 						*peer_has_leases = 1;
 					}
 				}
 			} else {
-				candl = pool->backup;
+				candl = LEASE_GET_FIRST(pool->backup);
 
-				if (pool->free != NULL) {
+				peerl = LEASE_GET_FIRST(pool->free);
+				if (peerl != NULL) {
 					if (((candl == NULL) ||
-					     (candl->ends >
-					      pool->free->ends)) &&
-					    lease_mine_to_reallocate(
-							    pool->free)) {
-						candl = pool->free;
+					     (candl->ends > peerl->ends)) &&
+					    lease_mine_to_reallocate(peerl)) {
+						candl = peerl;
 					} else {
 						*peer_has_leases = 1;
 					}
@@ -4613,17 +4641,17 @@ int allocate_lease (struct lease **lp, struct packet *packet,
 			}
 
 			/* Try abandoned leases as a last resort. */
-			if ((candl == NULL) &&
-			    (pool->abandoned != NULL) &&
-			    lease_mine_to_reallocate(pool->abandoned))
-				candl = pool->abandoned;
+			peerl = LEASE_GET_FIRST(pool->abandoned);
+			if ((candl == NULL) && (peerl != NULL) &&
+			    lease_mine_to_reallocate(peerl))
+				candl = peerl;
 		} else
 #endif
 		{
-			if (pool -> free)
-				candl = pool -> free;
+			if (LEASE_NOT_EMPTY(pool->free))
+				candl = LEASE_GET_FIRST(pool->free);
 			else
-				candl = pool -> abandoned;
+				candl = LEASE_GET_FIRST(pool->abandoned);
 		}
 
 		/*

@@ -50,6 +50,10 @@ static const char url [] =
 #  define group real_group 
 #    include <grp.h>
 #  undef group
+
+/* global values so db.c can look at them */
+uid_t set_uid = 0;
+gid_t set_gid = 0;
 #endif /* PARANOIA */
 
 #ifndef UNIT_TEST
@@ -126,6 +130,12 @@ static void omapi_listener_start (void *foo)
 	omapi_object_dereference (&listener, MDL);
 }
 
+#ifndef UNIT_TEST
+
+/* Note: If we add unit tests to test setup_chroot it will
+ * need to be moved to be outside the ifndef UNIT_TEST block.
+ */
+
 #if defined (PARANOIA)
 /* to be used in one of two possible scenarios */
 static void setup_chroot (char *chroot_dir) {
@@ -142,7 +152,6 @@ static void setup_chroot (char *chroot_dir) {
 }
 #endif /* PARANOIA */
 
-#ifndef UNIT_TEST
 int 
 main(int argc, char **argv) {
 	int fd;
@@ -180,9 +189,6 @@ main(int argc, char **argv) {
 	char *set_user   = 0;
 	char *set_group  = 0;
 	char *set_chroot = 0;
-
-	uid_t set_uid = 0;
-	gid_t set_gid = 0;
 #endif /* PARANOIA */
 
         /* Make sure that file descriptors 0 (stdin), 1, (stdout), and
@@ -705,19 +711,21 @@ main(int argc, char **argv) {
 
 #ifdef DHCPv6
 	/*
-	 * Set server DHCPv6 identifier.
+	 * Set server DHCPv6 identifier - we go in order:
+	 * dhcp6.server-id in the config file
+	 * server-duid from the lease file
+	 * server-duid from the config file (the config file is read first
+	 * and the lease file overwrites the config file information)
+	 * genrate a new one
+	 * In all cases we write it out to the lease file.
 	 * See dhcpv6.c for discussion of setting DUID.
 	 */
-	if (set_server_duid_from_option() == ISC_R_SUCCESS) {
-		write_server_duid();
-	} else {
-		if (!server_duid_isset()) {
-			if (generate_new_server_duid() != ISC_R_SUCCESS) {
-				log_fatal("Unable to set server identifier.");
-			}
-			write_server_duid();
-		}
+	if ((set_server_duid_from_option() != ISC_R_SUCCESS) &&
+	    (!server_duid_isset()) &&
+	    (generate_new_server_duid() != ISC_R_SUCCESS)) {
+		log_fatal("Unable to set server identifier.");
 	}
+	write_server_duid();
 #endif /* DHCPv6 */
 
 #ifndef DEBUG
@@ -1057,7 +1065,8 @@ void postconf_initialization (int quiet)
 			data_string_forget(&db, MDL);
 		}
 	}
-	
+
+#if defined(DELAYED_ACK)
 	oc = lookup_option(&server_universe, options, SV_DELAYED_ACK);
 	if (oc &&
 	    evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
@@ -1085,6 +1094,7 @@ void postconf_initialization (int quiet)
 
 		data_string_forget(&db, MDL);
 	}
+#endif
 
 	oc = lookup_option(&server_universe, options, SV_DONT_USE_FSYNC);
 	if ((oc != NULL) &&
@@ -1114,6 +1124,12 @@ void postconf_initialization (int quiet)
 
 		data_string_forget(&db, MDL);
 	}
+
+#if defined (BINARY_LEASES)
+	if (local_family == AF_INET) {
+		log_info("Source compiled to use binary-leases");
+	}
+#endif
 
 	/* Don't need the options anymore. */
 	option_state_dereference(&options, MDL);
