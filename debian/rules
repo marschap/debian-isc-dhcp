@@ -19,10 +19,6 @@ CONFFLAGS=--prefix=/usr \
           --disable-tracing \
           --disable-failover \
           --sysconfdir=/etc/dhcp \
-          --with-srv-lease-file=/var/lib/dhcp/dhcpd.leases \
-          --with-srv6-lease-file=/var/lib/dhcp/dhcpd6.leases \
-          --with-cli-lease-file=/var/lib/dhcp/dhclient.leases \
-          --with-cli6-lease-file=/var/lib/dhcp/dhclient6.leases \
 
 # cross-architecture building
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))

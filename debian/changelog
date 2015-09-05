@@ -1,6 +1,7 @@
 isc-dhcp (4.3.3-2) UNRELEASED; urgency=medium
 
   * Disable tracing and failover (closes: #712503).
+  * Use default paths for lease files (closes: #758882).
 
  -- Michael Gilbert <mgilbert@debian.org>  Sat, 05 Sep 2015 23:12:43 +0000
 
