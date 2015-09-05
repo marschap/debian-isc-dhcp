@@ -14,6 +14,7 @@ set -e
 make_resolv_conf() {
     local new_resolv_conf
 
+    # DHCPv4
     if [ -n "$new_domain_name" ] || [ -n "$new_domain_name_servers" ]; then
         new_resolv_conf=/etc/resolv.conf.dhclient-new
         rm -f $new_resolv_conf
@@ -22,9 +23,31 @@ make_resolv_conf() {
             echo "search $new_domain_name" >>$new_resolv_conf
         fi
 
-        for nameserver in $new_domain_name_servers; do
-            echo "nameserver $nameserver" >>$new_resolv_conf
-        done
+        if [ -n "$new_domain_name_servers" ]; then
+            for nameserver in $new_domain_name_servers; do
+                echo "nameserver $nameserver" >>$new_resolv_conf
+            done
+        else # keep 'old' nameservers
+            grep -i '^nameserver' /etc/resolv.conf >>$new_resolv_conf
+        fi
+
+        mv $new_resolv_conf /etc/resolv.conf
+    # DHCPv6
+    elif [ -n "$new_dhcp6_domain_search" ] || [ -n "$new_dhcp6_name_servers" ]; then
+        new_resolv_conf=/etc/resolv.conf.dhclient-new
+        rm -f $new_resolv_conf
+
+        if [ -n "$new_dhcp6_domain_search" ]; then
+            echo "search $new_dhcp6_domain_search" >> $new_resolv_conf
+        fi
+
+        if [ -n "$new_dhcp6_name_servers" ]; then
+            for nameserver in $new_dhcp6_name_servers; do
+                echo "nameserver $nameserver" >>$new_resolv_conf
+            done
+        else # keep 'old' nameservers
+            grep -i '^nameserver' /etc/resolv.conf >>$new_resolv_conf
+        fi
 
         mv $new_resolv_conf /etc/resolv.conf
     fi
@@ -53,11 +76,14 @@ fi
 
 # Execute the operation
 case "$reason" in
+
+    ### DHCPv4 Handlers
+
     MEDIUM|ARPCHECK|ARPSEND)
         # Do nothing
         ;;
     PREINIT)
-        ip link set $interface up
+        ip link set dev $interface up
 
         # We need to give the kernel some time to get the interface up.
         sleep 1
@@ -83,14 +109,15 @@ case "$reason" in
         if [ -z "$old_ip_address" ] ||
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
+            ip -4 addr add $new_ip_address$new_mask $new_broadcast_arg dev $interface
 
             ip link set $interface up
-            ip addr flush dev $interface
+            ip -4 addr flush dev $interface
             ip addr add $new_ip_address$new_mask ${new_broadcast_address:+broadcast $new_broadcast_address} \
                  dev $interface
 
             for router in $new_routers; do
-                ip route add default via $router
+                ip -4 route add default via $router dev $interface
             done
         fi
 
@@ -107,15 +134,53 @@ case "$reason" in
 
     EXPIRE|FAIL|RELEASE|STOP)
         if [ -n "$old_ip_address" ]; then
-            # Shut down interface, which will delete routes and clear arp cache.
-            ip addr flush dev $interface
-            ip link set $interface down
+            ip -4 addr flush dev $interface
         fi
 
         ;;
 
     TIMEOUT)
         ip link set $interface down
+
+        ;;
+
+    ### DHCPv6 Handlers
+    # TODO handle prefix change: ?based on ${old_ip6_prefix} and ${new_ip6_prefix}?
+
+    PREINIT6)
+        # ensure interface is up
+        ip link set $interface up
+
+        # flush any stale global permanent IPs from interface
+        ip -6 addr flush dev $interface scope global permanent
+
+        ;;
+
+    BOUND6|RENEW6|REBIND6)
+        if [ "$new_ip6_address" ] && [ "$new_ip6_prefixlen" ]; then
+            ip -6 addr add $new_ip6_address/$new_ip6_prefixlen \
+                dev $interface scope global
+        fi
+
+        make_resolv_conf
+
+        # Get the domain name into a file suitable for netcfg to read.
+        printf "${new_dhcp6_domain_search%% *}" > /tmp/domain_name
+
+        ;;
+
+    DEPREF6)
+        if [ "$new_ip6_prefixlen" ]; then
+            ip -6 addr change $cur_ip6_address/$cur_ip6_prefixlen \
+                dev $interface scope global preferred_lft 0
+        fi
+
+        ;;
+
+    EXPIRE6|RELEASE6|STOP6)
+        if [ "$old_ip6_address" ] && [ "$old_ip6_prefixlen" ]; then
+            ip -6 addr del $old_ip6_address/$old_ip6_prefixlen dev $interface
+        fi
 
         ;;
 esac

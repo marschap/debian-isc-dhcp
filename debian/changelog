@@ -1,16 +1,19 @@
-isc-dhcp (4.3.2-2) UNRELEASED; urgency=medium
+isc-dhcp (4.3.3-1) unstable; urgency=medium
 
+  * New upstream release.
   * Add uversionmangle to debian/watch.
-  * Add a logcheck snippet for the dhcp server (closes: #688339).
-    - Thanks to Jonathan Wiltshire.
   * Restore Enhances field for the ldap package (closes: #790164).
+  * Add a logcheck snippet for the server package (closes: #688339).
+    - Thanks to Jonathan Wiltshire.
+  * Add DHCPv6 support to dhclient-script.linux.udeb (closes: #635897).
+    - Thanks to Colin Watson.
+  * Add policycoreutils dependency to isc-dhcp-server (closes: #797276).
   * Fix undefined variables in dhclient-script.kfreebsd (closes: #691090).
     - Thanks to Peter Marschall.
-  * Make policycoreutils a dependency of isc-dhcp-server (closes: #797276).
   * Avoid condition where hostname could be set to '(none)' (closes: #604883).
     - Thanks to Pavel Cahyna.
 
- -- Michael Gilbert <mgilbert@debian.org>  Sat, 27 Jun 2015 15:31:48 +0000
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 05 Sep 2015 19:20:42 +0000
 
 isc-dhcp (4.3.2-1) unstable; urgency=medium
 
