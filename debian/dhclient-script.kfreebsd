@@ -171,9 +171,9 @@ case "$reason" in
         if [ -z "$old_ip_address" ] ||
            [ "$old_ip_address" != "$new_ip_address" ] ||
            [ "$reason" = "BOUND" ] || [ "$reason" = "REBOOT" ]; then
-	    # FIXME: metric_arg is not defined
             ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
-                                ${new_broadcast_address:+broadcast $new_broadcast_address} $mtu_arg $metric_arg $medium
+                                ${new_broadcast_address:+broadcast $new_broadcast_address} \
+                                $mtu_arg ${IF_METRIC:+metric $IF_METRIC} $medium
             route add $new_ip_address 127.1 >/dev/null 2>&1
             for router in $new_routers; do
               # If the subnet is captive, eg the netmask is /32 but the default
@@ -248,8 +248,7 @@ case "$reason" in
         fi
 
         if [ -n "$alias_ip_address" ]; then
-	    # FIXME: alias_subnet_arg is not defined
-            ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+            ifconfig $interface inet alias $alias_ip_address ${alias_subnet_mask:+netmask $alias_subnet_mask}
             route add $alias_ip_address 127.0.0.1
         fi
 
@@ -261,9 +260,9 @@ case "$reason" in
             route delete $alias_ip_address 127.0.0.1 > /dev/null 2>&1
         fi
 
-	# FIXME: metric_arg is not defined
         ifconfig $interface inet $new_ip_address ${new_subnet_mask:+netmask $new_subnet_mask} \
-                              ${new_broadcast_address:+broadcast $new_broadcast_address} $mtu_arg $metric_arg $medium
+                              ${new_broadcast_address:+broadcast $new_broadcast_address} \
+                              $mtu_arg ${IF_METRIC:+metric $IF_METRIC} $medium
         sleep 1
 
 
@@ -272,8 +271,7 @@ case "$reason" in
           if ping -q -c 1 $1; then
             if [ x$new_ip_address != x$alias_ip_address ] && \
                               [ x$alias_ip_address != x ]; then
-	      # FIXME: alias_subnet_arg is not defined
-              ifconfig $interface inet alias $alias_ip_address $alias_subnet_arg
+              ifconfig $interface inet alias $alias_ip_address ${alias_subnet_mask:+netmask $alias_subnet_mask}
               route add $alias_ip_address 127.0.0.1
             fi
             route add $new_ip_address 127.1 >/dev/null 2>&1
