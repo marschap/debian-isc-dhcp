@@ -7,17 +7,22 @@ DEB_HOST_ARCH_OS=$(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE=$(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE=$(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+LEASE_PATH=/var/lib/dhcp
 DHCLIENT_SCRIPT=/sbin/dhclient-script
 
 CFLAGS+=-Wall
 CFLAGS+=-I/usr/include/bind-export
-CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
-CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
-CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
 
-CONFFLAGS=--prefix=/usr \
-          --enable-log-pid \
-          --enable-paranoia \
+CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
+CFLAGS+=-D_PATH_DHCPD_DB='"$(LEASE_PATH)/dhcpd.leases"'
+CFLAGS+=-D_PATH_DHCPD6_DB='"$(LEASE_PATH)/dhcpd6.leases"'
+
+CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
+CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
+CFLAGS+=-D_PATH_DHCLIENT_DB='"$(LEASE_PATH)/dhclient.leases"'
+CFLAGS+=-D_PATH_DHCLIENT6_DB='"$(LEASE_PATH)/dhclient6.leases"'
+
+CONFFLAGS=--prefix=/usr --enable-log-pid --enable-paranoia
 
 # cross-architecture building
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))

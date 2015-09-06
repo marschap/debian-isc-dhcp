@@ -1,3 +1,9 @@
+isc-dhcp (4.3.3-3) unstable; urgency=medium
+
+  * Revert change to lease file paths (closes: #798177).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 06 Sep 2015 16:47:39 +0000
+
 isc-dhcp (4.3.3-2) unstable; urgency=medium
 
   * Use default paths for lease files.
