@@ -74,6 +74,10 @@ check_status()
 case "$1" in
 	start)
 		test_config
+		if [ -e "$DHCPD_PID" ]; then
+			log_failure_msg "dhcpd service already running (pid file $DHCPD_PID currenty exists)"
+			exit 1
+		fi
 		log_daemon_msg "Starting $DESC" "$NAME"
 		start-stop-daemon --start --quiet --pidfile "$DHCPD_PID" \
 			--exec /usr/sbin/dhcpd -- \

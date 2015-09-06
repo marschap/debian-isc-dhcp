@@ -9,20 +9,21 @@ author: Michael Gilbert <mgilbert@debian.org>
  		   scripts/solaris scripts/openwrt
 -dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a ../bind/lib/libirs.a \
 -		 ../bind/lib/libdns.a ../bind/lib/libisccfg.a ../bind/lib/libisc.a
-+dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a -lirs-export -ldns-export -lisc-export
++dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a -ldns-export -lisc-export
 +
  man_MANS = dhclient.8 dhclient-script.8 dhclient.conf.5 dhclient.leases.5
  EXTRA_DIST = $(man_MANS)
  
 --- a/dhcpctl/Makefile.am
 +++ b/dhcpctl/Makefile.am
-@@ -6,12 +6,10 @@ EXTRA_DIST = $(man_MANS)
+@@ -5,13 +5,10 @@ man_MANS = omshell.1 dhcpctl.3
+ EXTRA_DIST = $(man_MANS)
  
  omshell_SOURCES = omshell.c
- omshell_LDADD = libdhcpctl.a ../common/libdhcp.a ../omapip/libomapi.a \
+-omshell_LDADD = libdhcpctl.a ../common/libdhcp.a ../omapip/libomapi.a \
 -	        ../bind/lib/libirs.a ../bind/lib/libdns.a \
 -	        ../bind/lib/libisccfg.a ../bind/lib/libisc.a
-+	        -lirs-export -ldns-export -lisc-export
++omshell_LDADD = libdhcpctl.a ../common/libdhcp.a ../omapip/libomapi.a -ldns-export -lisc-export
  
  libdhcpctl_a_SOURCES = dhcpctl.c callback.c remote.c
  
@@ -43,13 +44,14 @@ author: Michael Gilbert <mgilbert@debian.org>
 +svtest_LDADD = libomapi.a -lirs-export -ldns-export -lisc-export
 --- a/relay/Makefile.am
 +++ b/relay/Makefile.am
-@@ -3,8 +3,7 @@ AM_CPPFLAGS = -DLOCALSTATEDIR='"@localst
+@@ -2,9 +2,7 @@ AM_CPPFLAGS = -DLOCALSTATEDIR='"@localst
+ 
  sbin_PROGRAMS = dhcrelay
  dhcrelay_SOURCES = dhcrelay.c
- dhcrelay_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
+-dhcrelay_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
 -		 ../bind/lib/libirs.a ../bind/lib/libdns.a \
 -		 ../bind/lib/libisccfg.a ../bind/lib/libisc.a
-+		 -lirs-export -ldns-export -lisc-export
++dhcrelay_LDADD = ../common/libdhcp.a ../omapip/libomapi.a -ldns-export -lisc-export
  man_MANS = dhcrelay.8
  EXTRA_DIST = $(man_MANS)
  
@@ -61,7 +63,7 @@ author: Michael Gilbert <mgilbert@debian.org>
  dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
 -	      ../dhcpctl/libdhcpctl.a ../bind/lib/libirs.a \
 -	      ../bind/lib/libdns.a ../bind/lib/libisccfg.a ../bind/lib/libisc.a \
-+	      ../dhcpctl/libdhcpctl.a -lirs-export -ldns-export -lisc-export \
++	      ../dhcpctl/libdhcpctl.a -ldns-export -lisc-export \
  	      $(LDAP_LIBS)		
  
  man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5

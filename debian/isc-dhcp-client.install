@@ -2,5 +2,4 @@ usr/sbin/dhclient sbin
 
 debian/dhclient.conf etc/dhcp
 
-debian/debug etc/dhcp/dhclient-exit-hooks.d
-debian/debug etc/dhcp/dhclient-enter-hooks.d
+debian/debug etc/dhcp

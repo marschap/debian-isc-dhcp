@@ -1,0 +1,4 @@
+var/lib/dhcp
+
+etc/dhcp/dhclient-exit-hooks.d
+etc/dhcp/dhclient-enter-hooks.d

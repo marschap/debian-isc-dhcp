@@ -16,9 +16,8 @@ CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
 CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
 
 CONFFLAGS=--prefix=/usr \
-          --disable-tracing \
-          --disable-failover \
-          --sysconfdir=/etc/dhcp \
+          --enable-log-pid \
+          --enable-paranoia \
 
 # cross-architecture building
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
@@ -51,6 +50,7 @@ override_dh_auto_build:
 
 override_dh_install:
 	dh_install
+	# rename scripts
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) \
 	    debian/isc-dhcp-client$(DHCLIENT_SCRIPT)
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS).udeb \
@@ -59,6 +59,12 @@ override_dh_install:
 	    debian/isc-dhcp-client/etc/dhcp/dhclient-exit-hooks.d/rfc3442-classless-routes
 	cp contrib/dhcp-lease-list.pl \
 	    debian/isc-dhcp-server/usr/sbin/dhcp-lease-list
+	# use actual paths rather than undefined variables in man pages
+	sed -e 's|ETCDIR|/etc/dhcp|g' \
+	    -e 's/RUNDIR/\/var\/run/g' \
+	    -e 's/CLIENTBINDIR/\/sbin/g' \
+	    -e 's/DBDIR/\/var\/lib\/dhcp/g' \
+	    -i debian/tmp/usr/share/man/man8/*
 
 override_dh_installinit:
 	dh_installinit -Nisc-dhcp-server

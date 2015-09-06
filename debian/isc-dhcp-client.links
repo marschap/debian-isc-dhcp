@@ -1,0 +1,2 @@
+etc/dhcp/debug etc/dhcp/dhclient-exit-hooks.d/debug
+etc/dhcp/debug etc/dhcp/dhclient-enter-hooks.d/debug

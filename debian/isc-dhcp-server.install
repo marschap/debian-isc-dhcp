@@ -1,3 +1,5 @@
 usr/sbin/dhcpd
 
+usr/bin/omshell
+
 debian/dhcpd.conf etc/dhcp

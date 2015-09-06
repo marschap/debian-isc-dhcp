@@ -25,12 +25,17 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
- isc-dhcp-common (= ${binary:Version}),
  lsb-base,
  policycoreutils,
+Recommends:
+ isc-dhcp-common,
 Conflicts:
  dhcp,
  logcheck-database (<= 1.3.17~)
+Breaks:
+ isc-dhcp-common (<= 4.3.3-1),
+Replaces:
+ isc-dhcp-common (<= 4.3.3-1),
 Suggests:
  isc-dhcp-server-ldap,
 Description: ISC DHCP server for automatic IP address assignment
@@ -50,7 +55,6 @@ Architecture: any
 Depends:
  ${misc:Depends},
  debianutils (>= 2.8.2),
- isc-dhcp-common (= ${binary:Version}),
  lsb-base,
 Replaces:
  isc-dhcp-client-dbg (<< 4.3.0a1),
@@ -68,7 +72,6 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
- isc-dhcp-common (= ${binary:Version}),
  isc-dhcp-server (= ${binary:Version}),
 Conflicts:
  dhcp,
@@ -113,8 +116,9 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
- isc-dhcp-common (= ${binary:Version}),
  iproute2 [linux-any] | freebsd-net-tools [kfreebsd-any],
+Recommends:
+ isc-dhcp-common,
 Suggests:
  resolvconf,
  avahi-autoipd
@@ -149,7 +153,8 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
- isc-dhcp-common (= ${binary:Version}),
+Recommends:
+ isc-dhcp-common,
 Conflicts:
  dhcp-relay,
 Description: ISC DHCP relay daemon

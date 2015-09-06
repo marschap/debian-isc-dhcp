@@ -1,0 +1,16 @@
+description: undefine NSUPDATE
+author: cchip
+origin: http://forums.debian.net/viewtopic.php?f=10&t=95273
+bug-debian: https://bugs.debian.org/712503
+
+--- a/includes/site.h
++++ b/includes/site.h
+@@ -121,7 +121,7 @@
+ 
+ /* Define this if you want DNS update functionality to be available. */
+ 
+-#define NSUPDATE
++/* #define NSUPDATE */
+ 
+ /* Define this if you want to enable the DHCP server attempting to
+    find a nameserver to use for DDNS updates. */

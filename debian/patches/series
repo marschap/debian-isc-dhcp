@@ -1,9 +1,12 @@
 dhclient-script-exit-status.patch
 dhclient-exit-hook.patch
 dhclient-dividebyzero.patch
+dhclient-64bit-time.patch
 
 fix-exit-hook-manpage.patch
 spelling-error.patch
 manpage-hyphens.patch
+
+disable-nsupdate.patch
 
 system-bind.patch
