@@ -1,3 +1,13 @@
+isc-dhcp (4.3.3-4) unstable; urgency=medium
+
+  * Reenable NSUPDATE (closes: #798237).
+  * Add a DDNS enabled dhclient package.
+  * Include README file (closes: #791788).
+  * Recommend rather than depend on policycoreutils.
+  * Finish replacing macros in manpages (closes: #773801).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 20 Sep 2015 20:39:58 +0000
+
 isc-dhcp (4.3.3-3) unstable; urgency=medium
 
   * Revert change to lease file paths (closes: #798177).

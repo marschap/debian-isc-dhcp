@@ -1,4 +1,4 @@
-usr/sbin/dhclient sbin
+dhclient sbin
 
 debian/dhclient.conf etc/dhcp
 

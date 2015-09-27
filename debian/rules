@@ -13,14 +13,14 @@ DHCLIENT_SCRIPT=/sbin/dhclient-script
 CFLAGS+=-Wall
 CFLAGS+=-I/usr/include/bind-export
 
-CFLAGS+=-D_PATH_DHCPD_CONF='"/etc/dhcp/dhcpd.conf"'
-CFLAGS+=-D_PATH_DHCPD_DB='"$(LEASE_PATH)/dhcpd.leases"'
-CFLAGS+=-D_PATH_DHCPD6_DB='"$(LEASE_PATH)/dhcpd6.leases"'
+CFLAGS+=-D_PATH_DHCPD_CONF='\"/etc/dhcp/dhcpd.conf\"'
+CFLAGS+=-D_PATH_DHCPD_DB='\"$(LEASE_PATH)/dhcpd.leases\"'
+CFLAGS+=-D_PATH_DHCPD6_DB='\"$(LEASE_PATH)/dhcpd6.leases\"'
 
-CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='"$(DHCLIENT_SCRIPT)"'
-CFLAGS+=-D_PATH_DHCLIENT_CONF='"/etc/dhcp/dhclient.conf"'
-CFLAGS+=-D_PATH_DHCLIENT_DB='"$(LEASE_PATH)/dhclient.leases"'
-CFLAGS+=-D_PATH_DHCLIENT6_DB='"$(LEASE_PATH)/dhclient6.leases"'
+CFLAGS+=-D_PATH_DHCLIENT_SCRIPT='\"$(DHCLIENT_SCRIPT)\"'
+CFLAGS+=-D_PATH_DHCLIENT_CONF='\"/etc/dhcp/dhclient.conf\"'
+CFLAGS+=-D_PATH_DHCLIENT_DB='\"$(LEASE_PATH)/dhclient.leases\"'
+CFLAGS+=-D_PATH_DHCLIENT6_DB='\"$(LEASE_PATH)/dhclient6.leases\"'
 
 CONFFLAGS=--prefix=/usr --enable-log-pid --enable-paranoia
 
@@ -45,12 +45,17 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	# ldap-enabled build
 	test -f Makefile && $(MAKE) distclean || true
-	./configure --with-ldap --with-ldapcrypto $(CONFFLAGS)
+	./configure --with-ldap --with-ldapcrypto CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export" $(CONFFLAGS)
 	$(MAKE) $(CROSS)
 	mv server/dhcpd dhcpd
+	# ddns-disabled build
+	test -f Makefile && $(MAKE) distclean || true
+	./configure CFLAGS="$(CFLAGS)" $(CONFFLAGS)
+	$(MAKE) $(CROSS)
+	mv client/dhclient dhclient
 	# ldap-disabled build
 	test -f Makefile && $(MAKE) distclean || true
-	./configure $(CONFFLAGS)
+	./configure CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export" $(CONFFLAGS)
 	$(MAKE) $(CROSS)
 
 override_dh_install:
@@ -69,7 +74,7 @@ override_dh_install:
 	    -e 's/RUNDIR/\/var\/run/g' \
 	    -e 's/CLIENTBINDIR/\/sbin/g' \
 	    -e 's/DBDIR/\/var\/lib\/dhcp/g' \
-	    -i debian/tmp/usr/share/man/man8/*
+	    -i debian/tmp/usr/share/man/man*/*
 
 override_dh_installinit:
 	dh_installinit -Nisc-dhcp-server

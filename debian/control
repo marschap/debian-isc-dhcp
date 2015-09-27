@@ -26,9 +26,9 @@ Depends:
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
  lsb-base,
- policycoreutils,
 Recommends:
  isc-dhcp-common,
+ policycoreutils,
 Conflicts:
  dhcp,
  logcheck-database (<= 1.3.17~)
@@ -91,7 +91,6 @@ Package: isc-dhcp-common
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends},
  debianutils (>= 2.8.2),
 Description: common files used by all of the isc-dhcp packages
  This package includes all of the files that are used in common by the various
@@ -121,11 +120,33 @@ Recommends:
  isc-dhcp-common,
 Suggests:
  resolvconf,
- avahi-autoipd
+ avahi-autoipd,
+ isc-dhcp-client-ddns,
 Provides:
  dhcp-client,
 Description: DHCP client for automatically obtaining an IP address
- This is the Internet Software Consortium's DHCP client. 
+ This is the Internet Software Consortium's DHCP client.
+ .
+ Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
+ (actually dhcpd includes much of the functionality of bootpd). It
+ gives client machines "leases" for IP addresses and can
+ automatically set their network configuration. If your machine
+ depends on DHCP (especially likely if it's a workstation on a large
+ network, or a laptop, or attached to a cable modem), keep this or
+ another DHCP client installed.
+ .
+ Extra documentation can be found in the package isc-dhcp-common.
+
+Package: isc-dhcp-client-ddns
+Priority: optional
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ isc-dhcp-client (= ${binary:Version}),
+Enhances: isc-dhcp-client
+Description: Dynamic DNS (DDNS) enabled DHCP client
+ This a Dynamic DNS enabled version of the DHCP client.
  .
  Dynamic Host Configuration Protocol (DHCP) is a protocol like BOOTP
  (actually dhcpd includes much of the functionality of bootpd). It

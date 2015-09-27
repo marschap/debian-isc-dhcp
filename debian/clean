@@ -1,2 +1,4 @@
 dhcpd
+dhclient
+
 config.*

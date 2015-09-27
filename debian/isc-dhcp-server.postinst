@@ -74,7 +74,7 @@ fi
 # ------------------------- Debconf questions end ---------------------
 db_stop
 
-restorecon /var/lib/dhcp/dhcpd.leases || true
+test ! -x /sbin/restorecon || /sbin/restorecon /var/lib/dhcp/dhcpd.leases
 
 #DEBHELPER#
 
