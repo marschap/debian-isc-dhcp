@@ -1,0 +1,65 @@
+description: show offered and requested client IP addresses in dhclient output.
+author: Peter Miller <millerp@canb.auug.org.au>
+bug-ubuntu: https://launchpad.net/bugs/35265
+bug-debian: http://bugs.debian.org/486611
+
+--- a/client/dhclient.c
++++ b/client/dhclient.c
+@@ -1069,6 +1069,7 @@ void dhcpack (packet)
+ 	struct interface_info *ip = packet -> interface;
+ 	struct client_state *client;
+ 	struct client_lease *lease;
++	char *leasestr;
+ 	struct option_cache *oc;
+ 	struct data_string ds;
+ 
+@@ -1099,13 +1100,16 @@ void dhcpack (packet)
+ 		return;
+ 	}
+ 
+-	log_info ("DHCPACK from %s", piaddr (packet -> client_addr));
+-
+ 	lease = packet_to_lease (packet, client);
+ 	if (!lease) {
++		log_info ("DHCPACK from %s", piaddr (packet -> client_addr));
+ 		log_info ("packet_to_lease failed.");
+ 		return;
+ 	}
++	leasestr = strdup (piaddr (lease -> address));
++	log_info ("DHCPACK of %s from %s", leasestr,
++		  piaddr (packet -> client_addr));
++	free (leasestr);
+ 
+ 	client -> new = lease;
+ 
+@@ -1537,6 +1541,7 @@ void dhcpoffer (packet)
+ 	struct interface_info *ip = packet -> interface;
+ 	struct client_state *client;
+ 	struct client_lease *lease, *lp;
++	char *leasestr;
+ 	struct option **req;
+ 	int i;
+ 	int stop_selecting;
+@@ -1615,6 +1620,10 @@ void dhcpoffer (packet)
+ 		log_info ("%s: packet_to_lease failed.", obuf);
+ 		return;
+ 	}
++	leasestr = strdup (piaddr (lease -> address));
++	sprintf (obuf, "%s of %s from %s", name, leasestr,
++		 piaddr (packet -> client_addr));
++	free (leasestr);
+ 
+ 	/* If this lease was acquired through a BOOTREPLY, record that
+ 	   fact. */
+@@ -2229,7 +2238,10 @@ void send_request (cpp)
+ 			client -> packet.secs = htons (65535);
+ 	}
+ 
+-	log_info ("DHCPREQUEST on %s to %s port %d",
++	log_info ("DHCPREQUEST of %s on %s to %s port %d", 
++              piaddr ((client -> state == S_BOUND || client -> state ==
++		       S_RENEWING || client -> state == S_REBINDING) ?
++		       client -> active -> address : client -> requested_address),
+ 	      client -> name ? client -> name : client -> interface -> name,
+ 	      inet_ntoa (destination.sin_addr),
+ 	      ntohs (destination.sin_port));

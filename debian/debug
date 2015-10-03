@@ -1,16 +1,15 @@
 #
 # The purpose of this script is just to show the variables that are
-# available to all the scripts in this directory. All these scripts
-# are called from /etc/dhcp3/dhclient-script, which exports all the
-# variables shown before. If you want to debug a problem with your DHCP
-# setup you can enable this script and take a look at
-# /tmp/dhclient-script.debug.
+# available to all the scripts in this directory. All these scripts are
+# called from dhclient-script, which exports all the variables shown
+# before. If you want to debug a problem with your DHCP setup you can
+# enable this script and take a look at /tmp/dhclient-script.debug.
 
 # To enable this script set the following variable to "yes"
 RUN="no"
 
 if [ "$RUN" = "yes" ]; then
-	echo $(date): entering ${0%/*}, dumping variables. \
+	echo "$(date): entering ${1%/*}, dumping variables." \
 		>> /tmp/dhclient-script.debug
 
 	# loop over the 4 possible prefixes: (empty), cur_, new_, old_

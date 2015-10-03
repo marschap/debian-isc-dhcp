@@ -1,3 +1,18 @@
+isc-dhcp (4.3.3-5) unstable; urgency=medium
+
+  * Add dependencies for the debug package.
+  * Fix comments in the debug script (closes: #773804).
+  * Add diversions for isc-dhcp-client-ddns (closes: #800749).
+  * Fix directory output by the debug script (closes: #794770).
+  * Fix exit code handling in dhclient-script (closes: #692846).
+  * Escape parantheses in init script sed command (closes: #771530).
+  * Add more IP address detail to dhclient output (closes: #486611).
+  * Add dhcp6.fqdn and dhcp6.sntp-servers to the default request options.
+  * Avoid infinite loop caused by misconfigured rfc3442-classless-static-routes
+    (closes: #730294).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 03 Oct 2015 18:41:26 +0000
+
 isc-dhcp (4.3.3-4) unstable; urgency=medium
 
   * Reenable NSUPDATE (closes: #798237).

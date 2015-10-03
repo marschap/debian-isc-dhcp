@@ -114,6 +114,7 @@ run_hook() {
 
     if [ -f $script ]; then
         . $script
+        exit_status=$?
     fi
 
     if [ -n "$exit_status" ] && [ "$exit_status" -ne 0 ]; then
@@ -131,8 +132,8 @@ run_hookdir() {
 
     if [ -d "$dir" ]; then
         for script in $(run-parts --list $dir); do
-            run_hook $script || true
-            exit_status=$?
+            run_hook $script
+            exit_status=$((exit_status|$?))
         done
     fi
 

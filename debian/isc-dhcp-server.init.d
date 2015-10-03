@@ -40,7 +40,7 @@ DESC="ISC DHCP server"
 DHCPD_CONF=${DHCPD_CONF:-/etc/dhcp/dhcpd.conf}
 # try to read pid file name from config file, with fallback to /var/run/dhcpd.pid
 if [ -z "$DHCPD_PID" ]; then
-	DHCPD_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"(.*)"[ \t]*;.*$/\1/p' < "$DHCPD_CONF" 2>/dev/null | head -n 1)
+	DHCPD_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' < "$DHCPD_CONF" 2>/dev/null | head -n 1)
 fi
 DHCPD_PID="${DHCPD_PID:-/var/run/dhcpd.pid}"
 

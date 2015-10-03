@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e 
+
+if [ "$1" != "upgrade" ]; then
+	dpkg-divert --package isc-dhcp-client-ddns --add --rename \
+		--divert /sbin/dhclient-noddns /sbin/dhclient
+fi
+
+#DEBHELPER#

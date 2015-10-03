@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e 
+
+if [ "$1" = "remove" -o "$1" = "abort-install" -o "$1" = "disappear" ]; then
+        dpkg-divert --package isc-dhcp-client-ddns --remove \
+		--rename --divert /sbin/dhclient-noddns /sbin/dhclient
+fi
+
+#DEBHELPER#

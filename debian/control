@@ -56,6 +56,7 @@ Depends:
  ${misc:Depends},
  debianutils (>= 2.8.2),
  lsb-base,
+ isc-dhcp-client (= ${binary:Version}) | isc-dhcp-server (= ${binary:Version}) | isc-dhcp-relay (= ${binary:Version}),
 Replaces:
  isc-dhcp-client-dbg (<< 4.3.0a1),
  isc-dhcp-server-dbg (<< 4.3.0a1),
