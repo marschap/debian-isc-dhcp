@@ -1,3 +1,10 @@
+isc-dhcp (4.3.3-6) UNRELEASED; urgency=medium
+
+  * Don't assume IPv6 prefix length of 64 (closes: #684009).
+    - Thanks to Arne Nordmark.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 04 Oct 2015 03:24:47 +0000
+
 isc-dhcp (4.3.3-5) unstable; urgency=medium
 
   * Add dependencies for the debug package.
