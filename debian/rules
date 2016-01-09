@@ -12,6 +12,7 @@ DHCLIENT_SCRIPT=/sbin/dhclient-script
 
 CFLAGS+=-Wall
 CFLAGS+=-I/usr/include/bind-export
+CFLAGS+=$(shell dpkg-buildflags --get CFLAGS)
 
 CFLAGS+=-D_PATH_DHCPD_CONF='\"/etc/dhcp/dhcpd.conf\"'
 CFLAGS+=-D_PATH_DHCPD_DB='\"$(LEASE_PATH)/dhcpd.leases\"'

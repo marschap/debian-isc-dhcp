@@ -34,19 +34,15 @@ umask 022
 [ -r "${INITCONFFILE}" ] || {
 	echo Generating ${INITCONFFILE}... >&2
 	cat >${INITCONFFILE} <<'EOFMAGICNUMBER1234'
-# Defaults for isc-dhcp-server initscript
-# sourced by /etc/init.d/isc-dhcp-server
-# installed at /etc/default/isc-dhcp-server by the maintainer scripts
-
-#
-# This is a POSIX shell fragment
-#
+# Defaults for isc-dhcp-server (sourced by /etc/init.d/isc-dhcp-server)
 
 # Path to dhcpd's config file (default: /etc/dhcp/dhcpd.conf).
-#DHCPD_CONF=/etc/dhcp/dhcpd.conf
+#DHCPDv4_CONF=/etc/dhcp/dhcpd.conf
+#DHCPDv6_CONF=/etc/dhcp/dhcpd.conf
 
 # Path to dhcpd's PID file (default: /var/run/dhcpd.pid).
-#DHCPD_PID=/var/run/dhcpd.pid
+#DHCPDv4_PID=/var/run/dhcpd.pid
+#DHCPDv6_PID=/var/run/dhcpd6.pid
 
 # Additional options to start dhcpd with.
 #	Don't use options -cf or -pf here; use DHCPD_CONF/ DHCPD_PID instead
@@ -54,18 +50,19 @@ umask 022
 
 # On what interfaces should the DHCP server (dhcpd) serve DHCP requests?
 #	Separate multiple interfaces with spaces, e.g. "eth0 eth1".
-INTERFACES=""
+INTERFACESv4=""
+INTERFACESv6=""
 EOFMAGICNUMBER1234
 }
 
 # ------------------------- Debconf questions start ---------------------
 
 db_get isc-dhcp-server/interfaces || true
-INTERFACES="${RET}"
+INTERFACESv4="${RET}"
 
-if [ -n "$INTERFACES" ]; then
+if [ -n "$INTERFACESv4" ]; then
     TMPFILE="$(mktemp -q ${INITCONFFILE}.new.XXXXXX)"
-    sed -e "s,^[[:space:]]*INTERFACES[[:space:]]*=.*,INTERFACES=\"${INTERFACES}\"," \
+    sed -e "s,^[[:space:]]*INTERFACESv4[[:space:]]*=.*,INTERFACESv4=\"${INTERFACESv4}\"," \
 		<${INITCONFFILE} >${TMPFILE}
     cp ${TMPFILE} ${INITCONFFILE}
     rm ${TMPFILE}
@@ -74,7 +71,7 @@ fi
 # ------------------------- Debconf questions end ---------------------
 db_stop
 
-test ! -x /sbin/restorecon || /sbin/restorecon /var/lib/dhcp/dhcpd.leases
+test ! -x /sbin/restorecon || restorecon /var/lib/dhcp/dhcpd.leases
 
 #DEBHELPER#
 

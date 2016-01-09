@@ -1,6 +1,9 @@
-isc-dhcp (4.3.3-6) UNRELEASED; urgency=medium
+isc-dhcp (4.3.3-6) experimental; urgency=medium
 
-  * Don't assume IPv6 prefix length of 64 (closes: #684009).
+  * Fix missing build flags from the last upload.
+  * Support IPv6 in the server init script (closes: #592539).
+    - Thanks to Florent Fourcot and Ron Murray.
+  * Don't assume an IPv6 prefix length of 64 (closes: #684009).
     - Thanks to Arne Nordmark.
 
  -- Michael Gilbert <mgilbert@debian.org>  Sun, 04 Oct 2015 03:24:47 +0000
