@@ -126,9 +126,8 @@ run_hook() {
 
 # run scripts in given directory
 run_hookdir() {
-    local dir
-    local exit_status
-    dir="$1"
+    local dir="$1"
+    local exit_status=0
 
     if [ -d "$dir" ]; then
         for script in $(run-parts --list $dir); do

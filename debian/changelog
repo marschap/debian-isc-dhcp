@@ -1,3 +1,18 @@
+isc-dhcp (4.3.3-7) unstable; urgency=medium
+
+  * Migrate to dbgsym debug packages.
+  * Fix spelling error in changelog entry.
+  * Include LDFLAGS in all calls to configure.
+  * Fix relaying return packets (closes: #648401).
+    - Thanks to Steinar H. Gunderson.
+  * Fix cross-architecture building (closes: #812525).
+    - Thanks to Helmut Grohne.
+  * Initialize exit status in dhclient-script (closes: #800914).
+  * Fix CVE-2015-8605: maliciously crafted IPv4 packet can cause any of the
+    running DHCP applications to crash (closes: #810875).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 31 Jan 2016 01:31:59 +0000
+
 isc-dhcp (4.3.3-6) experimental; urgency=medium
 
   * Fix missing build flags from the last upload.
@@ -15,7 +30,7 @@ isc-dhcp (4.3.3-5) unstable; urgency=medium
   * Add diversions for isc-dhcp-client-ddns (closes: #800749).
   * Fix directory output by the debug script (closes: #794770).
   * Fix exit code handling in dhclient-script (closes: #692846).
-  * Escape parantheses in init script sed command (closes: #771530).
+  * Escape parentheses in init script sed command (closes: #771530).
   * Add more IP address detail to dhclient output (closes: #486611).
   * Add dhcp6.fqdn and dhcp6.sntp-servers to the default request options.
   * Avoid infinite loop caused by misconfigured rfc3442-classless-static-routes
@@ -263,7 +278,7 @@ isc-dhcp (4.2.4-1) unstable; urgency=low
 isc-dhcp (4.2.2.dfsg.1-5) unstable; urgency=medium
 
   [ Andrew Pollock ]
-  * debian/dhclient.conf: send the hostname (closes: #151820) 
+  * debian/dhclient.conf: send the hostname (closes: #151820)
 
   [ Michael Gilbert ]
   * Fix cve-2011-4868: error in DDNS handling with IPv6 (closes: #655746)
@@ -339,7 +354,7 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
   * debian/rules: added build-arch and build-indep targets
   * debian/rules: applied patch from Kees Cook to call dh_link (closes: #614992)
   * debian/dhclient-script.linux: applied patch from Colin Watson to make
-    dhclient-script support stateless DHCPv6 (closes: #632888) 
+    dhclient-script support stateless DHCPv6 (closes: #632888)
   * debian/dhclient-script.linux: fix regression for MTU <= 576 handling
     (closes: #638267)
   * Apply patch from Peter Marschall to split the rfc3442-classless-routes hook
@@ -376,7 +391,7 @@ isc-dhcp (4.2.2-1) unstable; urgency=low
   * debian/dhclient-script.*: apply patch from Peter Marschall to use alternate
     value expansion
   * debian/isc-dhcp-server.postinst: eliminate an error message from sed if no
-    interfaces are provided 
+    interfaces are provided
 
  -- Andrew Pollock <apollock@debian.org>  Sun, 28 Aug 2011 22:12:21 -0700
 
@@ -391,7 +406,7 @@ isc-dhcp (4.1.1-P1-17) unstable; urgency=low
 
   * Incorporate and acknowledge NMU
   * Apply a multitude of patches from Peter Marschall (closes: #609408)
-    - fix domain_name in domain_search check in dhclient-script 
+    - fix domain_name in domain_search check in dhclient-script
       (closes: #567141)
     - fix indentation in dhclient-script to improve readability
     - remove bashisms from dhclient-script

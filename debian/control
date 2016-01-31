@@ -7,15 +7,15 @@ Vcs-Git: git://anonscm.debian.org/pkg-dhcp/isc-dhcp.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-dhcp/isc-dhcp.git;a=summary
 Homepage: http://www.isc.org
 Build-Depends:
+ dpkg-dev (>= 1.13.2),
+ debhelper (>= 9.20151220),
+ dh-autoreconf,
  groff,
  pkg-config,
  po-debconf,
  libssl-dev,
  libldap2-dev,
  libbind-export-dev (>= 1:9.9.5.dfsg-4.3),
- dh-autoreconf,
- debhelper (>= 9),
- dpkg-dev (>= 1.13.2),
 Standards-Version: 3.9.6
 
 Package: isc-dhcp-server
@@ -47,24 +47,6 @@ Description: ISC DHCP server for automatic IP address assignment
  automatically set their network configuration.
  .
  This server can handle multiple ethernet interfaces.
-
-Package: isc-dhcp-dbg
-Section: debug
-Priority: extra
-Architecture: any
-Depends:
- ${misc:Depends},
- debianutils (>= 2.8.2),
- lsb-base,
- isc-dhcp-client (= ${binary:Version}) | isc-dhcp-server (= ${binary:Version}) | isc-dhcp-relay (= ${binary:Version}),
-Replaces:
- isc-dhcp-client-dbg (<< 4.3.0a1),
- isc-dhcp-server-dbg (<< 4.3.0a1),
- isc-dhcp-relay-dbg (<< 4.3.0a1),
-Description: ISC DHCP server for automatic IP address assignment (debuging symbols)
- This are debugging symbols for the Internet Software Consortium's DHCP tools.
- .
- This package contains the debugging symbols for isc-dhcp.
 
 Package: isc-dhcp-server-ldap
 Priority: optional

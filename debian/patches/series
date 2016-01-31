@@ -3,6 +3,7 @@ dhclient-exit-hook.patch
 dhclient-dividebyzero.patch
 dhclient-64bit-time.patch
 dhclient-more-detail.patch
+dhcrelay-listen.patch
 
 fix-exit-hook-manpage.patch
 spelling-error.patch
@@ -11,3 +12,5 @@ manpage-hyphens.patch
 disable-nsupdate.patch
 
 system-bind.patch
+
+CVE-2015-8605.patch

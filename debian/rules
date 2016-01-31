@@ -27,9 +27,7 @@ CONFFLAGS=--prefix=/usr --enable-log-pid --enable-paranoia
 
 # cross-architecture building
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
-CROSS=CC=$(DEB_HOST_GNU_TYPE)-gcc
-else
-CROSS=
+CONFFLAGS+=--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 endif
 
 # hurd support
@@ -46,18 +44,18 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	# ldap-enabled build
 	test -f Makefile && $(MAKE) distclean || true
-	./configure --with-ldap --with-ldapcrypto CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export" $(CONFFLAGS)
-	$(MAKE) $(CROSS)
+	./configure --with-ldap --with-ldapcrypto CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export $(LDFLAGS)" $(CONFFLAGS)
+	$(MAKE)
 	mv server/dhcpd dhcpd
 	# ddns-disabled build
 	test -f Makefile && $(MAKE) distclean || true
 	./configure CFLAGS="$(CFLAGS)" $(CONFFLAGS)
-	$(MAKE) $(CROSS)
+	$(MAKE)
 	mv client/dhclient dhclient
 	# ldap-disabled build
 	test -f Makefile && $(MAKE) distclean || true
-	./configure CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export" $(CONFFLAGS)
-	$(MAKE) $(CROSS)
+	./configure CFLAGS="$(CFLAGS) -DNSUPDATE" LDFLAGS="-lirs-export $(LDFLAGS)" $(CONFFLAGS)
+	$(MAKE)
 
 override_dh_install:
 	dh_install
@@ -82,4 +80,5 @@ override_dh_installinit:
 	dh_installinit -pisc-dhcp-server --error-handler=true
 
 override_dh_strip:
-	dh_strip --dbg-package=isc-dhcp-dbg
+	# this can be removed once stretch is released
+	dh_strip --ddeb-migration='isc-dhcp-dbg (<< 4.3.3-7~)'
