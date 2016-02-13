@@ -1,3 +1,10 @@
+isc-dhcp (4.3.3-8) unstable; urgency=medium
+
+  * Fix typos in recent changes to the server init script.
+  * Support server configurations still using INTERFACES (closes: #813339).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 13 Feb 2016 18:38:20 +0000
+
 isc-dhcp (4.3.3-7) unstable; urgency=medium
 
   * Migrate to dbgsym debug packages.

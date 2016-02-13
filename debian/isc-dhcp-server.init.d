@@ -50,11 +50,11 @@ if [ -z "$DHCPDv6_PID" ]; then
 	DHCPDv6_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' < "$DHCPDv6_CONF" 2>/dev/null | head -n 1)
 fi
 DHCPDv4_PID="${DHCPDv4_PID:-/var/run/dhcpd.pid}"
-DHCPDv6_PID="${DHCPDv4_PID:-/var/run/dhcpd6.pid}"
+DHCPDv6_PID="${DHCPDv6_PID:-/var/run/dhcpd6.pid}"
 
 test_config()
 {
-        VERSION="$1"
+	VERSION="$1"
 	CONF="$2"
 
 	if ! /usr/sbin/dhcpd -t $VERSION -q -cf "$CONF" > /dev/null 2>&1; then
@@ -99,7 +99,7 @@ start_daemon()
 	test_config "$VERSION" "$CONF"
 	log_daemon_msg "Starting $DESC" "$NAME"
 
-	if [ -e "$DHCPD_PID" ]; then
+	if [ -e "$PIDFILE" ]; then
 		log_failure_msg "dhcpd service already running (pid file $PIDFILE currenty exists)"
 		exit 1
 	fi
@@ -136,6 +136,13 @@ stop_daemon()
 
 case "$1" in
 	start)
+		if test -n "$INTERFACES" -a -z "$INTERFACESv4"; then
+                        echo "DHCPv4 interfaces are no longer set by the INTERFACES variable in" >&2
+                        echo "/etc/default/isc-dhcp-server.  Please use INTERFACESv4 instead." >&2
+                        echo "Migrating automatically for now, but this will go away in the future." >&2
+                        INTERFACESv4="$INTERFACES"
+		fi
+
 		if test -n "$INTERFACESv4"; then
 			start_daemon "-4" "$DHCPDv4_CONF" "$NAME4" \
 				"$DHCPDv4_PID" "$DESC4" "$INTERFACESv4"
@@ -166,7 +173,7 @@ case "$1" in
 		;;
 	*)
 		echo "Usage: $0 {start|stop|restart|force-reload|status}"
-		exit 1 
+		exit 1
 esac
 
 exit 0
