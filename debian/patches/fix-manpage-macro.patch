@@ -1,0 +1,12 @@
+description: avoid undefined manpage macro
+author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/dhcpctl/dhcpctl.3
++++ b/dhcpctl/dhcpctl.3
+@@ -491,5 +491,4 @@ omapi(3), omshell(1), dhcpd(8), dhclient
+ .Em dhcpctl
+ is maintained by ISC.  To learn more about Internet Systems Consortium,
+ see
+-.B https://www.isc.org
+-
++https://www.isc.org

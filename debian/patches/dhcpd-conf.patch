@@ -1,0 +1,273 @@
+description: comment out dhcpd.conf example settings (the user needs to set these)
+author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/server/dhcpd.conf.example
++++ b/server/dhcpd.conf.example
+@@ -10,8 +10,11 @@ option domain-name-servers ns1.example.o
+ default-lease-time 600;
+ max-lease-time 7200;
+ 
+-# Use this to enble / disable dynamic dns updates globally.
+-#ddns-update-style none;
++# The ddns-updates-style parameter controls whether or not the server will
++# attempt to do a DNS update when a lease is confirmed. We default to the
++# behavior of the version 2 packages ('none', since DHCP v2 didn't
++# have support for DDNS.)
++ddns-update-style none;
+ 
+ # If this DHCP server is the official DHCP server for the local
+ # network, the authoritative directive should be uncommented.
+@@ -19,51 +22,51 @@ max-lease-time 7200;
+ 
+ # Use this to send dhcp log messages to a different log file (you also
+ # have to hack syslog.conf to complete the redirection).
+-log-facility local7;
++#log-facility local7;
+ 
+ # No service will be given on this subnet, but declaring it helps the 
+ # DHCP server to understand the network topology.
+ 
+-subnet 10.152.187.0 netmask 255.255.255.0 {
+-}
++#subnet 10.152.187.0 netmask 255.255.255.0 {
++#}
+ 
+ # This is a very basic subnet declaration.
+ 
+-subnet 10.254.239.0 netmask 255.255.255.224 {
+-  range 10.254.239.10 10.254.239.20;
+-  option routers rtr-239-0-1.example.org, rtr-239-0-2.example.org;
+-}
++#subnet 10.254.239.0 netmask 255.255.255.224 {
++#  range 10.254.239.10 10.254.239.20;
++#  option routers rtr-239-0-1.example.org, rtr-239-0-2.example.org;
++#}
+ 
+ # This declaration allows BOOTP clients to get dynamic addresses,
+ # which we don't really recommend.
+ 
+-subnet 10.254.239.32 netmask 255.255.255.224 {
+-  range dynamic-bootp 10.254.239.40 10.254.239.60;
+-  option broadcast-address 10.254.239.31;
+-  option routers rtr-239-32-1.example.org;
+-}
++#subnet 10.254.239.32 netmask 255.255.255.224 {
++#  range dynamic-bootp 10.254.239.40 10.254.239.60;
++#  option broadcast-address 10.254.239.31;
++#  option routers rtr-239-32-1.example.org;
++#}
+ 
+ # A slightly different configuration for an internal subnet.
+-subnet 10.5.5.0 netmask 255.255.255.224 {
+-  range 10.5.5.26 10.5.5.30;
+-  option domain-name-servers ns1.internal.example.org;
+-  option domain-name "internal.example.org";
+-  option routers 10.5.5.1;
+-  option broadcast-address 10.5.5.31;
+-  default-lease-time 600;
+-  max-lease-time 7200;
+-}
++#subnet 10.5.5.0 netmask 255.255.255.224 {
++#  range 10.5.5.26 10.5.5.30;
++#  option domain-name-servers ns1.internal.example.org;
++#  option domain-name "internal.example.org";
++#  option routers 10.5.5.1;
++#  option broadcast-address 10.5.5.31;
++#  default-lease-time 600;
++#  max-lease-time 7200;
++#}
+ 
+ # Hosts which require special configuration options can be listed in
+ # host statements.   If no address is specified, the address will be
+ # allocated dynamically (if possible), but the host-specific information
+ # will still come from the host declaration.
+ 
+-host passacaglia {
+-  hardware ethernet 0:0:c0:5d:bd:95;
+-  filename "vmunix.passacaglia";
+-  server-name "toccata.fugue.com";
+-}
++#host passacaglia {
++#  hardware ethernet 0:0:c0:5d:bd:95;
++#  filename "vmunix.passacaglia";
++#  server-name "toccata.fugue.com";
++#}
+ 
+ # Fixed IP addresses can also be specified for hosts.   These addresses
+ # should not also be listed as being available for dynamic assignment.
+@@ -72,33 +75,33 @@ host passacaglia {
+ # be booted with DHCP, unless there is an address range on the subnet
+ # to which a BOOTP client is connected which has the dynamic-bootp flag
+ # set.
+-host fantasia {
+-  hardware ethernet 08:00:07:26:c0:a5;
+-  fixed-address fantasia.fugue.com;
+-}
++#host fantasia {
++#  hardware ethernet 08:00:07:26:c0:a5;
++#  fixed-address fantasia.fugue.com;
++#}
+ 
+ # You can declare a class of clients and then do address allocation
+ # based on that.   The example below shows a case where all clients
+ # in a certain class get addresses on the 10.17.224/24 subnet, and all
+ # other clients get addresses on the 10.0.29/24 subnet.
+ 
+-class "foo" {
+-  match if substring (option vendor-class-identifier, 0, 4) = "SUNW";
+-}
+-
+-shared-network 224-29 {
+-  subnet 10.17.224.0 netmask 255.255.255.0 {
+-    option routers rtr-224.example.org;
+-  }
+-  subnet 10.0.29.0 netmask 255.255.255.0 {
+-    option routers rtr-29.example.org;
+-  }
+-  pool {
+-    allow members of "foo";
+-    range 10.17.224.10 10.17.224.250;
+-  }
+-  pool {
+-    deny members of "foo";
+-    range 10.0.29.10 10.0.29.230;
+-  }
+-}
++#class "foo" {
++#  match if substring (option vendor-class-identifier, 0, 4) = "SUNW";
++#}
++
++#shared-network 224-29 {
++#  subnet 10.17.224.0 netmask 255.255.255.0 {
++#    option routers rtr-224.example.org;
++#  }
++#  subnet 10.0.29.0 netmask 255.255.255.0 {
++#    option routers rtr-29.example.org;
++#  }
++#  pool {
++#    allow members of "foo";
++#    range 10.17.224.10 10.17.224.250;
++#  }
++#  pool {
++#    deny members of "foo";
++#    range 10.0.29.10 10.0.29.230;
++#  }
++#}
+--- a/doc/examples/dhcpd-dhcpv6.conf
++++ b/doc/examples/dhcpd-dhcpv6.conf
+@@ -42,65 +42,61 @@ option dhcp6.domain-search "test.example
+ #  (set to 6 hours)
+ option dhcp6.info-refresh-time 21600;
+ 
+-# The path of the lease file
+-dhcpv6-lease-file-name "/usr/local/var/db/dhcpd6.leases";
+-
+ # Static definition (must be global)
+-host myclient {
+-	# The entry is looked up by this
+-	host-identifier option
+-		dhcp6.client-id 00:01:00:01:00:04:93:e0:00:00:00:00:a2:a2;
+-
+-	# A fixed address
+-	fixed-address6 3ffe:501:ffff:100::1234;
+-
+-	# A fixed prefix
+-	fixed-prefix6 3ffe:501:ffff:101::/64;
+-
+-	# Override of the global definitions,
+-	# works only when a resource (address or prefix) is assigned
+-	option dhcp6.name-servers 3ffe:501:ffff:100:200:ff:fe00:4f4e;
+-
+-	# For debug (to see when the entry statements are executed)
+-	#  (log "sol" when a matching Solicitation is received)
+-	##if packet(0,1) = 1 { log(debug,"sol"); }
+-}
+-
+-host otherclient {
+-        # This host entry is hopefully matched if the client supplies a DUID-LL
+-        # or DUID-LLT containing this MAC address.
+-        hardware ethernet 01:00:80:a2:55:67;
+-
+-        fixed-address6 3ffe:501:ffff:100::4321;
+-}
++#host myclient {
++#	# The entry is looked up by this
++#	host-identifier option
++#		dhcp6.client-id 00:01:00:01:00:04:93:e0:00:00:00:00:a2:a2;
++#
++#	# A fixed address
++#	fixed-address6 3ffe:501:ffff:100::1234;
++#
++#	# A fixed prefix
++#	fixed-prefix6 3ffe:501:ffff:101::/64;
++#
++#	# Override of the global definitions,
++#	# works only when a resource (address or prefix) is assigned
++#	option dhcp6.name-servers 3ffe:501:ffff:100:200:ff:fe00:4f4e;
++#
++#	# For debug (to see when the entry statements are executed)
++#	#  (log "sol" when a matching Solicitation is received)
++#	##if packet(0,1) = 1 { log(debug,"sol"); }
++#}
++#
++#host otherclient {
++#        # This host entry is hopefully matched if the client supplies a DUID-LL
++#        # or DUID-LLT containing this MAC address.
++#        hardware ethernet 01:00:80:a2:55:67;
++#
++#        fixed-address6 3ffe:501:ffff:100::4321;
++#}
+ 
+ # The subnet where the server is attached
+ #  (i.e., the server has an address in this subnet)
+-subnet6 3ffe:501:ffff:100::/64 {
+-	# Two addresses available to clients
+-	#  (the third client should get NoAddrsAvail)
+-	range6 3ffe:501:ffff:100::10 3ffe:501:ffff:100::11;
+-
+-	# Use the whole /64 prefix for temporary addresses
+-	#  (i.e., direct application of RFC 4941)
+-	range6 3ffe:501:ffff:100:: temporary;
+-
+-	# Some /64 prefixes available for Prefix Delegation (RFC 3633)
+-	prefix6 3ffe:501:ffff:100:: 3ffe:501:ffff:111:: /64;
+-}
++#subnet6 3ffe:501:ffff:100::/64 {
++#	# Two addresses available to clients
++#	#  (the third client should get NoAddrsAvail)
++#	range6 3ffe:501:ffff:100::10 3ffe:501:ffff:100::11;
++#
++#	# Use the whole /64 prefix for temporary addresses
++#	#  (i.e., direct application of RFC 4941)
++#	range6 3ffe:501:ffff:100:: temporary;
++#
++#	# Some /64 prefixes available for Prefix Delegation (RFC 3633)
++#	prefix6 3ffe:501:ffff:100:: 3ffe:501:ffff:111:: /64;
++#}
+ 
+ # A second subnet behind a relay agent
+-subnet6 3ffe:501:ffff:101::/64 {
+-	range6 3ffe:501:ffff:101::10 3ffe:501:ffff:101::11;
+-
+-	# Override of the global definitions,
+-	# works only when a resource (address or prefix) is assigned
+-	option dhcp6.name-servers 3ffe:501:ffff:101:200:ff:fe00:3f3e;
+-
+-}
++#subnet6 3ffe:501:ffff:101::/64 {
++#	range6 3ffe:501:ffff:101::10 3ffe:501:ffff:101::11;
++#
++#	# Override of the global definitions,
++#	# works only when a resource (address or prefix) is assigned
++#	option dhcp6.name-servers 3ffe:501:ffff:101:200:ff:fe00:3f3e;
++#
++#}
+ 
+ # A third subnet behind a relay agent chain
+-subnet6 3ffe:501:ffff:102::/64 {
+-	range6 3ffe:501:ffff:102::10 3ffe:501:ffff:102::11;
+-}
+-
++#subnet6 3ffe:501:ffff:102::/64 {
++#	range6 3ffe:501:ffff:102::10 3ffe:501:ffff:102::11;
++#}

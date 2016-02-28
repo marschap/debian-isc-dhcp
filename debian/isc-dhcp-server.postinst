@@ -38,7 +38,7 @@ umask 022
 
 # Path to dhcpd's config file (default: /etc/dhcp/dhcpd.conf).
 #DHCPDv4_CONF=/etc/dhcp/dhcpd.conf
-#DHCPDv6_CONF=/etc/dhcp/dhcpd.conf
+#DHCPDv6_CONF=/etc/dhcp/dhcpd6.conf
 
 # Path to dhcpd's PID file (default: /var/run/dhcpd.pid).
 #DHCPDv4_PID=/var/run/dhcpd.pid
@@ -72,6 +72,8 @@ fi
 db_stop
 
 test ! -x /sbin/restorecon || restorecon /var/lib/dhcp/dhcpd.leases
+
+test -e /var/lib/dhcp/dhcpd.leases || touch /var/lib/dhcp/dhcpd.leases
 
 #DEBHELPER#
 

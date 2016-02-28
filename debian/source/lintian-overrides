@@ -1,1 +1,2 @@
+binaries-have-file-conflict isc-dhcp-client isc-dhcp-client-ddns sbin/dhclient
 binaries-have-file-conflict isc-dhcp-server isc-dhcp-server-ldap usr/sbin/dhcpd

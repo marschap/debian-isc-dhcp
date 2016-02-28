@@ -1,3 +1,5 @@
+README
+debian/tmp/changelog
 contrib/ldap/README.ldap
 contrib/ldap/dhcp.schema
 contrib/ldap/dhcpd-conf-to-ldap

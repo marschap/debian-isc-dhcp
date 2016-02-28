@@ -58,6 +58,11 @@ override_dh_auto_build:
 	$(MAKE)
 
 override_dh_install:
+	# rename some upstream files
+	cp RELNOTES debian/tmp/changelog
+	cp server/dhcpd.conf.example debian/tmp/dhcpd.conf
+	cp doc/examples/dhcpd-dhcpv6.conf debian/tmp/dhcpd6.conf
+	# install
 	dh_install
 	# rename scripts
 	cp debian/dhclient-script.$(DEB_HOST_ARCH_OS) \

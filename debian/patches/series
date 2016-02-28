@@ -5,9 +5,12 @@ dhclient-64bit-time.patch
 dhclient-more-detail.patch
 dhcrelay-listen.patch
 
+dhcpd-leaselist.patch
+dhcpd-conf.patch
+
 fix-exit-hook-manpage.patch
-spelling-error.patch
-manpage-hyphens.patch
+fix-manpage-macro.patch
+fix-spelling-error.patch
 
 disable-nsupdate.patch
 

@@ -40,7 +40,7 @@ DESC6="ISC DHCPv6 server"
 
 # use already specified config file or fallback to defaults
 DHCPDv4_CONF=${DHCPDv4_CONF:-/etc/dhcp/dhcpd.conf}
-DHCPDv6_CONF=${DHCPDv6_CONF:-/etc/dhcp/dhcpd.conf}
+DHCPDv6_CONF=${DHCPDv6_CONF:-/etc/dhcp/dhcpd6.conf}
 
 # try to read pid file name from config file or fallback to defaults
 if [ -z "$DHCPDv4_PID" ]; then
@@ -142,7 +142,6 @@ case "$1" in
                         echo "Migrating automatically for now, but this will go away in the future." >&2
                         INTERFACESv4="$INTERFACES"
 		fi
-
 		if test -n "$INTERFACESv4"; then
 			start_daemon "-4" "$DHCPDv4_CONF" "$NAME4" \
 				"$DHCPDv4_PID" "$DESC4" "$INTERFACESv4"
@@ -164,12 +163,17 @@ case "$1" in
 		fi
 		;;
 	status)
-		echo -n "Status of $DESC4: "
-		check_status -v $DHCPv4_PID $NAME4
-		STATUSv4="$?"
-		echo -n "Status of $DESC6: "
-		check_status -v $DHCPv6_PID $NAME6
-		exit "$(($STATUSv4|$?))"
+		if test -n "$INTERFACES" -a -z "$INTERFACESv4"; then
+                        INTERFACESv4="$INTERFACES"
+		fi
+		if test -n "$INTERFACESv4"; then
+			echo -n "Status of $DESC4: "
+			check_status -v $DHCPDv4_PID $NAME4 || exit $?
+		fi
+		if test -n "$INTERFACESv6"; then
+			echo -n "Status of $DESC6: "
+			check_status -v $DHCPDv6_PID $NAME6 || exit $?
+		fi
 		;;
 	*)
 		echo "Usage: $0 {start|stop|restart|force-reload|status}"

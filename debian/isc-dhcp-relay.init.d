@@ -46,6 +46,9 @@ case "$1" in
 	stop)
 		start-stop-daemon --stop --quiet --pidfile $DHCRELAYPID
 		;;
+	status)
+		test -e $DHCRELAYPID
+		;;
 	restart | force-reload)
 		$0 stop
 		sleep 2

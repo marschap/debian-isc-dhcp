@@ -1,3 +1,18 @@
+isc-dhcp (4.3.3-9) unstable; urgency=medium
+
+  * Update standards version.
+  * Drop manpage hyphens patch.
+  * Install upstream changelogs.
+  * Install an example dhcpd6.conf file.
+  * Install upstream's README file (closes: #791788).
+  * Fix incorrect path in dhcp-lease-list script (closes: #814693).
+  * Add a status option to the relay init stript (closes: #726604).
+  * Check IPv4 and IPv6 server status independently (closes: #815180).
+  * Use /etc/dhcp/dhcpd6.conf for the IPv6 server settings (closes: #816008).
+  * Touch dhcpd.leases during postinst if it doesn't exist (closes: #765910).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 28 Feb 2016 20:38:52 +0000
+
 isc-dhcp (4.3.3-8) unstable; urgency=medium
 
   * Fix typos in recent changes to the server init script.
