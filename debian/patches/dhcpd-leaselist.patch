@@ -3,7 +3,7 @@ author: Michael Gilbert <mgilbert@debian.org>
 
 --- a/contrib/dhcp-lease-list.pl
 +++ b/contrib/dhcp-lease-list.pl
-@@ -19,7 +19,7 @@ use strict;
+@@ -22,7 +22,7 @@ use strict;
  use warnings;
  use POSIX qw(strftime);
  

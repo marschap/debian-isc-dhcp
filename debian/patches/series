@@ -10,10 +10,9 @@ dhcpd-conf.patch
 
 fix-exit-hook-manpage.patch
 fix-manpage-macro.patch
+fix-manpage-error.patch
 fix-spelling-error.patch
 
 disable-nsupdate.patch
 
 system-bind.patch
-
-CVE-2015-8605.patch

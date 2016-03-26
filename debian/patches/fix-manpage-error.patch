@@ -1,0 +1,11 @@
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -3056,7 +3056,7 @@ server will use dhcp-renewal-time and dh
+ A value of zero tells the client it may choose its own value.
+ 
+ When those options are not defined then values will be set to zero unless the
+-global \fIdhcpv6-set-tee-times\R is enabled.  When this option is enabled the
++global \fIdhcpv6-set-tee-times\fR is enabled.  When this option is enabled the
+ times are calculated as recommended by RFC 3315, Section 22.4:
+ 
+       T1 will be set to 0.5 times the shortest preferred lifetime

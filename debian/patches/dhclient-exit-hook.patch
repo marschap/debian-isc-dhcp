@@ -4,7 +4,7 @@ Bug-Debian: http://bugs.debian.org/486520
 
 --- a/client/dhclient.c
 +++ b/client/dhclient.c
-@@ -2074,6 +2074,8 @@ void state_panic (cpp)
+@@ -2413,6 +2413,8 @@ void state_panic (cpp)
  		if (!quiet)
  			log_info ("Unable to obtain a lease on first try.%s",
  				  "  Exiting.");

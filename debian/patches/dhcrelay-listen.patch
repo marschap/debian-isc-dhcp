@@ -3,7 +3,7 @@ author: Steinar H. Gunderson <sgunderson@bigfoot.com>
 
 --- a/common/discover.c
 +++ b/common/discover.c
-@@ -1102,9 +1102,9 @@ discover_interfaces(int state) {
+@@ -1104,9 +1104,9 @@ discover_interfaces(int state) {
  					  INTERFACE_REQUESTED);
  
  #ifdef DHCPv6
@@ -17,7 +17,7 @@ author: Steinar H. Gunderson <sgunderson@bigfoot.com>
  				log_fatal ("%s: not found", tmp -> name);
 --- a/relay/dhcrelay.c
 +++ b/relay/dhcrelay.c
-@@ -705,6 +705,11 @@ do_relay4(struct interface_info *ip, str
+@@ -787,6 +787,11 @@ do_relay4(struct interface_info *ip, str
  	if (out)
  		return;
  
@@ -27,5 +27,5 @@ author: Steinar H. Gunderson <sgunderson@bigfoot.com>
 +		return;
 +
  	/* Add relay agent options if indicated.   If something goes wrong,
- 	   drop the packet. */
- 	if (!(length = add_relay_agent_options(ip, packet, length,
+ 	 * drop the packet.  Note this may set packet->giaddr if RFC3527
+ 	 * is enabled. */
