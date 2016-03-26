@@ -190,6 +190,12 @@
 
 /* #define USE_RAW_SOCKETS */
 
+/* Define this to keep the old program name (e.g., "dhcpd" for
+   the DHCP server) in place of the (base) name the program was
+   invoked with. */
+
+/* #define OLD_LOG_NAME */
+
 /* Define this to change the logging facility used by dhcpd. */
 
 /* #define DHCPD_LOG_FACILITY LOG_DAEMON */
@@ -292,10 +298,31 @@
    this option will be removed at some time. */
 /* #define INCLUDE_OLD_DHCP_ISC_ERROR_CODES */
 
+/* Use the older factors for scoring a lease in the v6 client code.
+   The new factors cause the client to choose more bindings (IAs)
+   over more addresse within a binding.  Most uses will get a
+   single address in a single binding and only get an adverstise
+   from a single server and there won't be a difference. */
+/* #define USE_ORIGINAL_CLIENT_LEASE_WEIGHTS */
+
+/* Print out specific error messages for dhclient, dhcpd
+   or dhcrelay when processing an incorrect command line.  This
+   is included for those that might require the exact error
+   messages, as we don't expect that is necessary it is on by
+   default. */
+#define PRINT_SPECIFIC_CL_ERRORS
+
+/* Limit the value of a file descriptor the serve will use
+   when accepting a connecting request.  This can be used to
+   limit the number of TCP connections that the server will
+   allow at one time.  A value of 0 means there is no limit.*/
+#define MAX_FD_VALUE 200
+
 /* Include definitions for various options.  In general these
    should be left as is, but if you have already defined one
    of these and prefer your definition you can comment the 
    RFC define out to avoid conflicts */
+#define RFC2563_OPTIONS
 #define RFC2937_OPTIONS
 #define RFC4776_OPTIONS
 #define RFC4833_OPTIONS
@@ -308,10 +335,14 @@
 #define RFC5970_OPTIONS
 #define RFC5986_OPTIONS
 #define RFC6011_OPTIONS
+#define RFC6011_OPTIONS
+#define RFC6153_OPTIONS
 #define RFC6334_OPTIONS
 #define RFC6440_OPTIONS
 #define RFC6731_OPTIONS
 #define RFC6939_OPTIONS
 #define RFC6977_OPTIONS
 #define RFC7083_OPTIONS
-
+#define RFC7341_OPTIONS
+#define RFC7618_OPTIONS
+#define RFC7710_OPTIONS

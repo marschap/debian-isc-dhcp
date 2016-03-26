@@ -3,7 +3,7 @@
    Failover protocol support code... */
 
 /*
- * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2016 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1999-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -5497,8 +5497,7 @@ secondary_not_hoarding(dhcp_failover_state_t *state, struct pool *p) {
 isc_result_t dhcp_failover_process_bind_ack (dhcp_failover_state_t *state,
 					     failover_message_t *msg)
 {
-	struct lease *lt = (struct lease *)0;
-	struct lease *lease = (struct lease *)0;
+	struct lease *lease = NULL;
 	struct iaddr ia;
 	const char *message = "no memory";
 	u_int32_t pot_expire;
@@ -5646,9 +5645,6 @@ isc_result_t dhcp_failover_process_bind_ack (dhcp_failover_state_t *state,
 
       out:
 	lease_dereference (&lease, MDL);
-	if (lt)
-		lease_dereference (&lt, MDL);
-
 	return ISC_R_SUCCESS;
 
       bad:
@@ -6075,9 +6071,12 @@ normal_binding_state_transition_check (struct lease *lease,
 		   lease. */
 		if (state -> i_am == primary) {
 			/* Except that the client may send the DHCPRELEASE
-			   to the secondary, and we have to accept that. */
-			if (binding_state == FTS_RELEASED)
-				return binding_state;
+			   to the secondary.  We also allow for when the
+                           secondary gets a DECLINE and the primary does not.*/
+                        if ((binding_state == FTS_RELEASED) ||
+                            (binding_state == FTS_ABANDONED))
+                                return binding_state;
+
 			new_state = lease -> binding_state;
 			goto out;
 		}

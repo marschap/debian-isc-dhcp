@@ -3,7 +3,7 @@
    Definitions for dhcpd... */
 
 /*
- * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2016 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1996-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -237,7 +237,7 @@ typedef time_t TIME;
  * based on which is in use to allow the code to be cleaner by
  * avoiding #ifdefs.
  *
- * POOL_DESTROYP is used for debugging purposes
+ * POOL_DESTROYP is used for cleanup
  */
 
 #if !defined (BINARY_LEASES)
@@ -420,6 +420,12 @@ struct packet {
 
 	/* DHCPv6 packet containing this one, or NULL if none */
 	struct packet *dhcpv6_container_packet;
+
+	/* DHCPv4-over-DHCPv6 flags */
+	unsigned char dhcp4o6_flags[3];
+
+	/* DHCPv4-over-DHCPv6 response, or NULL */
+	struct data_string *dhcp4o6_response;
 
 	int options_valid;
 	int client_port;
@@ -684,7 +690,8 @@ struct lease_state {
 #define DISCOVER_SERVER		1
 #define DISCOVER_UNCONFIGURED	2
 #define DISCOVER_RELAY		3
-#define DISCOVER_REQUESTED	4
+#define DISCOVER_SERVER46	4
+#define DISCOVER_REQUESTED	5
 
 /* DDNS_UPDATE_STYLE enumerations. */
 #define DDNS_UPDATE_STYLE_NONE		0
@@ -790,6 +797,7 @@ struct lease_state {
 #define SV_ECHO_CLIENT_ID		85
 #define SV_SERVER_ID_CHECK		86
 #define SV_PREFIX_LEN_MODE		87
+#define SV_DHCPV6_SET_TEE_TIMES		88
 
 #if !defined (DEFAULT_PING_TIMEOUT)
 # define DEFAULT_PING_TIMEOUT 1
@@ -1166,6 +1174,13 @@ enum dhcp_state {
 	S_STOPPED = 8
 };
 
+/* Possible pending client operations. */
+enum dhcp_pending {
+	P_NONE = 0,
+	P_REBOOT = 1,
+	P_RELEASE = 2
+};
+
 /* Authentication and BOOTP policy possibilities (not all values work
    for each). */
 enum policy { P_IGNORE, P_ACCEPT, P_PREFER, P_REQUIRE, P_DONT };
@@ -1228,6 +1243,9 @@ struct client_config {
 	int do_forward_update;		/* If nonzero, and if we have the
 					   information we need, update the
 					   A record for the address we get. */
+
+	int lease_id_format;		/* format for IDs in lease file,
+					   TOKEN_OCTAL or TOKEN_HEX */
 };
 
 /* Per-interface state used in the dhcp client... */
@@ -1244,6 +1262,7 @@ struct client_state {
 	struct option_state *sent_options;		 /* Options we sent. */
 	enum dhcp_state state;          /* Current state for this interface. */
 	TIME last_write;		/* Last time this state was written. */
+	enum dhcp_pending pending;	       /* Current pending operation. */
 
 	/* DHCPv4 values. */
 	struct client_lease *active;		  /* Currently active lease. */
@@ -2028,6 +2047,17 @@ void parse_vendor_option(struct packet *packet,
 			 struct option_state *out_options,
 			 struct binding_scope **scope);
 
+/* dhcp4o6.c */
+#if defined(DHCP4o6)
+extern int dhcp4o6_fd;
+extern omapi_object_t *dhcp4o6_object;
+extern omapi_object_type_t *dhcp4o6_type;
+extern void dhcp4o6_setup(u_int16_t);
+
+/* dependency */
+extern isc_result_t dhcpv4o6_handler(omapi_object_t *);
+
+#endif
 /* dhcpd.c */
 extern struct timeval cur_tv;
 #define cur_time cur_tv.tv_sec
@@ -2037,6 +2067,8 @@ extern int dont_use_fsync;
 extern int server_id_check;
 
 extern int prefix_length_mode;
+extern int authoring_byte_order;
+extern int lease_id_format;
 
 extern const char *path_dhcpd_conf;
 extern const char *path_dhcpd_db;
@@ -2061,6 +2093,7 @@ extern enum dhcp_shutdown_state shutdown_state;
 isc_result_t dhcp_io_shutdown (omapi_object_t *, void *);
 isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
 				     control_object_state_t newstate);
+
 #if defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
 void relinquish_ackqueue(void);
 #endif
@@ -2134,6 +2167,7 @@ void parse_ia_pd_declaration(struct parse *);
 void parse_server_duid(struct parse *cfile);
 void parse_server_duid_conf(struct parse *cfile);
 void parse_pool6_statement (struct parse *, struct group *, int);
+uint32_t parse_byte_order_uint32(const void *source);
 
 /* ddns.c */
 int ddns_updates(struct packet *, struct lease *, struct lease *,
@@ -2485,6 +2519,7 @@ void data_string_copy(struct data_string *, const struct data_string *,
 		      const char *, int);
 void data_string_forget (struct data_string *, const char *, int);
 void data_string_truncate (struct data_string *, int);
+int data_string_terminate (struct data_string *, const char *, int);
 int executable_statement_allocate (struct executable_statement **,
 				   const char *, int);
 int executable_statement_reference (struct executable_statement **,
@@ -2502,13 +2537,13 @@ int binding_scope_reference (struct binding_scope **,
 int dns_zone_allocate (struct dns_zone **, const char *, int);
 int dns_zone_reference (struct dns_zone **,
 			struct dns_zone *, const char *, int);
-
 /* print.c */
 #define DEFAULT_TIME_FORMAT 0
 #define LOCAL_TIME_FORMAT   1
 extern int db_time_format;
 char *quotify_string (const char *, const char *, int);
-char *quotify_buf (const unsigned char *, unsigned, const char *, int);
+char *quotify_buf (const unsigned char *, unsigned, const char,
+		   const char *, int);
 char *print_base64 (const unsigned char *, unsigned, const char *, int);
 char *print_hw_addr (const int, const int, const unsigned char *);
 void print_lease (struct lease *);
@@ -2542,7 +2577,10 @@ void print_dns_status (int, struct dhcp_ddns_cb *, isc_result_t);
 const char *print_time(TIME);
 
 void get_hw_addr(const char *name, struct hardware *hw);
-
+char *buf_to_hex (const unsigned char *s, unsigned len,
+                   const char *file, int line);
+char *format_lease_id(const unsigned char *s, unsigned len, int format,
+                      const char *file, int line);
 /* socket.c */
 #if defined (USE_SOCKET_SEND) || defined (USE_SOCKET_RECEIVE) \
 	|| defined (USE_SOCKET_FALLBACK)
@@ -2744,6 +2782,7 @@ extern struct in_addr local_address;
 
 extern u_int16_t local_port;
 extern u_int16_t remote_port;
+extern int dhcpv4_over_dhcpv6;
 extern int (*dhcp_interface_setup_hook) (struct interface_info *,
 					 struct iaddr *);
 extern int (*dhcp_interface_discovery_hook) (struct interface_info *);
@@ -2854,6 +2893,7 @@ const char *piaddr (struct iaddr);
 char *piaddrmask(struct iaddr *, struct iaddr *);
 char *piaddrcidr(const struct iaddr *, unsigned int);
 u_int16_t validate_port(char *);
+u_int16_t validate_port_pair(char *);
 
 /* dhclient.c */
 extern int nowait;
@@ -2861,6 +2901,7 @@ extern int nowait;
 extern int wanted_ia_na;
 extern int wanted_ia_ta;
 extern int wanted_ia_pd;
+extern int require_all_ias;
 
 extern const char *path_dhclient_conf;
 extern const char *path_dhclient_db;
@@ -2945,6 +2986,8 @@ void client_dns_remove(struct client_state *client, struct iaddr *addr);
 void dhcpv4_client_assignments(void);
 void dhcpv6_client_assignments(void);
 void form_duid(struct data_string *duid, const char *file, int line);
+
+void dhcp4o6_start(void);
 
 /* dhc6.c */
 void dhc6_lease_destroy(struct dhc6_lease **src, const char *file, int line);
@@ -3425,6 +3468,7 @@ int find_hosts_by_option(struct host_decl **, struct packet *,
 			 struct option_state *, const char *, int);
 int find_host_for_network (struct subnet **, struct host_decl **,
 			   struct iaddr *, struct shared_network *);
+
 void new_address_range (struct parse *, struct iaddr, struct iaddr,
 			struct subnet *, struct pool *,
 			struct lease **);
@@ -3465,10 +3509,7 @@ int write_leases6(void);
 #if !defined(BINARY_LEASES)
 void lease_insert(struct lease **, struct lease *);
 void lease_remove(struct lease **, struct lease *);
-#if defined (DEBUG_MEMORY_LEAKAGE) || \
-		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
 void lease_remove_all(struct lease **);
-#endif
 #endif
 int lease_enqueue (struct lease *);
 isc_result_t lease_instantiate(const void *, unsigned, void *);
@@ -3749,6 +3790,11 @@ void mark_phosts_unavailable(void);
 void mark_interfaces_unavailable(void);
 void report_jumbo_ranges();
 
+#if defined(DHCPv6)
+int find_hosts6(struct host_decl** host, struct packet* packet,
+                const struct data_string* client_id, char* file, int line);
+#endif
+
 #if defined (BINARY_LEASES)
 /* leasechain.c */
 int lc_not_empty(struct leasechain *lc);
@@ -3757,10 +3803,7 @@ void lc_unlink_lease(struct leasechain *lc, struct lease *lp);
 struct lease *lc_get_first_lease(struct leasechain *lc);
 struct lease *lc_get_next(struct leasechain *lc, struct lease *lp);
 void lc_init_growth(struct leasechain *lc, size_t growth);
-#if defined (DEBUG_MEMORY_LEAKAGE) || \
-		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
 void lc_delete_all(struct leasechain *lc);
-#endif
 #endif /* BINARY_LEASES */
 
 #define MAX_ADDRESS_STRING_LEN \
