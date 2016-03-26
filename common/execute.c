@@ -3,8 +3,7 @@
    Support for executable statements. */
 
 /*
- * Copyright (c) 2009,2013-2015 by Internet Systems Consortium, Inc. ("ISC")
- * Copyright (c) 2004-2007 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2016 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1998-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -441,11 +440,11 @@ int execute_statements (result, packet, lease, client_state,
 		      next_let:
 			if (ns) {
 				binding = dmalloc(sizeof(*binding), MDL);
-				memset(binding, 0, sizeof(*binding));
 				if (!binding) {
 				   blb:
 				    binding_scope_dereference(&ns, MDL);
 				} else {
+				    memset(binding, 0, sizeof(*binding));
 				    binding->name =
 					    dmalloc(strlen
 						    (e->data.let.name + 1),
@@ -990,18 +989,25 @@ void write_statements (file, statements, indent)
 			break;
 
                       case execute_statement:
+
 #ifdef ENABLE_EXECUTE
-                        indent_spaces (file, indent);
+			indent_spaces(file, indent);
 			col = token_print_indent(file, indent + 4, indent + 4,
 						 "", "", "execute");
 			col = token_print_indent(file, col, indent + 4, " ", "",
 						 "(");
-                        col = token_print_indent(file, col, indent + 4, "\"", "\"", r->data.execute.command);
-                        for (expr = r->data.execute.arglist; expr; expr = expr->data.arg.next) {
-                        	col = token_print_indent(file, col, indent + 4, "", " ", ",");
-                                col = write_expression (file, expr->data.arg.val, col, indent + 4, 0);
-                        }
-                        (void) token_print_indent(file, col, indent + 4, "", "", ");");
+			col = token_print_indent_concat(file, col, indent + 4,
+							"", "",  "\"",
+							r->data.execute.command,
+							"\"", (char *)0);
+			for (expr = r->data.execute.arglist; expr; expr = expr->data.arg.next) {
+				col = token_print_indent(file, col, indent + 4,
+							 "", " ", ",");
+				col = write_expression(file, expr->data.arg.val,
+						       col, indent + 4, 0);
+			}
+			(void) token_print_indent(file, col, indent + 4,
+						  "", "", ");");
 #else /* !ENABLE_EXECUTE */
 		        log_fatal("Impossible case at %s:%d (ENABLE_EXECUTE "
                                   "is not defined).", MDL);

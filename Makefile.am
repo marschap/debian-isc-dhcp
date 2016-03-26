@@ -13,6 +13,7 @@ EXTRA_DIST = RELNOTES LICENSE \
 	     contrib/ms2isc/readme.txt contrib/ldap/dhcpd-conf-to-ldap \
 	     contrib/ldap/dhcp.schema contrib/ldap/README.ldap \
              contrib/dhcp-lease-list.pl \
+	     doc/DHCPv4-over-DHCPv6 \
 	     doc/IANA-arp-parameters doc/Makefile doc/References.html \
 	     doc/References.txt doc/References.xml doc/api+protocol \
 	     doc/ja_JP.eucJP/dhclient-script.8 doc/ja_JP.eucJP/dhclient.8 \
@@ -25,7 +26,18 @@ EXTRA_DIST = RELNOTES LICENSE \
 	     bind/Makefile.in bind/bind.tar.gz bind/version.tmp \
 	     common/tests/Atffile server/tests/Atffile
 
-SUBDIRS = bind includes tests common omapip client dhcpctl relay server
+SUBDIRS = @BINDSRCDIR@ includes tests common omapip client dhcpctl relay server
 
 nobase_include_HEADERS = dhcpctl/dhcpctl.h
 
+#
+# distcheck tuning
+#
+
+DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_ATF_CONFIGURE_FLAG@
+
+distcheck-hook:
+	chmod u+w $(distdir)/bind
+
+distclean-local:
+	rm -f config.report

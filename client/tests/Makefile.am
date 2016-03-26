@@ -1,7 +1,9 @@
 SUBDIRS = .
 
+BINDLIBDIR = @BINDDIR@/lib
+
 AM_CPPFLAGS = $(ATF_CFLAGS) -DUNIT_TEST -I$(top_srcdir)/includes
-AM_CPPFLAGS += -I$(top_srcdir)/bind/include -I$(top_srcdir)
+AM_CPPFLAGS += -I@BINDDIR@/include -I$(top_srcdir)
 AM_CPPFLAGS += -DLOCALSTATEDIR='"."'
 AM_CPPFLAGS += -DCLIENT_PATH='"."'
 
@@ -16,9 +18,9 @@ info:
 DHCPSRC = ../clparse.c ../dhc6.c ../dhclient.c
 
 DHCPLIBS = $(top_builddir)/common/libdhcp.a $(top_builddir)/omapip/libomapi.a    \
-          $(top_builddir)/dhcpctl/libdhcpctl.a $(top_builddir)/bind/lib/libirs.a \
-	  $(top_builddir)/bind/lib/libdns.a $(top_builddir)/bind/lib/libisccfg.a \
-	  $(top_builddir)/bind/lib/libisc.a
+          $(top_builddir)/dhcpctl/libdhcpctl.a $(BINDLIBDIR)/libirs.a \
+	  $(BINDLIBDIR)/libdns.a $(BINDLIBDIR)/libisccfg.a \
+	  $(BINDLIBDIR)/libisc.a
 
 ATF_TESTS =
 if HAVE_ATF
@@ -32,7 +34,18 @@ duid_unittests_LDADD = $(ATF_LDFLAGS)
 duid_unittests_LDADD += $(DHCPLIBS)
 
 check: $(ATF_TESTS)
-	sh ${top_srcdir}/tests/unittest.sh
+	-cp -n $(top_srcdir)/client/tests/Atffile Atffile
+	-cp -n $(top_srcdir)/client/tests/duid0_test.txt duid0_test.txt
+	-cp -n $(top_srcdir)/client/tests/duid1_test.txt duid1_test.txt
+	-cp -n $(top_srcdir)/client/tests/duid2_test.txt duid2_test.txt
+	-cp -n $(top_srcdir)/client/tests/duid3_test.txt duid3_test.txt
+	sh ${top_builddir}/tests/unittest.sh
+
+distclean-local:
+	@if test $(top_srcdir) != ${top_builddir}; then \
+		rm -f Atffile duid0_test.txt duid1_test.txt; \
+		rm -f duid2_test.txt duid3_test.txt; \
+	fi
 
 endif
 

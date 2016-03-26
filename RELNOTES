@@ -1,6 +1,6 @@
                 Internet Systems Consortium DHCP Distribution
-                             Version 4.3.3
-                            03 September 2015
+                            Version 4.3.4b1
+                             09 March 2016
 
                              Release Notes
 
@@ -52,6 +52,212 @@ ISC DHCP is open source software maintained by Internet Systems
 Consortium.  This product includes cryptographic software written
 by Eric Young (eay@cryptsoft.com).
 
+			Changes since 4.3.3
+
+- Corrected a static analyzer warning in common/execute.c
+  [ISC-Bugs #40374]
+
+- ISC DHCP now follows the common convention to use the base name a
+  program is invoked with (aka argv[0], vs. a builtin name) for
+  logs. This should help differentiate syslog entires for DHCPv4 and
+  DHCPv6 servers. You can define OLD_LOG_NAME in includes/site.h to
+  keep the previous behavior.
+  [ISC-Bugs #38692]
+
+- The linux packet filter code now correctly treats only the least significant
+  12 bits in an inbound packet's TCI value as the VLAN id (per IEEE 802.1Q).
+  Prior to this it was using the entire 16 bit value as the VLAN id and
+  incorrectly discarding packets.  Thanks to Jiri Popelka at Red Hat for
+  reporting this issue and supplying its patch.
+  [ISC-Bugs #40591]
+
+- Fixed several static analysis issues such as potential null
+  references, unchecked strdup returns.  Thanks to Bill Parker (wp02855 at
+  gmail dot com) who identified these issues and supplied patches to
+  address them.
+  [ISC-Bugs #40754]
+  [ISC-Bugs #40823]
+
+- Corrected compilation errors that prohibited building the server
+  and its ATF unit tests when failover is disabled.
+  [ISC-Bugs #40372]
+
+- Added the lease address to the end of the debug level log message
+  emitted when an existing lease is renewed within the dhcp-cache-threshold.
+  Thanks to Nathan Neulinger at Missouri S&T for suggesting the change.
+  [ISC-Bugs #40598]
+
+- Added dhcpv6 and delayed-ack to settings listed in the "Features:"
+  section of the configure script output.  Additionally, all of the
+  features reported on will now always show either a "yes" or "no"
+  value.  Prior to this features left to their default setting would
+  not show a value.
+  [ISC-Bugs #40381]
+
+- Added a parameter, authoring-byte-order, to the lease file. This value
+  is automatically added to the top of new lease files by the server and
+  indicates the internal byte order (big endian or little endian) of the
+  server.  This permits lease files generated on a server with one form of
+  byte order to be used on a server with the opposite form. Our thanks to
+  Timothe Litt for calling this to our attention and for the suggestions
+  he provided.
+  [ISC-Bugs #38396]
+
+- Fixed a small memory leak in the DHCPv6 version of the client code.
+  This is unlikely to cause significant issues in actual use.
+  [ISC-Bugs #40990]
+
+- Corrected a few minor memory leaks in omapi's dereferencing of
+  host objects. Thanks to Jiri Popelka at Red Hat for reporting
+  the issue and supplying the patches.
+  [ISC-Bugs #33990]
+  [ISC-Bugs #41325]
+
+- Cleaned up some of the Make infrastructure to make --with-libbind
+  work better.  Though it still only works with an absolute path.
+  [ISC-Bugs #39210]
+
+- Made the embedded bind libraries able to be cross compiled
+  (please refer to the bind9 documentation to learn how to cross
+   compile DHCP and its bind library dependency).
+  [ISC-Bugs #38836]
+
+- Update the client code to better support getting IA_NAs and IA_PDs
+  in the same packet, see RFC7550 for some discussion.
+  [ISC-Bugs #40190]
+
+! Update the bounds checking when receiving a packet.
+  Thanks to Sebastian Poehn from Sophos for the bug report and a suggested
+  patch.
+  [ISC-Bugs #41267]
+  CVE: CVE-2015-8605
+
+- When handling an incorrect command line for dhcpd, dhclient or dhcrelay
+  print out a specific error message about the first error in addition
+  to the usage string.  This may be disabled by editing includes/site.h.
+  [ISC-Bugs #40321]
+  [ISC-Bugs #41454]
+
+- The configure script will now exit with an error message if it cannot find
+  a GNU-style make tool (needed when building BIND libraries) or pkg-config
+  (needed to locate ATF used for building unit tests). Prior to this the
+  script would exit indicating success causing subsequent attempts to build
+  the software to fail.
+  [ISC-Bugs #40371]
+
+- Properly terminate strings before passing them to regex and fix
+  a boundary error when creating certain new data strings.
+  Thanks to Andrey Jr. Melnikov for the bug report.
+  [ISC-Bugs #41217]
+
+- Option expressions, such as prepend and append, are now supported when
+  running dhclient for IPv6.  Prior to this such statements in the
+  client configuration file would be parsed but have no affect.  Thanks
+  to Jiri Popelka at Red Hat for reporting the issue.
+  [ISC-Bugs #39952]
+
+- A failover primary server will now accept a binding status update from the
+  secondary which transitions a lease from ACTIVE to ABANDONED. This accounts
+  for instances in which a client declines a lease and only the secondary
+  server receives it.  Prior to this the primary server would reject such an
+  update as an "invalid state transition".
+  [ISC_BUGS #25189]
+
+- Properly allocate memory for a bpf filter.
+  Thanks to Bill Parker (wp02855 at gmail dot com) who identified this issue.
+  [ISC-Bugs #41485]
+
+- Updated contrib/dhcp-lease-list.pl to handle garbage in the oui file better
+  and to print out the hostnames a bit better.
+  Thanks to Antoine Beaupré from Debian for the suggested patch.
+  [ISC-Bugs #41288]
+
+- The DHCPv6 server now handles long valid and preferred lease times better.
+  Values that would cause the internal end time of the lease to wrap are
+  modified to work as infinite.
+  [ISC-Bugs #40773]
+
+- Updated support for cross compiling by allowing the library archiver
+  to be set at configure time via the environment variable 'AR'.
+  [ISC-Bugs #41536]
+
+- The server will now match DHCPv6 relayed clients to host declarations
+  which include the "hardware" statement, if the relay connected to the
+  client supplies the client's hardware address via client-linklayer-address
+  option as per RFC 6939.
+  [ISC-Bugs #40334]
+
+- Allow a filename to be specified instead of /dev/random during
+  configuration.  This is passed to the BIND configuration to allow
+  for cross compilation.
+  [ISC-Bugs #33835]
+
+- Add more option definitions.
+  [ISC-Bugs #40562]
+
+- Correct outputting of long lines in the lease file when writing
+  a lease that includes long strings in an execute statement.
+  [ISC-Bugs #40994]
+
+- The server will now correctly treat a lease as reserved when the client
+  requests an infinite lease time (i.e. OxFFFFFFFF) and "infinite-is-reserved"
+  is enabled.  Prior to this the server would halt.  In addition, corrections
+  were made to the server to allow a lease's flags field to be set via omapi.
+  Prior to this, the server, depending on the host architecture,  would
+  incorrectly parse the new flags value from the omapi message.
+  [ISC-Bugs #31179]
+
+- ISC DHCP can now be configured and built from a directory other than
+  the top level source directory. Note that "make distcheck" uses this
+  feature.
+  [ISC-Bugs #39262]
+
+- Add support for RFC 3527 to dhcrelay.  A new, dhcrelay command line argument,
+  "-U <interface>" enables the addition of a RFC 3527 compliant link selection
+  suboption to the agent option added for clients directly connected to the
+  relay.
+  [ISC-Bugs #34875]
+  [ISC-Bugs #41708]
+
+- Add a new global DHCPv6 option, dhcpv6-set-tee-times, which when enabled
+  instructs the server to calculate T1 and T2 as recommended in RFC 3315,
+  Section 22.4.
+  [ISC-Bugs #25687]
+
+- Corrected minor Coverity issues.
+  [ISC-Bugs #35144]
+
+- Add support for RFC 7341 DHCPv4 over DHCPv6 with a new configuration
+  option "--enable-dhcpv4o6". Note this feature requires DHCPv6 support
+  and is not compatible with delayed-ack. Both client and server use 2
+  processes which communicate over UDP on a pair of sockets. The new
+  "-4o6 <port>" command line argment enables DHCPv4 over DHCPv6 support
+  and specifies the consecutive ports to use for inter-process communication.
+  Please look at doc/DHCPv4-over-DHCPv6 for more details.
+  [ISC-Bugs #35711]
+
+- Correct interface name formation when using DLPI under Solaris 11. As of
+  Solaris 11, ethernet device files are located in "/dev/net".  The configure
+  script has been modified to detect this situation and adjust the directory
+  used accordingly. Thanks to Jarkko Torppa for reporting this issue and
+  submitting a patch 
+  [ISC-Bugs #37954]
+  [ISC-Bugs #40752]
+
+- Add a dereference call when handling an error condition while
+  decoding a packet.
+  [ISC-Bugs #41774]
+
+- Add a new parameter, lease-id-format, to both dhcpd and dhclient. The
+  parameter controls the format in which certain values are written to lease
+  files.  Formats supported are octal - quoted string containing octal
+  escapes, and hex - unquoted, colon separated hex digits.
+  [ISC-Busg #26378]
+
+! Add an option in site.h to limit the number of failover and control
+  connections the server will accept.  By default this is 200.
+  [ISC-Bugs #41845]
+
 			Changes since 4.3.3b1
 
 - None
@@ -99,7 +305,7 @@ by Eric Young (eay@cryptsoft.com).
   [ISC-Buts #39019]
 
 - Write out the DUID server id on startup in all cases, previously if it
-  was read in from server-duid option in the config or lease files for 
+  was read in from server-duid option in the config or lease files for
   DHCPv4 it would not be written to the new lease file.
   [ISC-Bugs #37791]
 
@@ -149,7 +355,7 @@ by Eric Young (eay@cryptsoft.com).
   declaring the lease file corrupt and incorrectly skipping over the subsequent
   entry in the file.  The server will now emit a log message indicating that
   no pool was found for the address (or prefix) and correctly resume parsing
-  with the next entry in the lease file.  Our thanks to Michal Žejdl for 
+  with the next entry in the lease file.  Our thanks to Michal Žejdl for
   reporting the issue.
   [ISC-Bugs #39314]
 
@@ -452,7 +658,6 @@ by Eric Young (eay@cryptsoft.com).
   skipped.  This caused the hop count limit to be set to the default value
   (typically 1) in the outbound upstream packets.
   [ISC-Bugs #37426]
-
 
 			Changes since 4.3.1b1
 
