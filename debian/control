@@ -15,7 +15,7 @@ Build-Depends:
  po-debconf,
  libssl-dev,
  libldap2-dev,
- libbind-export-dev (>= 1:9.9.5.dfsg-4.3),
+ libbind-export-dev (>= 1:9.10.3.dfsg.P4-2),
 Standards-Version: 3.9.7
 
 Package: isc-dhcp-server

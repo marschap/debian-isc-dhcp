@@ -1,3 +1,13 @@
+isc-dhcp (4.3.4~b1-1) experimental; urgency=medium
+
+  * New upstream beta release:
+    - Fix CVE-2016-2774: limit the number of server TCP connections to 200.
+  * Link against bind 9.10.3.
+  * Include a manpage for dhcp-lease-list.
+  * Fix an error in the dhcpd.conf manpage.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 26 Mar 2016 01:55:17 +0000
+
 isc-dhcp (4.3.3-9) unstable; urgency=medium
 
   * Update standards version.
