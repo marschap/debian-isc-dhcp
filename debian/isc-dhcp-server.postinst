@@ -73,8 +73,6 @@ db_stop
 
 test ! -x /sbin/restorecon || restorecon /var/lib/dhcp/dhcpd.leases
 
-test -e /var/lib/dhcp/dhcpd.leases || touch /var/lib/dhcp/dhcpd.leases
-
 #DEBHELPER#
 
 exit 0

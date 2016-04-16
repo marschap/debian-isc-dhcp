@@ -63,6 +63,7 @@ test_config()
 		/usr/sbin/dhcpd -t $VERSION -cf "$CONF"
 		exit 1
 	fi
+	touch /var/lib/dhcp/dhcpd.leases
 }
 
 check_status()
