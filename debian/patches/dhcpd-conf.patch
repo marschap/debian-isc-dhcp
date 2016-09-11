@@ -85,12 +85,12 @@ author: Michael Gilbert <mgilbert@debian.org>
 -host passacaglia {
 -  hardware ethernet 0:0:c0:5d:bd:95;
 -  filename "vmunix.passacaglia";
--  server-name "toccata.fugue.com";
+-  server-name "toccata.example.com";
 -}
 +#host passacaglia {
 +#  hardware ethernet 0:0:c0:5d:bd:95;
 +#  filename "vmunix.passacaglia";
-+#  server-name "toccata.fugue.com";
++#  server-name "toccata.example.com";
 +#}
  
  # Fixed IP addresses can also be specified for hosts.   These addresses
@@ -101,11 +101,11 @@ author: Michael Gilbert <mgilbert@debian.org>
  # set.
 -host fantasia {
 -  hardware ethernet 08:00:07:26:c0:a5;
--  fixed-address fantasia.fugue.com;
+-  fixed-address fantasia.example.com;
 -}
 +#host fantasia {
 +#  hardware ethernet 08:00:07:26:c0:a5;
-+#  fixed-address fantasia.fugue.com;
++#  fixed-address fantasia.example.com;
 +#}
  
  # You can declare a class of clients and then do address allocation
