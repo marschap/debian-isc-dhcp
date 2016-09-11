@@ -1,4 +1,4 @@
-Description: fix spelling of necessary
+Description: fix spelling mistakes
 Author: Michael Gilbert <mgilbert@debian.org>
 
 --- a/common/parse.c
@@ -12,3 +12,34 @@ Author: Michael Gilbert <mgilbert@debian.org>
  				 val, option->name);
  	/* If we've been told to allocate, that means that this
  	 * (might) be an option code definition, so we'll create
+@@ -2398,7 +2398,7 @@ int parse_executable_statement (result,
+ 
+ 			token = next_token (&val, (unsigned *)0, cfile);
+ 			if (token != RBRACE) {
+-				parse_warn (cfile, "expecting rigt brace.");
++				parse_warn (cfile, "expecting right brace.");
+ 				goto badx;
+ 			}
+ 		} else {
+--- a/client/dhclient.8
++++ b/client/dhclient.8
+@@ -337,7 +337,7 @@ a destination for DHCP protocol messages
+ has acquired an IP address.  Normally,
+ .B dhclient
+ transmits these messages to 255.255.255.255 (the IP limited broadcast
+-address).  Overriding this is mostly useful for debugging purposes.  This
++address).  Overridding this is mostly useful for debugging purposes.  This
+ feature is not supported in DHCPv6 (\fB-6\fR) mode.
+ .TP
+ .BI \-g \ relay
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -2663,7 +2663,7 @@ pool usage passes that level.  After tha
+ output until the pool usage falls below the low threshold.  If the low
+ threshold is not given, it default to a value of zero.
+ .PP
+-A special case occurs when the low threshold is set to be higer than
++A special case occurs when the low threshold is set to be higher than
+ the high threshold.  In this case, a message will be generated each time
+ a lease is acknowledged when the pool usage is above the high threshold.
+ .PP

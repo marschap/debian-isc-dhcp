@@ -1,3 +1,13 @@
+isc-dhcp (4.3.5~b1-1) unstable; urgency=medium
+
+  * New upstream beta release.
+  * Fix some lintian warnings.
+  * Increase standards version.
+  * Update version control fields.
+  * Fix new upstream spelling mistakes.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 11 Sep 2016 22:59:15 +0000
+
 isc-dhcp (4.3.4-1) unstable; urgency=medium
 
   * New upstream stable release (closes: #817158).
