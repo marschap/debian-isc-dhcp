@@ -1,4 +1,4 @@
-AC_INIT([DHCP],[4.3.4],[dhcp-users@isc.org])
+AC_INIT([DHCP],[4.3.5b1],[dhcp-users@isc.org])
 
 # we specify "foreign" to avoid having to have the GNU mandated files,
 # like AUTHORS, COPYING, and such
@@ -836,6 +836,9 @@ fi
         AC_MSG_ERROR([*** util/bindvar.sh failed])
     fi
 )
+if test $? -ne 0; then
+    exit $?
+fi
 
 cat > config.report << END
 

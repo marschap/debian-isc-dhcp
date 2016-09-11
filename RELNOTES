@@ -1,6 +1,6 @@
                 Internet Systems Consortium DHCP Distribution
-                             Version 4.3.4
-                             29 March 2016
+                            Version 4.3.5b1
+                            7 September 2016
 
                              Release Notes
 
@@ -51,6 +51,93 @@ work on other platforms. Please report any problems and suggested fixes to
 ISC DHCP is open source software maintained by Internet Systems
 Consortium.  This product includes cryptographic software written
 by Eric Young (eay@cryptsoft.com).
+
+			Changes since 4.3.4
+
+- Fixed util/bindvar.sh error handling.
+  [ISC-Bugs #41973]
+
+- Correct error message in relay to use remote id length instead
+  of circuit id length.
+  [ISC-Bugs #42556]
+
+- Add support for including an encapsulated option in a response
+  from the DHCPv6 server.  This allows the v6 FQDN option to be
+  returned in responses.
+  [ISC-Bugs #29246]
+
+- Add logic to test directory Makefiles to avoid copying Attfile(s)
+  when building within the source tree.  This eliminates a noisy but
+  otherwise harmless error message when running "make check".
+  [ISC-Bugs #41883]
+
+- Leases are now scrubbed of certain prior use information when pool
+  re-balancing reassigns them from one FO peer to the other.  This
+  corrects an issue where leases that were offered but ignored retained
+  the client hostname from the original client. Thanks to Pavel Polacek,
+  Jan Evangelista Purkyne University for reporting the issue.
+  [ISC-Bugs #42008]
+
+- In the LDAP code and schema add some missing '6' characters to use
+  the v6 instead of the v4 versions.  Thanks to Denis Taranushin for
+  reporting this issue and supplying its patch.
+  [ISC-Bugs #42666]
+
+- Correct how the pick-first-value expression is written to a lease
+  file.  Previously it was written as a concat expression due to
+  a cut and paste error.
+  [ISC-Bugs #42253]
+
+- Modify the DDNS code to clean up the PTR record even if there
+  are issues while cleaning up the A or AAAA records.
+  [ISC-Bugs #23954]
+
+- Added global configuration parameter, abandon-lease-time, which determines
+  the amount of time a lease remains abandoned.  The default is 84600 seconds.
+  Additionaly, the server now conducts a ping check (if ping checks are
+  enabled) prior to offering an abandoned lease to client.  Our thanks to
+  David Zych at University of Illinois for reporting the issue and working
+  with us to produce a viable solution.
+  [ISC-Bugs #41815]
+
+- Correct handling of interface names during interface discovery. This
+  addresses an issue where interface names of 15 characters in length
+  could lead to crashes or interface recognition errors during startup 
+  of dhcpd, dhclient, and dhcrelay.
+  [ISC-Bugs #42226]
+
+- Updates to contrib/dhcp-lease-list.pl to make it more friendly.
+  They are looking for the lease file in more places and skipping
+  the "processing complete" output when creating machine readable
+  output.  Thanks to Cameron Paine (cbp at null dot net) for the
+  patch.
+  [ISC-Bugs #42113]
+
+- When reusing a lease for dhcp-cache-threshold return the hostname
+  to the original lease.  Also if the host pointer, UID or hardware address
+  change don't allow reuse of the lease.
+  Thanks to Michael Vincent for reporting this and helping us
+  verify the problem and fix.
+  [ISC-Bugs #42849]
+
+- Change dmalloc to use a size_t as the length argument to bring it
+  in line with the call it will make to malloc().
+  [ISC-Bugs #40843]
+
+- If the failover socket can't be bound close it, otherwise if the
+  user configures an incorrect address in the failover stanza the
+  server will continue to open new sockets every 90 seconds until
+  it runs out.
+  [ISC-Bugs #42452]
+
+- Add DHCPv4-mode, dhcrelay command line options, "-iu" and "-id", that
+  allow interfaces to be upstream or downstream respectively.  Upstream
+  interfaces will accept and forward only BOOTP replies, while downstream
+  interfaces will accept and forward only BOOTP requests.
+  [ISC-Bugs #41547]
+
+- Clean up some memory references in the vendor-class construct.
+  [ISC-Bugs #42984]
 
 			Changes since 4.3.4b1
 
@@ -262,6 +349,7 @@ by Eric Young (eay@cryptsoft.com).
 ! Add an option in site.h to limit the number of failover and control
   connections the server will accept.  By default this is 200.
   [ISC-Bugs #41845]
+  CVE: CVE-2016-2774
 
 			Changes since 4.3.3b1
 
@@ -571,7 +659,7 @@ by Eric Young (eay@cryptsoft.com).
   the existing lease and the forward DNS name had not changed.  This has been
   corrected.
   [ISC-Bugs #37368]
-  [ISC-Bugs #38686]
+  [ISC-Bugs #38636]
 
 - Corrected an issue which caused dhclient to incorrectly form the result when
   prepending or appending to the IPv4 domain-search option, received from the
@@ -821,9 +909,6 @@ by Eric Young (eay@cryptsoft.com).
   The new message is much shorter and simply points to the README
   and our website for directions on bug submissions.
   [ISC-Bugs #24789]
-
-- Handle an absent resolv.conf file better.
-  [ISC-Bugs #35194]
 
 			Changes since 4.2.0 (new features)
 
