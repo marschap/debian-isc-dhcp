@@ -1,6 +1,6 @@
                 Internet Systems Consortium DHCP Distribution
-                            Version 4.3.5b1
-                            7 September 2016
+                             Version 4.3.5
+                             5 October 2016
 
                              Release Notes
 
@@ -52,6 +52,19 @@ ISC DHCP is open source software maintained by Internet Systems
 Consortium.  This product includes cryptographic software written
 by Eric Young (eay@cryptsoft.com).
 
+			Changes since 4.3.5b1
+
+- Corrected a bug which could cause the server to sporadically crash while
+  loading lease files with the lease-id-format is set to "hex".  Our thanks
+  to Jay Ford, University of Iowa for reporting the issue.
+  [ISC-Bugs #43185]
+
+- Eliminated a noisy, but otherwise harmless debug log statment that may
+  appear during server startup when building with --enable-binary-leases
+  and configuring multiple pools in a shared network.  Thanks to Fernando
+  Soto from BlueCat Networks for reporting the issue and supplying a patch.
+  [ISC-Bugs #43262]
+
 			Changes since 4.3.4
 
 - Fixed util/bindvar.sh error handling.
@@ -61,11 +74,6 @@ by Eric Young (eay@cryptsoft.com).
   of circuit id length.
   [ISC-Bugs #42556]
 
-- Add support for including an encapsulated option in a response
-  from the DHCPv6 server.  This allows the v6 FQDN option to be
-  returned in responses.
-  [ISC-Bugs #29246]
-
 - Add logic to test directory Makefiles to avoid copying Attfile(s)
   when building within the source tree.  This eliminates a noisy but
   otherwise harmless error message when running "make check".
@@ -73,9 +81,10 @@ by Eric Young (eay@cryptsoft.com).
 
 - Leases are now scrubbed of certain prior use information when pool
   re-balancing reassigns them from one FO peer to the other.  This
-  corrects an issue where leases that were offered but ignored retained
-  the client hostname from the original client. Thanks to Pavel Polacek,
-  Jan Evangelista Purkyne University for reporting the issue.
+  corrects an issue where leases that were offered but not used
+  by the client retained the client hostname from the original
+  client. Thanks to Pavel Polacek, Jan Evangelista Purkyne University
+  for reporting the issue.
   [ISC-Bugs #42008]
 
 - In the LDAP code and schema add some missing '6' characters to use
@@ -107,7 +116,7 @@ by Eric Young (eay@cryptsoft.com).
   [ISC-Bugs #42226]
 
 - Updates to contrib/dhcp-lease-list.pl to make it more friendly.
-  They are looking for the lease file in more places and skipping
+  The updates are: looking for the lease file in more places and skipping
   the "processing complete" output when creating machine readable
   output.  Thanks to Cameron Paine (cbp at null dot net) for the
   patch.
@@ -124,7 +133,7 @@ by Eric Young (eay@cryptsoft.com).
   in line with the call it will make to malloc().
   [ISC-Bugs #40843]
 
-- If the failover socket can't be bound close it, otherwise if the
+- If the failover socket can't be bound, close it.  Otherwise if the
   user configures an incorrect address in the failover stanza the
   server will continue to open new sockets every 90 seconds until
   it runs out.
@@ -1193,7 +1202,7 @@ by Eric Young (eay@cryptsoft.com).
 
 ! Handle a relay forward message with an unspecified address in the
   link address field.  Previously such a message would cause the
-  server to crash.  Thanks to a report from John Gibbons.  [ISC-Bugs #21992]
+  server to crash.  Thanks to a report from John Gibbins.  [ISC-Bugs #21992]
   CERT: VU#102047 CVE: CVE-2010-3611
 
 - ./configure on longer searches for -lcrypto to explicitly link against.
