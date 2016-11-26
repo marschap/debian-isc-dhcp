@@ -3,7 +3,7 @@
    Common parser code for dhcpd and dhclient. */
 
 /*
- * Copyright (c) 2004-2015 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2016 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -98,7 +98,7 @@ void skip_to_rbrace (cfile, brace_count)
 	enum dhcp_token token;
 	const char *val;
 
-#if defined (DEBUG_TOKEN)
+#if defined (DEBUG_TOKENS)
 	log_error("skip_to_rbrace: %d\n", brace_count);
 #endif
 	do {
