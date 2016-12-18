@@ -1,0 +1,45 @@
+.\" '\" t
+.\" ** The above line should force tbl to be a preprocessor **
+.\" Man page for man
+.\" 
+.\" Copyright (C) 2008 Christian Hammers.
+.\" 
+.\" You may distribute under the terms of the GNU General Public
+.\" License as specified in the file COPYING that comes with the
+.\" man-db distribution.
+.\" 
+.\" .pc
+.TH "dhcp-lease-list" "8" "2008-07-13" "Christian Hammers" ""
+.SH "NAME"
+dhcp\-lease\-list \- Prints active DHCP leases.
+.SH "SYNOPSIS"
+.\" The general command line
+.B dhcp\-lease\-list
+.RB [\|options \|]
+.SH "OPTIONS"
+.TP 
+.B \-\-help
+Shows command line help
+.TP 
+.B \-\-parsable
+machine readable output with full dates
+.TP 
+.B \-\-last
+prints the last (even if end<now) for every MAC
+.TP 
+.B \-\-all
+prints all entries i.e. more than one per MAC
+.SH "DESCRIPTION"
+.B dhcp\-lease\-list
+shows the dhcpd.leases file but filters, depending on the
+specified command line options, obsolete entries.
+.SH "FILES"
+.TP 
+.I /var/lib/dhcp3/dhcpd.leases
+dhcpd leases
+.TP 
+.I /usr/share/misc/oui.txt or /usr/local/etc/oui.txt
+optional file to map MAC addresses to manufactorer names
+.SH "SEE ALSO"
+.BR dhcpd3 (8)
+.BR dhcpd.leases (5)

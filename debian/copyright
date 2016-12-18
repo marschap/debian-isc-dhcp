@@ -25,6 +25,11 @@ Copyright:
  2011-2015 Michael Gilbert <mgilbert@debian.org>
 License: ISC
 
+Files: debian/dhcp-lease-list.8
+Copyright:
+ 2008 Christian Hammers <ch@westend.com>
+License: GPL-2
+
 License: ISC
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -37,3 +42,6 @@ License: ISC
  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: GPL-2
+ See /usr/share/common-licenses/GPL-2.

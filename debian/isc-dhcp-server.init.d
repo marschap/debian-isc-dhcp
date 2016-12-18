@@ -144,12 +144,21 @@ case "$1" in
                         INTERFACESv4="$INTERFACES"
 		fi
 		if test -n "$INTERFACESv4"; then
+			echo "Launching IPv4 server only."
 			start_daemon "-4" "$DHCPDv4_CONF" "$NAME4" \
 				"$DHCPDv4_PID" "$DESC4" "$INTERFACESv4"
 		fi
 		if test -n "$INTERFACESv6"; then
+			echo "Launching IPv6 server only."
 			start_daemon "-6" "$DHCPDv6_CONF" "$NAME6" \
 				"$DHCPDv6_PID" "$DESC6" "$INTERFACESv6"
+		fi
+		if test -z "$INTERFACESv4" -a -z "$INTERFACESv6"; then
+			echo "Launching both IPv4 and IPv6 servers (please configure INTERFACES in /etc/default/isc-dhcp-server if you only want one or the other)."
+			start_daemon "-4" "$DHCPDv4_CONF" "$NAME4" \
+				"$DHCPDv4_PID" "$DESC4" ""
+			start_daemon "-6" "$DHCPDv6_CONF" "$NAME6" \
+				"$DHCPDv6_PID" "$DESC6" ""
 		fi
 		;;
 	stop)

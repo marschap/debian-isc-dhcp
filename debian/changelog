@@ -1,3 +1,14 @@
+isc-dhcp (4.3.5-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add lsb-base dependency to isc-dhcp-relay.
+  * Use the original author's dhcp-lease-list manpage.
+  * Correct the description of the common package (closes: #832782).
+  * If no interfaces have been specified, start servers for both IPv4 and IPv6
+    (closes: #815319).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sat, 26 Nov 2016 06:44:09 +0000
+
 isc-dhcp (4.3.5~b1-1) unstable; urgency=medium
 
   * New upstream beta release.

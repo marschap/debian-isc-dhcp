@@ -73,10 +73,12 @@ Architecture: any
 Depends:
  ${misc:Depends},
  debianutils (>= 2.8.2),
-Description: common files used by all of the isc-dhcp packages
- This package includes all of the files that are used in common by the various
- ISC DHCP packages, such as the dhcp-eval and dhcp-options manpages and the
- OMAPI command shell.
+Description: common manpages relevant to all of the isc-dhcp packages
+ This package includes manpages that are relevant to the various ISC DHCP
+ packages.
+ .
+ The dhcp-options manpage describes available options for dhcpd and dhclient.
+ The dhcp-eval manpage describes evaluation of conditional expressions.
 
 Package: isc-dhcp-dev
 Priority: optional
@@ -154,6 +156,7 @@ Architecture: any
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
+ lsb-base (>= 3.0-6),
  debianutils (>= 2.8.2),
 Recommends:
  isc-dhcp-common,

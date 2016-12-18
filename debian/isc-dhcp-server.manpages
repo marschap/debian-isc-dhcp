@@ -1,4 +1,4 @@
-debian/dhcp-lease-list.1
+debian/dhcp-lease-list.8
 
 debian/tmp/usr/share/man/man1/omshell.*
 
