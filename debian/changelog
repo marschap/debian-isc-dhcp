@@ -1,3 +1,16 @@
+isc-dhcp (4.3.5-2) unstable; urgency=medium
+
+  * Fix new upstream spelling errors.
+  * Add policykit-1 dependency to the server package (closes: #816325).
+  * Parse IPv6 server process id from the correct file (closes: #841766).
+  * Initialize all local variables in dhclient scripts (closes: #849100).
+  * Pass random device to configure when cross building (closes: #838382).
+    - Thanks to Helmut Grohne.
+  * Don't wait for a reply that will never come when releasing an ipv6 address
+    (closes: #769189).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 08 Jan 2017 23:11:52 +0000
+
 isc-dhcp (4.3.5-1) unstable; urgency=medium
 
   * New upstream release.

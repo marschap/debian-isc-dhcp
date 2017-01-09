@@ -1,0 +1,15 @@
+description: don't wait for a reply that will never come when releasing an ipv6 address
+author: Michael Gilbert <mgilbert@debian.org>
+bug-debian: http://bugs.debian.org/769189
+
+--- a/client/dhclient.c
++++ b/client/dhclient.c
+@@ -802,7 +802,7 @@ main(int argc, char **argv) {
+ 	if (exit_mode)
+ 		return 0;
+ 	if (release_mode) {
+-#ifndef DHCPv6
++#if 1
+ 		return 0;
+ #else
+ 		if ((local_family == AF_INET6) || dhcpv4_over_dhcpv6) {

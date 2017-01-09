@@ -3,6 +3,8 @@ dhclient-exit-hook.patch
 dhclient-dividebyzero.patch
 dhclient-64bit-time.patch
 dhclient-more-detail.patch
+dhclient-release.patch
+
 dhcrelay-listen.patch
 
 dhcpd-conf.patch
@@ -10,7 +12,7 @@ dhcpd-conf.patch
 fix-exit-hook-manpage.patch
 fix-manpage-macro.patch
 fix-manpage-error.patch
-fix-spelling-error.patch
+fix-spelling.patch
 
 disable-nsupdate.patch
 

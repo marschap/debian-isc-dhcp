@@ -47,7 +47,7 @@ if [ -z "$DHCPDv4_PID" ]; then
 	DHCPDv4_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' < "$DHCPDv4_CONF" 2>/dev/null | head -n 1)
 fi
 if [ -z "$DHCPDv6_PID" ]; then
-	DHCPDv6_PID=$(sed -n -e 's/^[ \t]*pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' < "$DHCPDv6_CONF" 2>/dev/null | head -n 1)
+	DHCPDv6_PID=$(sed -n -e 's/^[ \t]*dhcpv6-pid-file-name[ \t]*"\(.*\)"[ \t]*;.*$/\1/p' < "$DHCPDv6_CONF" 2>/dev/null | head -n 1)
 fi
 DHCPDv4_PID="${DHCPDv4_PID:-/var/run/dhcpd.pid}"
 DHCPDv6_PID="${DHCPDv6_PID:-/var/run/dhcpd6.pid}"

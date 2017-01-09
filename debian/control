@@ -26,6 +26,7 @@ Depends:
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
  lsb-base,
+ policykit-1,
 Recommends:
  isc-dhcp-common,
  policycoreutils,

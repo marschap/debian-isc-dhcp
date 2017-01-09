@@ -1,0 +1,67 @@
+Description: fix spelling mistakes
+Author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/common/parse.c
++++ b/common/parse.c
+@@ -1278,7 +1278,7 @@ parse_option_name (cfile, allocate, know
+ 			option_reference(opt, option, MDL);
+ 		} else
+ 			log_info("option %s has been redefined as option %s.  "
+-				 "Please update your configs if neccessary.",
++				 "Please update your configs if necessary.",
+ 				 val, option->name);
+ 	/* If we've been told to allocate, that means that this
+ 	 * (might) be an option code definition, so we'll create
+@@ -2398,7 +2398,7 @@ int parse_executable_statement (result,
+ 
+ 			token = next_token (&val, (unsigned *)0, cfile);
+ 			if (token != RBRACE) {
+-				parse_warn (cfile, "expecting rigt brace.");
++				parse_warn (cfile, "expecting right brace.");
+ 				goto badx;
+ 			}
+ 		} else {
+--- a/server/dhcpd.conf.5
++++ b/server/dhcpd.conf.5
+@@ -2663,7 +2663,7 @@ pool usage passes that level.  After tha
+ output until the pool usage falls below the low threshold.  If the low
+ threshold is not given, it default to a value of zero.
+ .PP
+-A special case occurs when the low threshold is set to be higer than
++A special case occurs when the low threshold is set to be higher than
+ the high threshold.  In this case, a message will be generated each time
+ a lease is acknowledged when the pool usage is above the high threshold.
+ .PP
+@@ -2836,7 +2836,7 @@ response \fIis\fR heard, the lease is ab
+ not respond to the client.  The lease will remain abandoned for a minimum
+ of abandon-lease-time seconds.
+ .PP
+-If a there are no free addressses but there are abandoned IP addresses, the
++If a there are no free addresses but there are abandoned IP addresses, the
+ DHCP server will attempt to reclaim an abandoned IP address regardless of the
+ value of abandon-lease-time.
+ .PP
+--- a/client/dhclient.c
++++ b/client/dhclient.c
+@@ -121,10 +121,10 @@ static void dhclient_ddns_cb_free(dhcp_d
+  * the description of the command line.  The arguments provide
+  * a way for the caller to request more specific information about
+  * the error be printed as well.  Mostly this will be that some
+- * comamnd doesn't include its argument.
++ * command doesn't include its argument.
+  *
+  * \param sfmt - The basic string and format for the specific error
+- * \param sarg - Generally the offending argument from the comamnd line.
++ * \param sarg - Generally the offending argument from the command line.
+  *
+  * \return Nothing
+  */
+@@ -434,7 +434,7 @@ main(int argc, char **argv) {
+ 		} else if (argv[i][0] == '-') {
+ 			usage("Unknown command: %s", argv[i]);
+ 		} else if (interfaces_requested < 0) {
+-			usage("No interfaces comamnd -n and "
++			usage("No interfaces command -n and "
+ 			      " requested interface %s", argv[i]);
+ 		} else {
+ 		    struct interface_info *tmp = NULL;

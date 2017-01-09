@@ -55,10 +55,8 @@ make_resolv_conf() {
 
 # set host name
 set_hostname() {
-    local current_hostname
-
     if [ -n "$new_host_name" ]; then
-        current_hostname=$(cat /proc/sys/kernel/hostname)
+        local current_hostname=$(cat /proc/sys/kernel/hostname)
 
         if [ -z "$current_hostname" ] || [ "$current_hostname" = "(none)" ]; then
             echo "$new_host_name" > /proc/sys/kernel/hostname
