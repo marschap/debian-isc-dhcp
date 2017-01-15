@@ -63,7 +63,6 @@ test_config()
 		/usr/sbin/dhcpd -t $VERSION -cf "$CONF"
 		exit 1
 	fi
-	touch /var/lib/dhcp/dhcpd.leases
 }
 
 check_status()
@@ -104,6 +103,8 @@ start_daemon()
 		log_failure_msg "dhcpd service already running (pid file $PIDFILE currenty exists)"
 		exit 1
 	fi
+
+	touch /var/lib/dhcp/$NAME.leases
 
 	start-stop-daemon --start --quiet --pidfile $PIDFILE \
 		--exec /usr/sbin/dhcpd -- $VERSION -q -cf $CONF $INTERFACES

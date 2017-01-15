@@ -1,3 +1,18 @@
+isc-dhcp (4.3.5-3) unstable; urgency=medium
+
+  * Add support for read-only /etc (closes: #642544).
+    - Thanks to Scott Moser.
+  * Wait for /etc/resolv.conf to become writable (closes: #687337).
+    - Thanks to Stéphane Graber.
+  * Suggest policykit-1 instead of depending on it (closes: #850726).
+  * Fix typo in --with-randomdev configure argument (closes: #838382).
+  * Touch dhcpd6.leases before starting an ipv6 server (closes: #824770).
+    - Thanks to Terry Burton.
+  * Use getifaddrs() system call to handle alias interfaces (closes: #605657).
+    - Thanks to Jiri Popelka.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Mon, 09 Jan 2017 04:55:32 +0000
+
 isc-dhcp (4.3.5-2) unstable; urgency=medium
 
   * Fix new upstream spelling errors.

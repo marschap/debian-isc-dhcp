@@ -26,7 +26,6 @@ Depends:
  ${shlibs:Depends},
  debianutils (>= 2.8.2),
  lsb-base,
- policykit-1,
 Recommends:
  isc-dhcp-common,
  policycoreutils,
@@ -36,6 +35,7 @@ Breaks:
 Replaces:
  isc-dhcp-common (<= 4.3.3-1),
 Suggests:
+ policykit-1,
  isc-dhcp-server-ldap,
 Description: ISC DHCP server for automatic IP address assignment
  This is the Internet Software Consortium's DHCP server.
