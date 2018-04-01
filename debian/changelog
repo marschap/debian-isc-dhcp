@@ -1,3 +1,13 @@
+isc-dhcp (4.3.5-3.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Plugs a socket descriptor leak in OMAPI (CVE-2017-3144) (Closes: #887413)
+  * Corrected refcnt loss in option parsing (CVE-2018-5733) (Closes: #891785)
+  * Correct buffer overrun in pretty_print_option (CVE-2018-5732)
+    (Closes: #891786)
+
+ -- Salvatore Bonaccorso <carnil@debian.org>  Sun, 04 Mar 2018 21:35:31 +0100
+
 isc-dhcp (4.3.5-3) unstable; urgency=medium
 
   * Add support for read-only /etc (closes: #642544).
