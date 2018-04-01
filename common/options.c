@@ -3,12 +3,12 @@
    DHCP options parsing and reassembly. */
 
 /*
- * Copyright (c) 2004-2016 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2004-2018 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1995-2003 by Internet Software Consortium
  *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
@@ -177,6 +177,8 @@ int parse_option_buffer (options, buffer, length, universe)
 
 		/* If the length is outrageous, the options are bad. */
 		if (offset + len > length) {
+			/* Avoid reference count overflow */
+			option_dereference(&option, MDL);
 			reason = "option length exceeds option buffer length";
 		      bogus:
 			log_error("parse_option_buffer: malformed option "
@@ -187,80 +189,94 @@ int parse_option_buffer (options, buffer, length, universe)
 			return 0;
 		}
 
-		/* If the option contains an encapsulation, parse it.   If
-		   the parse fails, or the option isn't an encapsulation (by
-		   far the most common case), or the option isn't entirely
-		   an encapsulation, keep the raw data as well. */
-		if (!(option &&
-		      (option->format[0] == 'e' ||
-		       option->format[0] == 'E') &&
-		      (parse_encapsulated_suboptions(options, option,
-						     bp->data + offset, len,
-						     universe, NULL)))) {
-			op = lookup_option(universe, options, code);
+		/* If the option contains an encapsulation, parse it.  In
+		   any case keep the raw data as well.  (Previous to 4.4.0
+		   we only kept the raw data if the parse failed, the option
+		   wasn't an encapsulation (by far the most common case), or
+		   the option wasn't entirely an encapsulation
+		*/
 
-			if (op != NULL && universe->concat_duplicates) {
-				struct data_string new;
-				memset(&new, 0, sizeof new);
-				if (!buffer_allocate(&new.buffer,
-						     op->data.len + len,
-						     MDL)) {
-					log_error("parse_option_buffer: "
-						  "No memory.");
-					buffer_dereference(&bp, MDL);
-					return 0;
-				}
-				/* Copy old option to new data object. */
-				memcpy(new.buffer->data, op->data.data,
-					op->data.len);
-				/* Concat new option behind old. */
-				memcpy(new.buffer->data + op->data.len,
-					bp->data + offset, len);
-				new.len = op->data.len + len;
-				new.data = new.buffer->data;
-				/* Save new concat'd object. */
-				data_string_forget(&op->data, MDL);
-				data_string_copy(&op->data, &new, MDL);
-				data_string_forget(&new, MDL);
-			} else if (op != NULL) {
-				/* We must append this statement onto the
-				 * end of the list.
-				 */
-				while (op->next != NULL)
-					op = op->next;
-
-				if (!option_cache_allocate(&nop, MDL)) {
-					log_error("parse_option_buffer: "
-						  "No memory.");
-					buffer_dereference(&bp, MDL);
-					return 0;
-				}
-
-				option_reference(&nop->option, op->option, MDL);
-
-				nop->data.buffer = NULL;
-				buffer_reference(&nop->data.buffer, bp, MDL);
-				nop->data.data = bp->data + offset;
-				nop->data.len = len;
-
-				option_cache_reference(&op->next, nop, MDL);
-				option_cache_dereference(&nop, MDL);
-			} else {
-				if (save_option_buffer(universe, options, bp,
-						       bp->data + offset, len,
-						       code, 1) == 0) {
-					log_error("parse_option_buffer: "
-						  "save_option_buffer failed");
-					buffer_dereference(&bp, MDL);
-					return 0;
-				}
-			}
+		if (option &&
+		    (option->format[0] == 'e' || option->format[0] == 'E')) {
+			(void) parse_encapsulated_suboptions(options, option,
+							     bp->data + offset,
+							     len,
+							     universe, NULL);
 		}
+
+		if (universe == &dhcp_universe && code == DHO_HOST_NAME &&
+		    len == 0) {
+			/* non-compliant clients can send it
+			 * we'll just drop it and go on */
+			log_debug ("Ignoring empty DHO_HOST_NAME option");
+			option_dereference(&option, MDL);
+			offset += len;
+			continue;
+		}
+
+		op = lookup_option(universe, options, code);
+		if (op == NULL) {
+			/* If we don't have an option create one */
+			if (save_option_buffer(universe, options, bp,
+					       bp->data + offset, len,
+					       code, 1) == 0) {
+				log_error("parse_option_buffer: "
+					  "save_option_buffer failed");
+				buffer_dereference(&bp, MDL);
+				return (0);
+			}
+		} else if (universe->concat_duplicates) {
+			/* If we do have an option either concat with
+			   what is there ...*/
+			struct data_string new;
+			memset(&new, 0, sizeof new);
+			if (!buffer_allocate(&new.buffer, op->data.len + len,
+					     MDL)) {
+				log_error("parse_option_buffer: No memory.");
+				buffer_dereference(&bp, MDL);
+				return (0);
+			}
+			/* Copy old option to new data object. */
+			memcpy(new.buffer->data, op->data.data,
+			       op->data.len);
+			/* Concat new option behind old. */
+			memcpy(new.buffer->data + op->data.len,
+			       bp->data + offset, len);
+			new.len = op->data.len + len;
+			new.data = new.buffer->data;
+			/* Save new concat'd object. */
+			data_string_forget(&op->data, MDL);
+			data_string_copy(&op->data, &new, MDL);
+			data_string_forget(&new, MDL);
+		} else  {
+			/* ... or we must append this statement onto the
+			 * end of the list.
+			 */
+			while (op->next != NULL)
+				op = op->next;
+
+			if (!option_cache_allocate(&nop, MDL)) {
+				log_error("parse_option_buffer: No memory.");
+				buffer_dereference(&bp, MDL);
+				return (0);
+			}
+
+			option_reference(&nop->option, op->option, MDL);
+
+			nop->data.buffer = NULL;
+			buffer_reference(&nop->data.buffer, bp, MDL);
+			nop->data.data = bp->data + offset;
+			nop->data.len = len;
+
+			option_cache_reference(&op->next, nop, MDL);
+			option_cache_dereference(&nop, MDL);
+		}
+
 		option_dereference(&option, MDL);
 		offset += len;
 	}
 	buffer_dereference (&bp, MDL);
-	return 1;
+	return (1);
 }
 
 /* If an option in an option buffer turns out to be an encapsulation,
@@ -1112,11 +1128,13 @@ store_options6(char *buf, int buflen,
 		}
 
 		/*
-		 * See if this is the VSIO option.
+		 * If this is the VSIO option flag it so we'll know to
+		 * check the vsio space later on.  However we still need
+		 * to check for the existence of any defined via
+		 * dhcp6.vendor-opts. Those are stored as simple values.
 		 */
 		if (code == vsio_option_code) {
 			vsio_wanted = 1;
-			continue;
 		}
 
 		/*
@@ -1758,7 +1776,8 @@ format_min_length(format, oc)
 
 
 /* Format the specified option so that a human can easily read it. */
-
+/* Maximum pretty printed size */
+#define MAX_OUTPUT_SIZE 32*1024
 const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 	struct option *option;
 	const unsigned char *data;
@@ -1766,8 +1785,9 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 	int emit_commas;
 	int emit_quotes;
 {
-	static char optbuf [32768]; /* XXX */
-	static char *endbuf = &optbuf[sizeof(optbuf)];
+	/* We add 128 byte pad so we don't have to add checks everywhere. */
+	static char optbuf [MAX_OUTPUT_SIZE + 128]; /* XXX */
+	static char *endbuf = optbuf + MAX_OUTPUT_SIZE;
 	int hunksize = 0;
 	int opthunk = 0;
 	int hunkinc = 0;
@@ -2055,14 +2075,14 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 
 					/* If emit_quotes, then use ISC DHCP
 					 * escapes.  Otherwise, rely only on
-					 * ns_name_ntop().
+					 * MRns_name_ntop().
 					 */
 					if (emit_quotes) {
 						nbp = nbuff;
 						pretty_domain(&op, endbuf-1,
 							      &nbp, nend);
 					} else {
-						/* ns_name_ntop() includes
+						/* MRns_name_ntop() includes
 						 * a trailing NUL in its
 						 * count.
 						 */
@@ -2193,7 +2213,14 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 				log_error ("Unexpected format code %c",
 					   fmtbuf [j]);
 			}
+
 			op += strlen (op);
+			if (op >= endbuf) {
+				log_error ("Option data exceeds"
+					   " maximum size %d", MAX_OUTPUT_SIZE);
+					   return ("<error>");
+			}
+
 			if (dp == data + len)
 				break;
 			if (j + 1 < numelem && comma != ':')
@@ -3255,7 +3282,7 @@ int nwip_option_space_encapsulate (result, packet, lease, client_state,
 	return status;
 }
 
-/* We don't want to use ns_name_pton()...it doesn't tell us how many bytes
+/* We don't want to use MRns_name_pton()...it doesn't tell us how many bytes
  * it has consumed, and it plays havoc with our escapes.
  *
  * So this function does DNS encoding, and returns either the number of
@@ -3590,12 +3617,17 @@ fqdn6_universe_decode(struct option_state *options,
 		return 0;
 
 	/* Save the contents of the option in a buffer.  There are 3
-	 * one-byte values we record from the packet, so we go ahead
-	 * and allocate a bigger buffer to accommodate them.  But the
-	 * 'length' we got (because it is a DNS encoded string) is
-	 * one longer than we need...so we only add two extra octets.
-	 */
-	if (!buffer_allocate(&bp, length + 2, MDL)) {
+	 * one-byte values we record from the packet. The input is
+	 * DNS encoded and to be safe we'll assume that each character
+	 * is non-printable and will be converted to an escaped number:
+	 * "\\nnn".  Yes, we'll have dead space pretty much all the time
+	 * but the alternative is to basically dry run the conversion
+	 * first to calculate the precise size or reallocate to a smaller
+	 * buffer later, either of which is a bigger performance hit than
+	 * just doing a generous allocation. */
+	unsigned bp_size = 3 + (length * 4);
+
+	if (!buffer_allocate(&bp, bp_size, MDL)) {
 		log_error("No memory for dhcp6.fqdn option buffer.");
 		return 0;
 	}
@@ -3607,7 +3639,6 @@ fqdn6_universe_decode(struct option_state *options,
 		goto error;
 
 	/* XXX: We need to process 'The "N" bit'. */
-
 	if (buffer[0] & 1) /* server-update. */
 		bp->data[2] = 1;
 	else
@@ -3627,7 +3658,7 @@ fqdn6_universe_decode(struct option_state *options,
 		goto error;
 
 	/* Convert the domain name to textual representation for config. */
-	len = MRns_name_ntop(buffer + 1, (char *)bp->data + 3, length - 1);
+	len = MRns_name_ntop(buffer + 1, (char *)bp->data + 3, bp_size - 3);
 	if (len == -1) {
 		log_error("Unable to convert dhcp6.fqdn domain name to "
 			  "printable form.");
