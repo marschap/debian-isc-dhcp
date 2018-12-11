@@ -1,3 +1,36 @@
+isc-dhcp (4.4.1-2) unstable; urgency=medium
+
+  * Set initial address to 0.0.0.0 on hurd (closes: #875566).
+    - Thanks to Joan Lledó.
+  * Update IPv4 address lifetimes on renew (closes: #834532).
+    - Thanks to Sven Ulland.
+
+ -- Michael Gilbert <mgilbert@debian.org>  Tue, 11 Dec 2018 03:55:12 +0000
+
+isc-dhcp (4.4.1-1) experimental; urgency=medium
+
+  * New upstream release.
+    - License changed from ISC license to MPL 2.0.
+  * Update debian/copyright.
+  * Drop unused libssl build dependency.
+  * Replace signing key with new upstream version.
+  * Update debian/watch to be slightly more robust.
+  * Support building with bind 9.11.5 (closes: #911975).
+    - Thanks to Thorsten Alteholz.
+  * Remove stale pid files in the server's postrm script (closes: #867362).
+    - Thanks to Thorsten Alteholz.
+  * Change maintainer email to isc-dhcp@packages.debian.org (closes: #899554).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 18 Nov 2018 00:07:49 +0000
+
+isc-dhcp (4.3.5-4) unstable; urgency=medium
+
+  * Acknowledge and apply the non-maintainer upload.
+    - Thanks to Salvatore Bonaccorso.
+  * Fix build failure caused by bind 9.11.3 (closes: #894093).
+
+ -- Michael Gilbert <mgilbert@debian.org>  Sun, 01 Apr 2018 05:37:25 +0000
+
 isc-dhcp (4.3.5-3.1) unstable; urgency=medium
 
   * Non-maintainer upload.

@@ -5,7 +5,7 @@ Author: Kees Cook <kees@ubuntu.com>
 
 --- a/client/dhclient.c
 +++ b/client/dhclient.c
-@@ -2251,9 +2251,12 @@ void send_discover (cpp)
+@@ -2390,9 +2390,12 @@ void send_discover (cpp)
  			client->interval += random() % (2 * client->interval);
  
  		/* Don't backoff past cutoff. */
@@ -21,7 +21,7 @@ Author: Kees Cook <kees@ubuntu.com>
  	} else if (!client->interval)
  		client->interval = client->config->initial_interval;
  
-@@ -2517,11 +2520,13 @@ void send_request (cpp)
+@@ -2663,11 +2666,13 @@ void send_request (cpp)
  
  	/* Don't backoff past cutoff. */
  	if (client -> interval >

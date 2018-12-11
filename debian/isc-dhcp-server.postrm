@@ -4,7 +4,8 @@ set -e
 
 case "$1" in
     remove)
-	# Nothing to do
+	# Remove stale pid files
+	rm -f /var/run/dhcpd.pid /var/run/dhcpd6.pid
 	;;
 
     purge)

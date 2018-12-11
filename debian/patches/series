@@ -1,25 +1,18 @@
 dhclient-script-exit-status.patch
-dhclient-exit-hook.patch
 dhclient-dividebyzero.patch
-dhclient-64bit-time.patch
-dhclient-more-detail.patch
 dhclient-release.patch
 
 dhcrelay-listen.patch
-
-dhcommon-getifaddrs.patch
 
 dhcpd-conf.patch
 
 fix-exit-hook-manpage.patch
 fix-manpage-macro.patch
-fix-manpage-error.patch
 fix-spelling.patch
 
 disable-nsupdate.patch
 
 system-bind.patch
+bind-includes.patch
 
-CVE-2017-3144.patch
-CVE-2018-5733.patch
-CVE-2018-5732.patch
+configure.patch

@@ -2,7 +2,7 @@ description: fix exit hook documentation
 
 --- a/client/dhclient-script.8
 +++ b/client/dhclient-script.8
-@@ -64,13 +64,15 @@ which is later used to create the
+@@ -62,13 +62,15 @@ which is later used to create the
  file.   To override the default behaviour, redefine this function in
  the enter hook script.
  .PP
@@ -22,7 +22,7 @@ description: fix exit hook documentation
  execution of the script, it can set the exit_status variable to a nonzero
  value, and
  .B CLIENTBINDIR/dhclient-script
-@@ -80,14 +82,18 @@ After all processing has completed,
+@@ -78,14 +80,18 @@ After all processing has completed,
  .B CLIENTBINDIR/dhclient-script
  checks for the presence of an executable
  .B ETCDIR/dhclient-exit-hooks

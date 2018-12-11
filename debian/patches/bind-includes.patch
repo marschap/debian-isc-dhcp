@@ -1,0 +1,27 @@
+description: explicitly include bind headers that are required
+author: Michael Gilbert <mgilbert@debian.org>
+bug-debian: http://bugs.debian.org/894093
+
+--- a/includes/dhcpd.h
++++ b/includes/dhcpd.h
+@@ -62,6 +62,10 @@
+ # include <net/if_dl.h>
+ #endif
+ 
++#include <isc/int.h>
++#include <isc/util.h>
++#include <isc/boolean.h>
++
+ #include <setjmp.h>
+ 
+ #include "cdefs.h"
+--- a/includes/omapip/omapip.h
++++ b/includes/omapip/omapip.h
+@@ -32,6 +32,7 @@
+ #include <stdarg.h>
+ 
+ #include <dns/tsec.h>
++#include <isc/boolean.h>
+ 
+ typedef unsigned int omapi_handle_t;
+ 

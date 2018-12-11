@@ -181,7 +181,7 @@ case "$reason" in
 
         # ensure interface is up
         # TODO: handle multiple interface case.
-        fsysopts /servers/socket/2 -i ${interface}
+        fsysopts /servers/socket/2 -i ${interface} -a 0.0.0.0 -m 255.0.0.0
 
         if [ -n "$alias_ip_address" ]; then
             # flush alias IP from interface

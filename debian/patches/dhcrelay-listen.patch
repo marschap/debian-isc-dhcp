@@ -3,7 +3,7 @@ author: Steinar H. Gunderson <sgunderson@bigfoot.com>
 
 --- a/common/discover.c
 +++ b/common/discover.c
-@@ -1112,9 +1112,9 @@ discover_interfaces(int state) {
+@@ -763,9 +763,9 @@ discover_interfaces(int state) {
  					  INTERFACE_REQUESTED);
  
  #ifdef DHCPv6
@@ -17,7 +17,7 @@ author: Steinar H. Gunderson <sgunderson@bigfoot.com>
  				log_fatal ("%s: not found", tmp -> name);
 --- a/relay/dhcrelay.c
 +++ b/relay/dhcrelay.c
-@@ -817,6 +817,11 @@ do_relay4(struct interface_info *ip, str
+@@ -933,6 +933,11 @@ do_relay4(struct interface_info *ip, str
  		return;
  	}
  

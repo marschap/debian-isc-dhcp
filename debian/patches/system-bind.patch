@@ -3,88 +3,141 @@ author: Michael Gilbert <mgilbert@debian.org>
 
 --- a/client/Makefile.am
 +++ b/client/Makefile.am
-@@ -15,7 +15,6 @@ dhclient_SOURCES = clparse.c dhclient.c
- 		   scripts/bsdos scripts/freebsd scripts/linux scripts/macos \
+@@ -14,9 +14,7 @@ dhclient_SOURCES = client_tables.c clpar
  		   scripts/netbsd scripts/nextstep scripts/openbsd \
  		   scripts/solaris scripts/openwrt
--dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a $(BINDLIBDIR)/libirs.a \
--		 $(BINDLIBDIR)/libdns.a $(BINDLIBDIR)/libisccfg.a $(BINDLIBDIR)/libisc.a
-+dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a -ldns-export -lisc-export
+ dhclient_LDADD = ../common/libdhcp.@A@ ../omapip/libomapi.@A@ \
+-		 @BINDLIBIRSDIR@/libirs.@A@ \
+-		 @BINDLIBDNSDIR@/libdns.@A@ \
+-		 @BINDLIBISCCFGDIR@/libisccfg.@A@ \
+-		 @BINDLIBISCDIR@/libisc.@A@
++                 -ldns-export \
++                 -lisc-export
  man_MANS = dhclient.8 dhclient-script.8 dhclient.conf.5 dhclient.leases.5
  EXTRA_DIST = $(man_MANS)
 --- a/dhcpctl/Makefile.am
 +++ b/dhcpctl/Makefile.am
-@@ -8,12 +8,10 @@ EXTRA_DIST = $(man_MANS)
+@@ -11,16 +11,12 @@ EXTRA_DIST = $(man_MANS)
  
  omshell_SOURCES = omshell.c
  omshell_LDADD = libdhcpctl.a ../common/libdhcp.a ../omapip/libomapi.a \
--	        $(BINDLIBDIR)/libirs.a $(BINDLIBDIR)/libdns.a \
--	        $(BINDLIBDIR)/libisccfg.a $(BINDLIBDIR)/libisc.a
-+	        -ldns-export -lisc-export
+-		$(BINDLIBIRSDIR)/libirs.a \
+-		$(BINDLIBDNSDIR)/libdns.a \
+-	        $(BINDLIBISCCFGDIR)/libisccfg.a \
+-		$(BINDLIBISCDIR)/libisc.a
++		-ldns-export \
++		-lisc-export
  
  libdhcpctl_a_SOURCES = dhcpctl.c callback.c remote.c
  
  cltest_SOURCES = cltest.c
  cltest_LDADD = libdhcpctl.a ../common/libdhcp.a ../omapip/libomapi.a \
--	       $(BINDLIBDIR)/libirs.a $(BINDLIBDIR)/libdns.a \
--               $(BINDLIBDIR)/libisccfg.a $(BINDLIBDIR)/libisc.a
-+	       -lirs-export -ldns-export -lisc-export
+-	       $(BINDLIBIRSDIR)/libirs.a \
+-	       $(BINDLIBDNSDIR)/libdns.a \
+-	       $(BINDLIBISCCFGDIR)/libisccfg.a \
+-	       $(BINDLIBISCDIR)/libisc.a
++	       -ldns-export \
++	       -lisc-export
 --- a/omapip/Makefile.am
 +++ b/omapip/Makefile.am
-@@ -12,6 +12,4 @@ man_MANS = omapi.3
- EXTRA_DIST = $(man_MANS)
+@@ -16,7 +16,5 @@ EXTRA_DIST = $(man_MANS)
  
  svtest_SOURCES = test.c
--svtest_LDADD = libomapi.a $(BINDLIBDIR)/libirs.a $(BINDLIBDIR)/libdns.a \
--		$(BINDLIBDIR)/libisccfg.a $(BINDLIBDIR)/libisc.a
--
-+svtest_LDADD = libomapi.a -lirs-export -ldns-export -lisc-export
+ svtest_LDADD = libomapi.a \
+-	       $(BINDLIBIRSDIR)/libirs.a \
+-	       $(BINDLIBDNSDIR)/libdns.a \
+-	       $(BINDLIBISCCFGDIR)/libisccfg.a \
+-	       $(BINDLIBISCDIR)/libisc.a
++	       -ldns-export \
++	       -lisc-export
 --- a/relay/Makefile.am
 +++ b/relay/Makefile.am
-@@ -5,8 +5,7 @@ AM_CPPFLAGS = -DLOCALSTATEDIR='"@localst
+@@ -3,10 +3,8 @@ AM_CPPFLAGS = -DLOCALSTATEDIR='"@localst
  sbin_PROGRAMS = dhcrelay
  dhcrelay_SOURCES = dhcrelay.c
- dhcrelay_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
--		 $(BINDLIBDIR)/libirs.a $(BINDLIBDIR)/libdns.a \
--		 $(BINDLIBDIR)/libisccfg.a $(BINDLIBDIR)/libisc.a
-+		 -ldns-export -lisc-export
+ dhcrelay_LDADD = ../common/libdhcp.@A@ ../omapip/libomapi.@A@ \
+-		 @BINDLIBIRSDIR@/libirs.@A@ \
+-		 @BINDLIBDNSDIR@/libdns.@A@ \
+-		 @BINDLIBISCCFGDIR@/libisccfg.@A@ \
+-		 @BINDLIBISCDIR@/libisc.@A@
++                 -ldns-export \
++                 -lisc-export
  man_MANS = dhcrelay.8
  EXTRA_DIST = $(man_MANS)
  
 --- a/server/Makefile.am
 +++ b/server/Makefile.am
-@@ -16,9 +16,7 @@ dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c c
- 
+@@ -15,10 +15,9 @@ dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c c
  dhcpd_CFLAGS = $(LDAP_CFLAGS)
- dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
--	      ../dhcpctl/libdhcpctl.a $(BINDLIBDIR)/libirs.a \
--	      $(BINDLIBDIR)/libdns.a $(BINDLIBDIR)/libisccfg.a \
--	      $(BINDLIBDIR)/libisc.a $(LDAP_LIBS)
-+	      ../dhcpctl/libdhcpctl.a -ldns-export -lisc-export $(LDAP_LIBS)
+ dhcpd_LDADD = ../common/libdhcp.@A@ ../omapip/libomapi.@A@ \
+ 	      ../dhcpctl/libdhcpctl.@A@ \
+-	      $(BINDLIBIRSDIR)/libirs.@A@ \
+-	      $(BINDLIBDNSDIR)/libdns.@A@ \
+-	      $(BINDLIBISCCFGDIR)/libisccfg.@A@ \
+-	      $(BINDLIBISCDIR)/libisc.@A@ $(LDAP_LIBS)
++	      -ldns-export \
++	      -lisc-export \
++	      $(LDAP_LIBS)
  
  man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  EXTRA_DIST = $(man_MANS)
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -23,10 +23,9 @@ EXTRA_DIST = RELNOTES LICENSE \
- 	     doc/devel/arch.dox doc/devel/atf.dox doc/devel/contrib.dox \
- 	     doc/devel/debug.dox doc/devel/isc-logo.jpg doc/devel/mainpage.dox \
- 	     doc/devel/omapi.dox doc/devel/qa.dox util/bindvar.sh \
--	     bind/Makefile.in bind/bind.tar.gz bind/version.tmp \
- 	     common/tests/Atffile server/tests/Atffile
+@@ -38,7 +38,7 @@ endif
  
--SUBDIRS = @BINDSRCDIR@ includes tests common omapip client dhcpctl relay server
+ # Use an autoconf substitution vs an automake conditional here
+ # to fool automake when the bind directory does not exist.
+-SUBDIRS = @BINDSUBDIR@ includes tests common omapip client dhcpctl relay server
 +SUBDIRS = includes tests common omapip client dhcpctl relay server
  
  nobase_include_HEADERS = dhcpctl/dhcpctl.h
  
 --- a/configure.ac
 +++ b/configure.ac
-@@ -805,7 +805,6 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
+@@ -789,7 +789,6 @@ no)
+ 		bindversion=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
+ 		BINDSRCDIR="${my_abs_srcdir}/bind/bind-$bindversion"
+ 	fi
+-	AC_CONFIG_FILES([$srcdir/bind/Makefile])
  
- AC_CONFIG_FILES([
-   Makefile
--  $srcdir/bind/Makefile
-   client/Makefile
-   client/tests/Makefile
-   common/Makefile
+ 	BINDLIBIRSDIR="$BINDSRCDIR/lib/irs"
+ 	BINDLIBDNSDIR="$BINDSRCDIR/lib/dns"
+@@ -800,17 +799,6 @@ no)
+ 	if test ! -d "$use_libbind"; then
+ 		AC_MSG_ERROR([Cannot find bind directory at $use_libbind])
+ 	fi
+-	if test ! -d "$use_libbind/include" -o \
+-	        ! -f "$use_libbind/include/isc/buffer.h"
+-	then
+-		AC_MSG_ERROR([Cannot find bind includes at $use_libbind/include])
+-	fi
+-	if test	! -d "$use_libbind/lib" -o \
+-	        \( ! -f "$use_libbind/lib/libisc.a" -a \
+-		   ! -f	"$use_libbind/lib/libisc.la" \)
+-	then
+-		AC_MSG_ERROR([Cannot find bind libraries at $use_libbind/lib])
+-	fi
+ 	BINDDIR="$use_libbind"
+ 	BINDLIBIRSDIR="$BINDDIR/lib"
+ 	BINDLIBDNSDIR="$BINDDIR/lib"
+@@ -851,20 +839,6 @@ AC_ARG_ENABLE(libtool,
+ [use GNU libtool for dynamic shared libraries (default is no).]),
+ 	want_libtool="$enableval")
+ 
+-if test "$use_libbind" != "no"; then
+-	if test "$want_libtool" = "yes" -a \
+-	        ! -f "$use_libbind/lib/libisc.la"
+-	then
+-		AC_MSG_ERROR([Cannot find dynamic libraries at $use_libbind/lib])
+-	fi
+-	if test "$want_libtool" = "no" -a \
+-	        ! -f "$use_libbind/lib/libisc.a"
+-	then
+-		AC_MSG_ERROR([Cannot find static libraries at $use_libbind/lib])
+-	fi
+-fi
+-
+-
+ if test "$want_libtool" = "yes"; then
+ 	AC_MSG_WARN([legacy configure is used but libtool is enabled. Trying to recover...])
+ 	# expand $ac_configure_args

@@ -12,6 +12,7 @@ DHCLIENT_SCRIPT=/sbin/dhclient-script
 
 CFLAGS+=-Wall
 CFLAGS+=-I/usr/include/bind-export
+CFLAGS+=-DCALL_SCRIPT_ON_ONETRY_FAIL
 CFLAGS+=$(shell dpkg-buildflags --get CFLAGS)
 
 CFLAGS+=-D_PATH_DHCPD_CONF='\"/etc/dhcp/dhcpd.conf\"'
@@ -23,7 +24,7 @@ CFLAGS+=-D_PATH_DHCLIENT_CONF='\"/etc/dhcp/dhclient.conf\"'
 CFLAGS+=-D_PATH_DHCLIENT_DB='\"$(LEASE_PATH)/dhclient.leases\"'
 CFLAGS+=-D_PATH_DHCLIENT6_DB='\"$(LEASE_PATH)/dhclient6.leases\"'
 
-CONFFLAGS=--prefix=/usr --enable-log-pid --enable-paranoia
+CONFFLAGS=--prefix=/usr --with-libbind=/usr --enable-log-pid --enable-paranoia
 
 # cross-architecture building
 ifneq ($(DEB_HOST_GNU_TYPE),$(DEB_BUILD_GNU_TYPE))
@@ -83,7 +84,3 @@ override_dh_install:
 override_dh_installinit:
 	dh_installinit -Nisc-dhcp-server
 	dh_installinit -pisc-dhcp-server --error-handler=true
-
-override_dh_strip:
-	# this can be removed once stretch is released
-	dh_strip --ddeb-migration='isc-dhcp-dbg (<< 4.3.3-7~)'

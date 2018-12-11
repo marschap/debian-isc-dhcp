@@ -1,0 +1,23 @@
+description: don't regenerate Makefile.am files
+author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -977,17 +977,13 @@ AC_CONFIG_FILES([
+   Makefile
+   client/Makefile
+   client/tests/Makefile
+-  common/Makefile.am
+   common/Makefile
+   common/tests/Makefile
+-  dhcpctl/Makefile.am
+   dhcpctl/Makefile
+   includes/Makefile
+-  omapip/Makefile.am
+   omapip/Makefile
+   relay/Makefile
+   server/Makefile
+-  tests/Makefile.am
+   tests/Makefile
+   tests/unittest.sh
+   server/tests/Makefile
